@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>挑戰一：空間維度與單位變形蟲 - 步驟二</title>
+    <title>挑戰一：空間維度與單位變形蟲 - 步驟三優化版</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
@@ -52,88 +52,124 @@
             z-index: 1;
         }
 
-        /* 【數學排版混合層】
-            此層疊加於 Canvas 之上，且位於 app-viewport 內部。
-            因此它會伴隨 16:9 容器同步進行 CSS Scale 縮放，
-            我們可以直接在裡面用 HTML/CSS 排版出極致清晰的次方、分數等數學符號！
-        */
+        /* 數學排版混合層 */
         #dom-ui-layer {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* 穿透點擊，不干擾 Canvas 的觸控手勢 */
+            pointer-events: none;
             z-index: 2;
         }
 
-        /* 內建馬卡龍風格 UI 元素 */
         .interactive-overlay {
             position: absolute;
-            pointer-events: auto; /* 恢復特定 UI 元素的點擊能力 */
+            pointer-events: auto;
         }
 
-        /* 測試用答題反饋顯示器 */
-        #math-display-card {
-            top: 40px;
-            right: 40px;
+        /* 場景切換頁籤 (極致放大行動端規格，確保大拇指易點按) */
+        #scene-selector {
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 24px;
             background: rgba(255, 255, 255, 0.95);
+            padding: 10px;
+            border-radius: 50px;
             border: 3px solid #BEE3F8;
-            border-radius: 20px;
-            padding: 20px 30px;
-            box-shadow: 0 8px 24px rgba(49, 130, 206, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .tab-btn {
+            border: none;
+            padding: 14px 36px;
+            font-family: 'Kosugi Maru', sans-serif;
+            font-size: 22px; /* 再次放大 */
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #4A5568;
+            background: transparent;
+        }
+
+        .tab-btn.active {
+            background-color: #3182CE;
+            color: white;
+            box-shadow: 0 6px 14px rgba(49, 130, 206, 0.4);
+        }
+
+        /* 答題算式卡片 (實機清晰放大版) */
+        #math-display-card {
+            top: 150px;
+            right: 50px;
+            background: rgba(255, 255, 255, 0.98);
+            border: 4px solid #BEE3F8;
+            border-radius: 24px;
+            padding: 28px 40px;
+            box-shadow: 0 15px 35px rgba(49, 130, 206, 0.18);
             color: #2D3748;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-width: 460px;
+            max-width: 550px;
         }
 
         #math-display-card.success-pulse {
             border-color: #48BB78;
             background-color: #F0FFF4;
             transform: scale(1.05);
-            box-shadow: 0 12px 30px rgba(72, 187, 120, 0.2);
+            box-shadow: 0 20px 45px rgba(72, 187, 120, 0.3);
         }
 
-        /* 標準國中理化數學格式排版 */
+        .card-title {
+            font-size: 22px; /* 提升易讀性 */
+            color: #4A5568;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+
         .formula-text {
-            font-size: 26px;
+            font-size: 36px; /* 暴增字體尺寸，解決縮放後偏小的痛點 */
             font-weight: bold;
             color: #2B6CB0;
             display: flex;
             align-items: center;
-            gap: 10px;
+            flex-wrap: wrap;
+            gap: 14px;
         }
 
-        /* 次方標準呈現 */
         .formula-text sup {
-            font-size: 16px;
+            font-size: 24px; /* 次方明顯上標 */
             color: #E53E3E;
-            margin-left: 2px;
+            margin-left: 3px;
         }
 
-        /* 觸控測試大按鈕 */
+        /* 下方操作大按鈕 (高度提升至 60px 行動端黃金規格) */
         .feedback-trigger-btn {
             bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(135deg, #48BB78 0%, #38A169 100%);
+            background: linear-gradient(135deg, #4299E1 0%, #3182CE 100%);
             color: white;
             border: none;
-            padding: 16px 40px;
+            padding: 18px 55px;
             font-family: 'Kosugi Maru', sans-serif;
-            font-size: 24px;
+            font-size: 28px; /* 大字體 */
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 8px 0px #276749, 0 15px 30px rgba(56, 161, 105, 0.3);
+            box-shadow: 0 8px 0px #2B6CB0, 0 15px 30px rgba(49, 130, 206, 0.35);
             transition: transform 0.05s ease, box-shadow 0.05s ease;
         }
 
         .feedback-trigger-btn:active {
             transform: translateX(-50%) translateY(6px);
-            box-shadow: 0 2px 0px #276749, 0 5px 15px rgba(56, 161, 105, 0.3);
+            box-shadow: 0 2px 0px #2B6CB0, 0 5px 15px rgba(49, 130, 206, 0.3);
         }
 
-        /* 外部開發者偵錯面板（加入 Touch-Action 防禦） */
+        /* 偵錯面板 */
         #debug-panel {
             position: fixed;
             top: 10px;
@@ -142,15 +178,13 @@
             background: rgba(255, 255, 255, 0.98);
             border: 2px solid #BEE3F8;
             border-radius: 14px;
-            width: 280px;
+            width: 260px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             overflow: hidden;
             max-height: calc(100vh - 20px);
             display: flex;
             flex-direction: column;
-            overscroll-behavior: contain; /* 防止背景頁面跟著橡皮筋滑動 */
-            touch-action: pan-y; /* 限制僅允許垂直觸控滑動 */
         }
 
         #debug-panel.collapsed {
@@ -161,7 +195,7 @@
         #btn-toggle-debug {
             width: 100%;
             height: 44px;
-            background: #3182CE;
+            background: #2B6CB0;
             color: white;
             border: none;
             font-family: inherit;
@@ -180,7 +214,6 @@
             flex-direction: column;
             gap: 8px;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
         }
 
         .debug-row {
@@ -194,10 +227,6 @@
             font-weight: bold;
             color: #2D3748;
         }
-
-        #touch-coordinates {
-            color: #E53E3E;
-        }
     </style>
 </head>
 <body>
@@ -206,26 +235,28 @@
     <div id="app-viewport">
         <canvas id="game-canvas"></canvas>
 
-        <!-- 
-            標準數學排版層 (DOM Layer)
-            此層直接隸屬於 app-viewport 下，會跟著 Canvas 一起完美縮放。
-            這裡用來繪製漂亮的國中數學算式，完全消滅工程師符號 3^5 
-        -->
         <div id="dom-ui-layer">
-            <!-- 實時數學算式卡片 -->
+            <!-- 場景切換頁籤 -->
+            <div id="scene-selector" class="interactive-overlay">
+                <button class="tab-btn active" id="btn-tab-lv1">LV.1 二維面積</button>
+                <button class="tab-btn" id="btn-tab-lv3">LV.3 容體跨界</button>
+            </div>
+
+            <!-- 動態公式卡片 -->
             <div id="math-display-card" class="interactive-overlay">
-                <div class="formula-text">
-                    <span>1 m<sup>3</sup></span>
+                <div class="card-title" id="math-card-title">LV.1：平方大爆炸換算關係</div>
+                <div class="formula-text" id="math-formula">
+                    <span>1 m<sup>2</sup></span>
                     <span>=</span>
-                    <span>1000 dm<sup>3</sup></span>
+                    <span>100 cm × 100 cm</span>
                     <span>=</span>
-                    <span style="color: #3182CE;">1,000,000 cm<sup>3</sup></span>
+                    <span style="color: #48BB78;">10,000 cm<sup>2</sup></span>
                 </div>
             </div>
 
-            <!-- 點擊觸發粒子大按鈕 -->
-            <button id="btn-trigger-success" class="interactive-overlay feedback-trigger-btn">
-                🎉 模擬答對 (發射 Confetti)
+            <!-- 主動操作大按鈕 -->
+            <button id="btn-main-action" class="interactive-overlay feedback-trigger-btn">
+                ⚡ 分裂成 10,000 網格
             </button>
         </div>
     </div>
@@ -235,30 +266,26 @@
         <button id="btn-toggle-debug">⚙️ 展開/收折偵錯面板</button>
         <div class="debug-body">
             <div class="debug-row">
-                <span>Canvas 縮放比:</span>
-                <span id="val-scale" class="debug-value">1.000</span>
+                <span>目前場景:</span>
+                <span id="val-scene" class="debug-value" style="color: #3182CE;">LV.1</span>
             </div>
             <div class="debug-row">
-                <span>觸控映射 X:</span>
-                <span id="val-touch-x" class="debug-value">None</span>
+                <span>網格分裂進度:</span>
+                <span id="val-split-progress" class="debug-value">0%</span>
             </div>
             <div class="debug-row">
-                <span>觸控映射 Y:</span>
-                <span id="val-touch-y" class="debug-value">None</span>
+                <span>量筒倒入進度:</span>
+                <span id="val-fluid-progress" class="debug-value">0%</span>
             </div>
             <div class="debug-row">
                 <span>粒子總數:</span>
                 <span id="val-particles" class="debug-value">0</span>
             </div>
-            <div class="debug-row">
-                <span>音效模擬頻率:</span>
-                <span id="val-audio-freq" class="debug-value">0 Hz</span>
-            </div>
         </div>
     </div>
 
     <script>
-        // --- 1. 基礎宣告與縮放核心 ---
+        // --- 1. 基礎設定與幾何宣告 ---
         const BASE_WIDTH = 1280;
         const BASE_HEIGHT = 720;
         
@@ -267,6 +294,17 @@
         const ctx = canvas.getContext('2d');
         
         let currentScale = 1;
+        let currentScene = 'LV.1';
+
+        // 動態狀態控制
+        let lv1SplitProgress = 0;
+        let isLv1Animating = false;
+        
+        let lv3PourProgress = 0; // 0 代表滿水，1 代表完全倒入
+        let isLv3Animating = false;
+
+        // 粒子容器
+        const confettiList = [];
 
         function updateLayout() {
             const windowWidth = window.innerWidth;
@@ -277,202 +315,430 @@
             currentScale = Math.min(scaleX, scaleY);
 
             viewport.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
-            document.getElementById('val-scale').textContent = currentScale.toFixed(3);
         }
 
-        // --- 2. 核心工法：等比例觸控座標映射系統 ---
-        function getCanvasPointerCoords(e) {
-            const rect = canvas.getBoundingClientRect();
-            
-            // 兼容觸控事件與滑鼠事件
-            let clientX, clientY;
-            if (e.touches && e.touches.length > 0) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-
-            // 幾何投影轉換：扣除縮放視口的左/上邊界，並除以當前的 CSS scale 倍率
-            const mappedX = (clientX - rect.left) / currentScale;
-            const mappedY = (clientY - rect.top) / currentScale;
-
-            return {
-                x: Math.max(0, Math.min(BASE_WIDTH, mappedX)),
-                y: Math.max(0, Math.min(BASE_HEIGHT, mappedY))
-            };
-        }
-
-        // --- 3. 粒子物理回饋系統 (Confetti Particle Class) ---
+        // --- 2. 物理碎紙花粒子系統 ---
         class ConfettiParticle {
             constructor(startX, startY) {
                 this.x = startX;
                 this.y = startY;
-                
-                // 爆炸拋射物理
                 const angle = Math.random() * Math.PI * 2;
-                const speed = 5 + Math.random() * 15;
+                const speed = 6 + Math.random() * 12;
                 this.vx = Math.cos(angle) * speed;
-                this.vy = Math.sin(angle) * speed - (5 + Math.random() * 5); // 向上噴發力道
-                
-                // 物理尺寸與旋轉
-                this.width = 8 + Math.random() * 12;
-                this.height = 4 + Math.random() * 8;
+                this.vy = Math.sin(angle) * speed - 6;
+                this.width = 10 + Math.random() * 10;
+                this.height = 5 + Math.random() * 6;
                 this.rotation = Math.random() * Math.PI;
                 this.rotationSpeed = -0.1 + Math.random() * 0.2;
-                
-                // 重力與風阻
-                this.gravity = 0.35;
-                this.resistance = 0.98;
-                
-                // 馬卡龍色系配色池
-                const colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A8DADC', '#BDB2FF', '#FFC6FF'];
+                this.gravity = 0.3;
+                this.resistance = 0.97;
+                const colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#BDB2FF', '#FFC6FF'];
                 this.color = colors[Math.floor(Math.random() * colors.length)];
-                
-                // 生命週期
                 this.alpha = 1;
-                this.decay = 0.01 + Math.random() * 0.015;
+                this.decay = 0.01 + Math.random() * 0.01;
             }
 
             update() {
                 this.vx *= this.resistance;
                 this.vy *= this.resistance;
                 this.vy += this.gravity;
-                
                 this.x += this.vx;
                 this.y += this.vy;
-                
                 this.rotation += this.rotationSpeed;
                 this.alpha -= this.decay;
             }
 
             draw(context) {
                 if (this.alpha <= 0) return;
-                
                 context.save();
                 context.translate(this.x, this.y);
                 context.rotate(this.rotation);
                 context.globalAlpha = this.alpha;
                 context.fillStyle = this.color;
-                
-                // 繪製彩色碎紙片
                 context.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
                 context.restore();
             }
         }
 
-        // 粒子管理器
-        const confettiList = [];
-        
-        function triggerSuccessConfetti() {
-            // 在視口中央偏下（按鈕上方）產生大量彩色碎片
-            const emitterX = BASE_WIDTH / 2;
-            const emitterY = BASE_HEIGHT / 2 + 100;
+        function triggerConfetti(x, y) {
+            for (let i = 0; i < 80; i++) {
+                confettiList.push(new ConfettiParticle(x, y));
+            }
+            const card = document.getElementById('math-display-card');
+            card.classList.add('success-pulse');
+            setTimeout(() => card.classList.remove('success-pulse'), 600);
+        }
+
+        // --- 3. LV.1「二維網格裂變」渲染 ---
+        function renderLV1Scene() {
+            const originX = 150;
+            const originY = 160;
+            const boxSize = 400;
+
+            // 繪製背景發光
+            const grad = ctx.createRadialGradient(originX + boxSize/2, originY + boxSize/2, 50, originX + boxSize/2, originY + boxSize/2, boxSize);
+            grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            grad.addColorStop(1, 'rgba(232, 240, 248, 0.4)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(originX - 30, originY - 30, boxSize + 60, boxSize + 60);
+
+            // 繪製正方形實體
+            ctx.fillStyle = 'rgba(168, 218, 220, 0.25)';
+            ctx.fillRect(originX, originY, boxSize, boxSize);
             
-            for (let i = 0; i < 120; i++) {
-                confettiList.push(new ConfettiParticle(emitterX, emitterY));
+            ctx.strokeStyle = '#457B9D';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(originX, originY, boxSize, boxSize);
+
+            // 繪製長寬標示 (字體放大至 28px)
+            ctx.fillStyle = '#1D3557';
+            ctx.font = 'bold 28px "Kosugi Maru", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('長 = 1 m (100 cm)', originX + boxSize / 2, originY - 20);
+            
+            ctx.save();
+            ctx.translate(originX - 30, originY + boxSize / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('寬 = 1 m (100 cm)', 0, 0);
+            ctx.restore();
+
+            if (lv1SplitProgress > 0) {
+                const gridLines = Math.floor(lv1SplitProgress * 100);
+                ctx.strokeStyle = `rgba(69, 123, 157, ${0.1 + lv1SplitProgress * 0.45})`;
+                ctx.lineWidth = 1;
+
+                for (let i = 1; i < gridLines; i++) {
+                    const pos = originX + (boxSize / 100) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(pos, originY);
+                    ctx.lineTo(pos, originY + boxSize);
+                    ctx.stroke();
+
+                    const posH = originY + (boxSize / 100) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(originX, posH);
+                    ctx.lineTo(originX + boxSize, posH);
+                    ctx.stroke();
+                }
+
+                if (gridLines >= 100) {
+                    ctx.strokeStyle = '#E63946';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 4]);
+                    const unitSize = boxSize / 100;
+                    ctx.strokeRect(originX, originY, unitSize * 10, unitSize * 10);
+                    ctx.setLineDash([]);
+                    
+                    ctx.fillStyle = '#E63946';
+                    ctx.font = 'bold 22px "Noto Sans TC", sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('此紅色區域為 100 cm²', originX + unitSize * 10 + 15, originY + unitSize * 10 + 25);
+                }
+            }
+        }
+
+        // --- 4. LV.3「二等角非對稱投影 3D 容器與水」渲染核心 ---
+        function renderLV3Scene() {
+            // 定錨點
+            const isoX = 350;
+            const isoY = 430; // 稍微拉高，為下方文字留空間
+            const size = 180;
+
+            // 【核心重構：不對稱二等角投影映射】
+            // 採用 22度 與 38度，打破對稱性，創造極佳立體空間感
+            function getIsoPoint(x, y, z) {
+                const radLeft = 22 * Math.PI / 180;
+                const radRight = 38 * Math.PI / 180;
+                return {
+                    x: isoX + x * Math.cos(radRight) - y * Math.cos(radLeft),
+                    y: isoY + x * Math.sin(radRight) + y * Math.sin(radLeft) - z
+                };
             }
 
-            // 觸發算式字卡發光跳躍動畫
-            const mathCard = document.getElementById('math-display-card');
-            mathCard.classList.add('success-pulse');
-            setTimeout(() => {
-                mathCard.classList.remove('success-pulse');
-            }, 600);
+            // 立方體 8 角落座標映射
+            const pts = {
+                A: getIsoPoint(0, 0, 0),       B: getIsoPoint(size, 0, 0),
+                C: getIsoPoint(size, size, 0), D: getIsoPoint(0, size, 0),
+                E: getIsoPoint(0, 0, size),    F: getIsoPoint(size, 0, size),
+                G: getIsoPoint(size, size, size), H: getIsoPoint(0, size, size)
+            };
 
-            // 模擬音效頻率累加 (Combo 音調升高)
-            simulateComboAudio();
-        }
+            // 1. 繪製玻璃立方體「內側/後排骨架與背板」(Z-Sorting 最底層)
+            ctx.fillStyle = 'rgba(237, 242, 247, 0.4)'; // 極淡磨砂背牆
+            ctx.beginPath();
+            ctx.moveTo(pts.A.x, pts.A.y);
+            ctx.lineTo(pts.B.x, pts.B.y);
+            ctx.lineTo(pts.C.x, pts.C.y);
+            ctx.lineTo(pts.D.x, pts.D.y);
+            ctx.closePath();
+            ctx.fill();
 
-        // --- 4. 模擬 Combo 升音調音效回饋 ---
-        let comboCount = 0;
-        let comboResetTimer = null;
-        
-        function simulateComboAudio() {
-            comboCount++;
-            clearTimeout(comboResetTimer);
+            ctx.strokeStyle = 'rgba(160, 174, 192, 0.5)'; // 後排虛擬骨架線
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(pts.A.x, pts.A.y); ctx.lineTo(pts.B.x, pts.B.y);
+            ctx.moveTo(pts.A.x, pts.A.y); ctx.lineTo(pts.D.x, pts.D.y);
+            ctx.moveTo(pts.A.x, pts.A.y); ctx.lineTo(pts.E.x, pts.E.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 2. 繪製水體幾何 (水高度隨著倒出而流暢縮減)
+            const waterHeight = size * (1 - lv3PourProgress);
             
-            // 音效頻率隨 Combo 數升高：基礎 400Hz，每次疊加 150Hz，最高 1600Hz
-            const baseFreq = 400;
-            const currentFreq = Math.min(1600, baseFreq + (comboCount - 1) * 150);
+            if (waterHeight > 2) {
+                // 水體頂點動態映射
+                const wPts = {
+                    A: getIsoPoint(0, 0, 0),       B: getIsoPoint(size, 0, 0),
+                    C: getIsoPoint(size, size, 0), D: getIsoPoint(0, size, 0),
+                    E: getIsoPoint(0, 0, waterHeight), F: getIsoPoint(size, 0, waterHeight),
+                    G: getIsoPoint(size, size, waterHeight), H: getIsoPoint(0, size, waterHeight)
+                };
+
+                // 左水牆 (深邃寶藍色)
+                ctx.fillStyle = 'rgba(43, 108, 176, 0.8)';
+                ctx.beginPath();
+                ctx.moveTo(wPts.A.x, wPts.A.y);
+                ctx.lineTo(wPts.D.x, wPts.D.y);
+                ctx.lineTo(wPts.H.x, wPts.H.y);
+                ctx.lineTo(wPts.E.x, wPts.E.y);
+                ctx.closePath();
+                ctx.fill();
+
+                // 右水牆 (明亮水藍色)
+                ctx.fillStyle = 'rgba(66, 153, 225, 0.8)';
+                ctx.beginPath();
+                ctx.moveTo(wPts.D.x, wPts.D.y);
+                ctx.lineTo(wPts.C.x, wPts.C.y);
+                ctx.lineTo(wPts.G.x, wPts.G.y);
+                ctx.lineTo(wPts.H.x, wPts.H.y);
+                ctx.closePath();
+                ctx.fill();
+
+                // 水頂部液面 (亮藍高光)
+                ctx.fillStyle = 'rgba(144, 205, 244, 0.9)';
+                ctx.beginPath();
+                ctx.moveTo(wPts.E.x, wPts.E.y);
+                ctx.lineTo(wPts.F.x, wPts.F.y);
+                ctx.lineTo(wPts.G.x, wPts.G.y);
+                ctx.lineTo(wPts.H.x, wPts.H.y);
+                ctx.closePath();
+                ctx.fill();
+
+                // 液面邊緣線與反射波紋
+                ctx.strokeStyle = '#2B6CB0';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(wPts.E.x, wPts.E.y);
+                ctx.lineTo(wPts.F.x, wPts.F.y);
+                ctx.lineTo(wPts.G.x, wPts.G.y);
+                ctx.lineTo(wPts.H.x, wPts.H.y);
+                ctx.closePath();
+                ctx.stroke();
+
+                // 隨機繪製細微水面發光波紋
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(wPts.H.x + 30, wPts.H.y + 10);
+                ctx.lineTo(wPts.F.x - 30, wPts.F.y + 10);
+                ctx.stroke();
+            }
+
+            // 3. 繪製前排玻璃外牆 (高透亮與 specular slash 反光)
+            // 右前側玻璃面
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.beginPath();
+            ctx.moveTo(pts.D.x, pts.D.y);
+            ctx.lineTo(pts.C.x, pts.C.y);
+            ctx.lineTo(pts.G.x, pts.G.y);
+            ctx.lineTo(pts.H.x, pts.H.y);
+            ctx.closePath();
+            ctx.fill();
+
+            // 左前側玻璃面
+            ctx.beginPath();
+            ctx.moveTo(pts.D.x, pts.D.y);
+            ctx.lineTo(pts.A.x, pts.A.y);
+            ctx.lineTo(pts.E.x, pts.E.y);
+            ctx.lineTo(pts.H.x, pts.H.y);
+            ctx.closePath();
+            ctx.fill();
+
+            // 【玻璃高光斜切帶】
+            // 在右前玻璃面板上拉出一條對角亮白漸層，強調 3D 材質反射
+            const sheenGrad = ctx.createLinearGradient(pts.C.x, pts.C.y, pts.H.x, pts.H.y - 100);
+            sheenGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            sheenGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.45)');
+            sheenGrad.addColorStop(0.6, 'rgba(255, 255, 255, 0.45)');
+            sheenGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
             
-            document.getElementById('val-audio-freq').textContent = `${currentFreq} Hz (Combo x${comboCount})`;
-            document.getElementById('val-audio-freq').style.color = '#38A169';
+            ctx.fillStyle = sheenGrad;
+            ctx.beginPath();
+            ctx.moveTo(pts.C.x - 40, pts.C.y);
+            ctx.lineTo(pts.C.x + 20, pts.C.y);
+            ctx.lineTo(pts.H.x + 20, pts.H.y - 40);
+            ctx.lineTo(pts.H.x - 40, pts.H.y - 40);
+            ctx.closePath();
+            ctx.fill();
 
-            // 3秒無點擊，Combo 歸零重設
-            comboResetTimer = setTimeout(() => {
-                comboCount = 0;
-                document.getElementById('val-audio-freq').textContent = '0 Hz';
-                document.getElementById('val-audio-freq').style.color = '#2D3748';
-            }, 3000);
+            // 4. 繪製前排主邊框 (強化前排輪廓，定錨立體邊界)
+            ctx.strokeStyle = '#2D3748';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // 底前緣
+            ctx.beginPath();
+            ctx.moveTo(pts.B.x, pts.B.y);
+            ctx.lineTo(pts.C.x, pts.C.y);
+            ctx.lineTo(pts.D.x, pts.D.y);
+            ctx.stroke();
+
+            // 頂前緣
+            ctx.beginPath();
+            ctx.moveTo(pts.E.x, pts.E.y);
+            ctx.lineTo(pts.F.x, pts.F.y);
+            ctx.lineTo(pts.G.x, pts.G.y);
+            ctx.lineTo(pts.H.x, pts.H.y);
+            ctx.closePath();
+            ctx.stroke();
+
+            // 前方垂直骨架
+            ctx.beginPath();
+            ctx.moveTo(pts.B.x, pts.B.y); ctx.lineTo(pts.F.x, pts.F.y);
+            ctx.moveTo(pts.C.x, pts.C.y); ctx.lineTo(pts.G.x, pts.G.y);
+            ctx.moveTo(pts.D.x, pts.D.y); ctx.lineTo(pts.H.x, pts.H.y);
+            ctx.stroke();
+
+            // 滿水狀態物理指示字
+            if (lv3PourProgress < 0.1) {
+                ctx.fillStyle = '#1A365D';
+                ctx.font = 'bold 20px "Noto Sans TC", sans-serif';
+                ctx.textAlign = 'center';
+                // 指向水中央
+                const centerWater = getIsoPoint(size/2, size/2, size/2);
+                ctx.fillText('滿水狀態 (1.2L)', centerWater.x, centerWater.y);
+            }
+
+            // 左側底說明標籤 (加大字體至 28px)
+            ctx.fillStyle = '#2D3748';
+            ctx.font = 'bold 28px "Kosugi Maru", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('10cm × 10cm × 10cm 容器', isoX - 10, isoY + 110);
+
+
+            // B. 右側：量筒幾何 (保持清晰大刻度)
+            const cylX = 850;
+            const cylY = 220;
+            const cylW = 120;
+            const cylH = 340;
+
+            // 玻璃背景
+            ctx.fillStyle = 'rgba(237, 242, 247, 0.6)';
+            ctx.fillRect(cylX, cylY, cylW, cylH);
+            
+            // 水位上升
+            const targetWaterH = cylH * 0.85 * lv3PourProgress;
+            if (targetWaterH > 0) {
+                ctx.fillStyle = 'rgba(66, 153, 225, 0.85)';
+                ctx.fillRect(cylX, cylY + cylH - targetWaterH, cylW, targetWaterH);
+            }
+
+            // 量筒外框
+            ctx.strokeStyle = '#2D3748';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(cylX, cylY);
+            ctx.lineTo(cylX, cylY + cylH);
+            ctx.lineTo(cylX + cylW, cylY + cylH);
+            ctx.lineTo(cylX + cylW, cylY);
+            ctx.stroke();
+
+            // 刻度標示 (加大字體至 20px，行動端高度防瞇眼)
+            ctx.fillStyle = '#1A202C';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.textAlign = 'left';
+            
+            const divisions = 5;
+            for (let i = 0; i <= divisions; i++) {
+                const tickY = cylY + cylH - (cylH * 0.85 / divisions) * i;
+                
+                ctx.strokeStyle = '#1A202C';
+                ctx.lineWidth = i % 5 === 0 ? 3.5 : 1.5;
+                ctx.beginPath();
+                ctx.moveTo(cylX, tickY);
+                ctx.lineTo(cylX + (i % 5 === 0 ? 25 : 15), tickY);
+                ctx.stroke();
+
+                if (i > 0) {
+                    const mlValue = (200 * i);
+                    const lValue = (mlValue / 1000).toFixed(1);
+                    ctx.fillText(`${mlValue} mL (${lValue} L)`, cylX + 35, tickY + 7);
+                }
+            }
+
+            // 右側量筒說明標籤 (加大至 28px)
+            ctx.fillStyle = '#2D3748';
+            ctx.font = 'bold 28px "Kosugi Maru", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('1000 mL (1 L) 量筒', cylX + cylW/2, cylY + cylH + 50);
+
+            // C. 拋物線液態倒入動態
+            if (isLv3Animating && lv3PourProgress > 0 && lv3PourProgress < 1) {
+                ctx.strokeStyle = 'rgba(66, 153, 225, 0.95)';
+                ctx.lineWidth = 14;
+                ctx.lineCap = 'round';
+                
+                const startPt = getIsoPoint(size/2, size/2, waterHeight);
+                const endPt = { x: cylX + cylW/2, y: cylY + 10 };
+                
+                ctx.beginPath();
+                ctx.moveTo(startPt.x, startPt.y);
+                ctx.bezierCurveTo(startPt.x + 180, startPt.y - 130, endPt.x - 180, endPt.y - 130, endPt.x, endPt.y);
+                ctx.stroke();
+
+                if (Math.random() > 0.4) {
+                    confettiList.push(new ConfettiParticle(endPt.x, cylY + cylH - targetWaterH));
+                }
+            }
         }
 
-        // --- 5. 互動手勢追蹤核心 (畫布拖曳塗鴉測試) ---
-        let isDrawing = false;
-        const trailPoints = [];
-
-        function handlePointerStart(e) {
-            isDrawing = true;
-            const coords = getCanvasPointerCoords(e);
-            updateTouchLogs(coords.x, coords.y);
-            trailPoints.push({ x: coords.x, y: coords.y, size: 25, alpha: 1 });
-        }
-
-        function handlePointerMove(e) {
-            if (!isDrawing) return;
-            const coords = getCanvasPointerCoords(e);
-            updateTouchLogs(coords.x, coords.y);
-            trailPoints.push({ x: coords.x, y: coords.y, size: 25, alpha: 1 });
-        }
-
-        function handlePointerEnd() {
-            isDrawing = false;
-        }
-
-        function updateTouchLogs(x, y) {
-            document.getElementById('val-touch-x').textContent = Math.round(x);
-            document.getElementById('val-touch-y').textContent = Math.round(y);
-        }
-
-        // --- 6. 遊戲更新與繪圖主迴圈 (60FPS Frame Loop) ---
+        // --- 5. 畫面更新與繪圖主迴圈 (60FPS Frame Loop) ---
         function mainLoop() {
             ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
 
-            // A. 繪製精緻的馬卡龍網格背景
+            // A. 繪製精緻的馬卡龍格線背景
             ctx.strokeStyle = 'rgba(190, 227, 248, 0.35)';
             ctx.lineWidth = 2;
             for (let i = 0; i < BASE_WIDTH; i += 40) {
-                ctx.beginPath();
-                ctx.moveTo(i, 0);
-                ctx.lineTo(i, BASE_HEIGHT);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, BASE_HEIGHT); ctx.stroke();
             }
             for (let j = 0; j < BASE_HEIGHT; j += 40) {
-                ctx.beginPath();
-                ctx.moveTo(0, j);
-                ctx.lineTo(BASE_WIDTH, j);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(BASE_WIDTH, j); ctx.stroke();
             }
 
-            // B. 繪製手勢觸控拖曳軌跡 (Pastel Glowing Trail)
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            for (let i = 0; i < trailPoints.length; i++) {
-                const pt = trailPoints[i];
-                ctx.beginPath();
-                ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(168, 218, 220, ${pt.alpha})`;
-                ctx.fill();
-                
-                // 拖曳點逐漸縮小並淡出
-                pt.alpha -= 0.03;
-                pt.size = Math.max(0, pt.size - 0.5);
-            }
-            // 清理已完全淡出的觸控點
-            while (trailPoints.length > 0 && trailPoints[0].alpha <= 0) {
-                trailPoints.shift();
+            // B. 渲染場景
+            if (currentScene === 'LV.1') {
+                renderLV1Scene();
+                if (isLv1Animating && lv1SplitProgress < 1) {
+                    lv1SplitProgress += 0.015;
+                    if (lv1SplitProgress >= 1) {
+                        lv1SplitProgress = 1;
+                        isLv1Animating = false;
+                        triggerConfetti(350, 360);
+                    }
+                }
+            } else if (currentScene === 'LV.3') {
+                renderLV3Scene();
+                if (isLv3Animating && lv3PourProgress < 1) {
+                    lv3PourProgress += 0.012; // 液體流動速度
+                    if (lv3PourProgress >= 1) {
+                        lv3PourProgress = 1;
+                        isLv3Animating = false;
+                        triggerConfetti(910, 260);
+                    }
+                }
             }
 
             // C. 更新與渲染粒子
@@ -480,52 +746,85 @@
                 const particle = confettiList[i];
                 particle.update();
                 particle.draw(ctx);
-                
-                // 清除死去的粒子
                 if (particle.alpha <= 0) {
                     confettiList.splice(i, 1);
                 }
             }
 
-            // 更新偵錯數據
+            // D. 同步偵錯數據面板
+            document.getElementById('val-split-progress').textContent = `${Math.round(lv1SplitProgress * 100)}%`;
+            document.getElementById('val-fluid-progress').textContent = `${Math.round(lv3PourProgress * 100)}%`;
             document.getElementById('val-particles').textContent = confettiList.length;
-
-            // D. 繪製 Canvas 靜態指示
-            ctx.fillStyle = '#4A5568';
-            ctx.font = '24px "Kosugi Maru", sans-serif';
-            ctx.textAlign = 'left';
-            ctx.fillText('觸控測試區：請用手指在畫布上滑動塗鴉，測試縮放投影定位', 60, BASE_HEIGHT - 60);
 
             requestAnimationFrame(mainLoop);
         }
 
-        // --- 7. 初始化與事件綁定 ---
-        window.addEventListener('resize', updateLayout);
-        
-        // 綁定 Canvas 的整合觸控/滑鼠手勢
-        canvas.addEventListener('mousedown', handlePointerStart);
-        canvas.addEventListener('mousemove', handlePointerMove);
-        window.addEventListener('mouseup', handlePointerEnd);
+        // --- 6. 事件與狀態切換重構 (包含 Reset 核心邏輯) ---
+        const tabLv1 = document.getElementById('btn-tab-lv1');
+        const tabLv3 = document.getElementById('btn-tab-lv3');
+        const actionBtn = document.getElementById('btn-main-action');
+        const cardTitle = document.getElementById('math-card-title');
+        const formulaContainer = document.getElementById('math-formula');
 
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // 阻擋 iOS 預設的橡皮筋回彈與縮放
-            handlePointerStart(e);
-        }, { passive: false });
-        
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            handlePointerMove(e);
-        }, { passive: false });
-        
-        canvas.addEventListener('touchend', handlePointerEnd);
+        function switchScene(scene) {
+            currentScene = scene;
+            document.getElementById('val-scene').textContent = scene;
+            
+            // 【修復重置核心】：進入頁籤即刻初始化進度，避免卡在完工狀態
+            if (scene === 'LV.1') {
+                tabLv1.classList.add('active');
+                tabLv3.classList.remove('active');
+                actionBtn.textContent = '⚡ 分裂成 10,000 網格';
+                cardTitle.textContent = 'LV.1：平方大爆炸換算關係';
+                
+                // 重置 LV.1 狀態
+                lv1SplitProgress = 0;
+                isLv1Animating = false;
+                
+                formulaContainer.innerHTML = `
+                    <span>1 m<sup>2</sup></span>
+                    <span>=</span>
+                    <span>100 cm × 100 cm</span>
+                    <span>=</span>
+                    <span style="color: #48BB78;">10,000 cm<sup>2</sup></span>
+                `;
+            } else {
+                tabLv1.classList.remove('active');
+                tabLv3.classList.add('active');
+                actionBtn.textContent = '💧 倒入 1.2 公升水';
+                cardTitle.textContent = 'LV.3：體積與容積跨界換算';
+                
+                // 重置 LV.3 狀態 (恢復為 100% 滿水裝)
+                lv3PourProgress = 0;
+                isLv3Animating = false;
+                
+                formulaContainer.innerHTML = `
+                    <span>1000 cm<sup>3</sup></span>
+                    <span>=</span>
+                    <span>1000 mL</span>
+                    <span>=</span>
+                    <span style="color: #3182CE;">1 公升 (L)</span>
+                `;
+            }
+        }
 
-        // 綁定粒子觸發按鈕 (整合 touch/click)
-        const successBtn = document.getElementById('btn-trigger-success');
-        successBtn.addEventListener('touchstart', (e) => {
+        tabLv1.addEventListener('click', () => switchScene('LV.1'));
+        tabLv3.addEventListener('click', () => switchScene('LV.3'));
+
+        // 主按鈕觸發
+        const triggerMainAction = (e) => {
             e.preventDefault();
-            triggerSuccessConfetti();
-        });
-        successBtn.addEventListener('click', triggerSuccessConfetti);
+            if (currentScene === 'LV.1') {
+                lv1SplitProgress = 0;
+                isLv1Animating = true;
+            } else {
+                lv3PourProgress = 0;
+                isLv3Animating = true;
+            }
+        };
+
+        actionBtn.addEventListener('touchstart', triggerMainAction);
+        actionBtn.addEventListener('click', triggerMainAction);
 
         // 偵錯面板摺疊按鈕
         document.getElementById('btn-toggle-debug').addEventListener('click', (e) => {
@@ -533,6 +832,7 @@
         });
 
         // 初始化
+        window.addEventListener('resize', updateLayout);
         canvas.width = BASE_WIDTH;
         canvas.height = BASE_HEIGHT;
         updateLayout();
