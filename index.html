@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>挑戰一：空間維度與單位變形蟲 - 步驟四步驟引導版</title>
+    <title>挑戰一：空間維度與單位變形蟲 - 步驟五整合版</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* 基礎重設 */
         * {
             box-sizing: border-box;
             user-select: none;
@@ -25,7 +24,6 @@
             font-family: 'Kosugi Maru', 'Noto Sans TC', sans-serif;
         }
 
-        /* 16:9 核心視口容器 (1280x720) */
         #app-viewport {
             position: absolute;
             top: 50%;
@@ -52,7 +50,6 @@
             z-index: 1;
         }
 
-        /* 數學與控制排版混合層 */
         #dom-ui-layer {
             position: absolute;
             top: 0;
@@ -68,25 +65,85 @@
             pointer-events: auto;
         }
 
-        /* 頂部標題 */
+        #main-tabs {
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 3.5px solid #BEE3F8;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .tab-btn {
+            border: none;
+            padding: 10px 28px;
+            font-family: 'Kosugi Maru', sans-serif;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #4A5568;
+            background: transparent;
+        }
+
+        .tab-btn.active {
+            background-color: #3182CE;
+            color: white;
+            box-shadow: 0 6px 14px rgba(49, 130, 206, 0.4);
+        }
+
         #status-header {
-            top: 30px;
+            top: 105px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.95);
-            padding: 14px 40px;
-            border-radius: 50px;
-            border: 3px solid #BEE3F8;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            font-size: 26px;
+            padding: 10px 30px;
+            border-radius: 30px;
+            border: 2px solid #BEE3F8;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.04);
+            font-size: 20px;
             font-weight: bold;
             color: #2B6CB0;
             text-align: center;
         }
 
-        /* 答題算式卡片 */
+        #lv5-sub-selector {
+            top: 165px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none; 
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 6px 12px;
+            border-radius: 40px;
+            border: 2px dashed #BEE3F8;
+        }
+
+        .sub-tab-btn {
+            border: none;
+            padding: 6px 20px;
+            font-family: 'Kosugi Maru', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            color: #718096;
+            background: transparent;
+        }
+
+        .sub-tab-btn.active {
+            background-color: #ED64A6;
+            color: white;
+        }
+
         #math-display-card {
-            top: 140px;
+            top: 240px;
             right: 50px;
             background: rgba(255, 255, 255, 0.98);
             border: 4px solid #BEE3F8;
@@ -114,22 +171,18 @@
         }
 
         .formula-text {
-            font-size: 34px;
+            font-size: 32px;
             font-weight: bold;
             color: #2B6CB0;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 14px;
+            line-height: 1.5;
         }
 
         .formula-text sup {
-            font-size: 24px;
+            font-size: 22px;
             color: #E53E3E;
-            margin-left: 3px;
+            margin-left: 2px;
         }
 
-        /* 離散步驟引導導覽面板 (高度適合平板與手機大拇指點按) */
         #control-panel-bottom {
             bottom: 30px;
             left: 50%;
@@ -147,7 +200,6 @@
             gap: 20px;
         }
 
-        /* 引導按鈕 (統一 50px 物理高度，極佳觸控反饋) */
         .step-btn {
             background-color: #3182CE;
             color: white;
@@ -178,7 +230,6 @@
             transform: none;
         }
 
-        /* 步驟指示圓點 (Step Dots) */
         .step-indicator-container {
             display: flex;
             flex-direction: column;
@@ -208,7 +259,6 @@
             box-shadow: 0 0 10px rgba(49, 130, 206, 0.4);
         }
 
-        /* 防呆直螢幕阻擋遮罩 */
         #orientation-blocker {
             position: fixed;
             top: 0;
@@ -226,7 +276,6 @@
             text-align: center;
         }
 
-        /* 旋轉手機的動態示意圖 */
         .phone-icon-wrapper {
             position: relative;
             width: 80px;
@@ -267,65 +316,6 @@
                 display: flex;
             }
         }
-
-        /* 偵錯面板 */
-        #debug-panel {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 999;
-            background: rgba(255, 255, 255, 0.98);
-            border: 2px solid #BEE3F8;
-            border-radius: 14px;
-            width: 260px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            overflow: hidden;
-            max-height: calc(100vh - 20px);
-            display: flex;
-            flex-direction: column;
-        }
-
-        #debug-panel.collapsed {
-            width: 180px;
-            height: 44px;
-        }
-
-        #btn-toggle-debug {
-            width: 100%;
-            height: 44px;
-            background: #2B6CB0;
-            color: white;
-            border: none;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 14px;
-        }
-
-        .debug-body {
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            overflow-y: auto;
-        }
-
-        .debug-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            color: #4A5568;
-        }
-
-        .debug-value {
-            font-weight: bold;
-            color: #2D3748;
-        }
     </style>
 </head>
 <body>
@@ -335,36 +325,40 @@
         <canvas id="game-canvas"></canvas>
 
         <div id="dom-ui-layer">
-            <!-- 頂部標題 -->
+            <div id="main-tabs" class="interactive-overlay">
+                <button class="tab-btn active" id="btn-tab-lv2">LV.2 三維體積</button>
+                <button class="tab-btn" id="btn-tab-lv4">LV.4 微觀尺度</button>
+                <button class="tab-btn" id="btn-tab-lv5">LV.5 複合單位</button>
+            </div>
+
+            <!-- 頂部標題大標 -->
             <div id="status-header" class="interactive-overlay">
                 LV.2 三維體積：「百萬大分裂」引導式探索
+            </div>
+
+            <!-- LV.5 專屬子題切換鈕 -->
+            <div id="lv5-sub-selector" class="interactive-overlay">
+                <button class="sub-tab-btn active" id="btn-sub-density">密度：g/cm³ → kg/m³</button>
+                <button class="sub-tab-btn" id="btn-sub-speed">速度：km/hr → m/s</button>
             </div>
 
             <!-- 動態算式字卡 -->
             <div id="math-display-card" class="interactive-overlay">
                 <div class="card-title" id="math-card-title">第一步：大方塊拆成 1000 份</div>
                 <div class="formula-text" id="math-formula">
-                    <span>1 m<sup>3</sup> 巨大體積</span>
-                    <span>=</span>
-                    <span style="color: #3182CE;">1000 個 10 cm 中方塊</span>
+                    <!-- 動態由 JS 渲染 -->
                 </div>
             </div>
 
-            <!-- 離散步驟引導導覽面板 -->
             <div id="control-panel-bottom" class="interactive-overlay">
                 <button class="step-btn" id="btn-prev" disabled>◀ 上一步</button>
                 
                 <div class="step-indicator-container">
-                    <div class="step-dots-row">
-                        <div class="step-dot active"></div>
-                        <div class="step-dot"></div>
-                        <div class="step-dot"></div>
-                        <div class="step-dot"></div>
-                        <div class="step-dot"></div>
-                        <div class="step-dot"></div>
+                    <div class="step-dots-row" id="step-dots-container">
+                        <!-- 動態生成步驟圓點 -->
                     </div>
                     <div id="txt-animation-phase" style="color: #3182CE; font-size: 16px; font-weight: bold; margin-top: 4px;">
-                        步驟 1 / 6：正在分裂為 1000 個中型方塊
+                        步驟 1 / 6：正在將 1 m³ 切割為中型方塊
                     </div>
                 </div>
 
@@ -382,31 +376,7 @@
         <p>本挑戰僅支援【橫螢幕】操作，請開啟手機自動旋轉功能並橫放以獲得最佳遊戲體驗。</p>
     </div>
 
-    <!-- 開發者偵錯面板 -->
-    <div id="debug-panel" class="collapsed">
-        <button id="btn-toggle-debug">⚙️ 展開/收折偵錯面板</button>
-        <div class="debug-body">
-            <div class="debug-row">
-                <span>時間軸進度:</span>
-                <span id="val-progress" class="debug-value">0.00</span>
-            </div>
-            <div class="debug-row">
-                <span>繪製方塊數:</span>
-                <span id="val-draw-count" class="debug-value">0</span>
-            </div>
-            <div class="debug-row">
-                <span>聚焦方塊 Alpha:</span>
-                <span id="val-focus-alpha" class="debug-value">1.00</span>
-            </div>
-            <div class="debug-row">
-                <span>背景方塊 Alpha:</span>
-                <span id="val-back-alpha" class="debug-value">1.00</span>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // --- 1. 核心畫布與解析度設定 ---
         const BASE_WIDTH = 1280;
         const BASE_HEIGHT = 720;
         
@@ -416,16 +386,45 @@
         
         let currentScale = 1;
 
-        // 固定為 1 立方公尺基礎教學模型，消滅一切多餘變數與認知阻礙
-        const questionVolume = 1;
-
-        // 定義 6 個離散的步驟目標時間軸位置
-        const STEP_PROGRESS_TARGETS = [0, 25, 45, 65, 80, 100];
-        let currentStepIndex = 0; // 當前所在的步驟 (0 ~ 5)
-        let currentProgress = 0;   // 目前的渲染時間軸進度 (0 ~ 100)
-
+        // 全域當前狀態機
+        let activeMainTab = 'LV2'; // 'LV2', 'LV4', 'LV5'
+        let activeLv5Sub = 'density'; // 'density' 或 'speed'
+        
+        let currentStepIndex = 0; 
+        let currentProgress = 0;   // 緩動插值後的平滑進度 (0 ~ 100)
         const confettiList = [];
         let hasConfettiTriggered = false;
+
+        // LV.5 速度題視差背景滾動 X 軸偏移
+        let speedBgCloudX = 0;
+        let speedBgMountainX = 0;
+        let speedBgTreeX = 0;
+
+        // 離散步驟目標錨定點定義 (每個關卡皆有不同的引導步數)
+        const STEP_CONFIGS = {
+            'LV2': {
+                targets: [0, 25, 45, 65, 80, 100],
+                count: 6
+            },
+            'LV4': {
+                targets: [0, 45, 100],
+                count: 3
+            },
+            'LV5_density': {
+                targets: [0, 50, 100],
+                count: 3
+            },
+            'LV5_speed': {
+                targets: [0, 50, 100],
+                count: 3
+            }
+        };
+
+        function getStepConfig() {
+            if (activeMainTab === 'LV2') return STEP_CONFIGS['LV2'];
+            if (activeMainTab === 'LV4') return STEP_CONFIGS['LV4'];
+            return STEP_CONFIGS[`LV5_${activeLv5Sub}`];
+        }
 
         function updateLayout() {
             const windowWidth = window.innerWidth;
@@ -437,7 +436,6 @@
 
             viewport.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
 
-            // 雙重防呆直屏阻擋
             const blocker = document.getElementById('orientation-blocker');
             if (windowHeight > windowWidth) {
                 blocker.style.display = 'flex';
@@ -446,7 +444,6 @@
             }
         }
 
-        // --- 2. 物理碎紙花粒子系統 ---
         class ConfettiParticle {
             constructor(startX, startY) {
                 this.x = startX;
@@ -490,7 +487,7 @@
         }
 
         function triggerConfetti(x, y) {
-            for (let i = 0; i < 150; i++) {
+            for (let i = 0; i < 120; i++) {
                 confettiList.push(new ConfettiParticle(x, y));
             }
             const card = document.getElementById('math-display-card');
@@ -498,7 +495,6 @@
             setTimeout(() => card.classList.remove('success-pulse'), 600);
         }
 
-        // --- 3. 非對稱二等角投影幾何計算 ---
         const radLeft = 22 * Math.PI / 180;
         const radRight = 38 * Math.PI / 180;
 
@@ -605,233 +601,6 @@
             }
         }
 
-        // --- 4. 核心嵌套渲染演算法 ---
-        let renderCubeCount = 0;
-
-        function renderMultiStageVolume() {
-            renderCubeCount = 0;
-
-            const gridOriginX = 420;
-            const gridOriginY = 480;
-            const cubeSize = 20;
-            const maxGap = 7.5;
-
-            const finalSlideFactor = 140;
-            const px_end = 9 * (cubeSize + maxGap) + finalSlideFactor;
-            const py_end = px_end;
-            const pz_end = px_end;
-            const targetScreenPos = getIsoPoint(px_end, py_end, pz_end, gridOriginX, gridOriginY);
-
-            // ----------------------------------------------------
-            // 階段 A (0% 到 25%)：切割中方塊
-            // ----------------------------------------------------
-            if (currentProgress <= 25) {
-                const t = currentProgress / 25;
-                const gap = t * maxGap; 
-
-                for (let z = 0; z < 10; z++) {
-                    for (let y = 0; y < 10; y++) {
-                        for (let x = 0; x < 10; x++) {
-                            const px = x * (cubeSize + gap);
-                            const py = y * (cubeSize + gap);
-                            const pz = z * (cubeSize + gap);
-                            const isTarget = (x === 9 && y === 9 && z === 9);
-                            
-                            drawCube(ctx, px, py, pz, cubeSize, gridOriginX, gridOriginY, 1.0, isTarget);
-                            renderCubeCount++;
-                        }
-                    }
-                }
-                
-                ctx.fillStyle = '#1A365D';
-                ctx.font = 'bold 22px "Noto Sans TC", sans-serif';
-                ctx.textAlign = 'center';
-                const labelPos = getIsoPoint(100, 100, 240, gridOriginX, gridOriginY);
-                ctx.fillText(`巨大方塊 (${questionVolume} m³)`, labelPos.x, labelPos.y);
-                
-                document.getElementById('val-focus-alpha').textContent = "1.00";
-                document.getElementById('val-back-alpha').textContent = "1.00";
-            }
-            // ----------------------------------------------------
-            // 階段 B (25% 到 45%)：抽出一個
-            // ----------------------------------------------------
-            else if (currentProgress > 25 && currentProgress <= 45) {
-                const t = (currentProgress - 25) / 20; 
-                const fadeAlpha = 1 - t; 
-                const slideFactor = t * finalSlideFactor; 
-
-                for (let z = 0; z < 10; z++) {
-                    for (let y = 0; y < 10; y++) {
-                        for (let x = 0; x < 10; x++) {
-                            const isTarget = (x === 9 && y === 9 && z === 9);
-                            let px = x * (cubeSize + maxGap);
-                            let py = y * (cubeSize + maxGap);
-                            let pz = z * (cubeSize + maxGap);
-
-                            if (isTarget) {
-                                px += slideFactor;
-                                py += slideFactor;
-                                pz += slideFactor;
-                                drawCube(ctx, px, py, pz, cubeSize, gridOriginX, gridOriginY, 1.0, true);
-                            } else {
-                                if (fadeAlpha > 0.02) {
-                                    drawCube(ctx, px, py, pz, cubeSize, gridOriginX, gridOriginY, fadeAlpha, false);
-                                }
-                            }
-                            renderCubeCount++;
-                        }
-                    }
-                }
-                document.getElementById('val-focus-alpha').textContent = "1.00";
-                document.getElementById('val-back-alpha').textContent = fadeAlpha.toFixed(2);
-            }
-            // ----------------------------------------------------
-            // 階段 C (45% 到 65%)：原位放大
-            // ----------------------------------------------------
-            else if (currentProgress > 45 && currentProgress <= 65) {
-                const t = (currentProgress - 45) / 20; 
-                const currentSize = cubeSize + (240 - cubeSize) * t;
-
-                const currentOriginX = targetScreenPos.x;
-                const currentOriginY = targetScreenPos.y;
-
-                drawCube(ctx, 0, 0, 0, currentSize, currentOriginX, currentOriginY, 1.0, true);
-                renderCubeCount = 1;
-
-                document.getElementById('val-focus-alpha').textContent = "1.00";
-                document.getElementById('val-back-alpha').textContent = "0.00";
-            }
-            // ----------------------------------------------------
-            // 階段 D (65% 到 80%)：細緻劃分
-            // ----------------------------------------------------
-            else if (currentProgress > 65 && currentProgress <= 80) {
-                const t = (currentProgress - 65) / 15; 
-                const size = 240;
-                
-                const currentOriginX = targetScreenPos.x;
-                const currentOriginY = targetScreenPos.y;
-
-                drawCube(ctx, 0, 0, 0, size, currentOriginX, currentOriginY, 1.0, true);
-                renderCubeCount = 1;
-
-                const pts = {
-                    B: getIsoPoint(size, 0, 0, currentOriginX, currentOriginY),
-                    C: getIsoPoint(size, size, 0, currentOriginX, currentOriginY),
-                    D: getIsoPoint(0, size, 0, currentOriginX, currentOriginY),
-                    E: getIsoPoint(0, 0, size, currentOriginX, currentOriginY),
-                    F: getIsoPoint(size, 0, size, currentOriginX, currentOriginY),
-                    G: getIsoPoint(size, size, size, currentOriginX, currentOriginY),
-                    H: getIsoPoint(0, size, size, currentOriginX, currentOriginY)
-                };
-
-                const linesCount = 10;
-                drawFaceGrid(ctx, pts.D, pts.C, pts.G, pts.H, linesCount, t);
-                drawFaceGrid(ctx, pts.B, pts.C, pts.G, pts.F, linesCount, t);
-                drawFaceGrid(ctx, pts.E, pts.F, pts.G, pts.H, linesCount, t);
-                
-                document.getElementById('val-focus-alpha').textContent = "1.00";
-                document.getElementById('val-back-alpha').textContent = "0.00";
-            }
-            // ----------------------------------------------------
-            // 階段 E (80% 到 92%)：歸位縮小與群體復原
-            // ----------------------------------------------------
-            else if (currentProgress > 80 && currentProgress <= 92) {
-                const t = (currentProgress - 80) / 12; 
-                const currentSize = 240 + (cubeSize - 240) * t; 
-                const backAlpha = t * 0.7; 
-
-                for (let z = 0; z < 10; z++) {
-                    for (let y = 0; y < 10; y++) {
-                        for (let x = 0; x < 10; x++) {
-                            const isTarget = (x === 9 && y === 9 && z === 9);
-                            if (isTarget) continue;
-
-                            const px = x * (cubeSize + maxGap);
-                            const py = y * (cubeSize + maxGap);
-                            const pz = z * (cubeSize + maxGap);
-
-                            drawCube(ctx, px, py, pz, cubeSize, gridOriginX, gridOriginY, backAlpha, false);
-                            renderCubeCount++;
-                        }
-                    }
-                }
-
-                const currentOriginX = targetScreenPos.x;
-                const currentOriginY = targetScreenPos.y;
-                drawCube(ctx, 0, 0, 0, currentSize, currentOriginX, currentOriginY, 1.0, true);
-                renderCubeCount++;
-
-                const pts = {
-                    B: getIsoPoint(currentSize, 0, 0, currentOriginX, currentOriginY),
-                    C: getIsoPoint(currentSize, currentSize, 0, currentOriginX, currentOriginY),
-                    D: getIsoPoint(0, currentSize, 0, currentOriginX, currentOriginY),
-                    E: getIsoPoint(0, 0, currentSize, currentOriginX, currentOriginY),
-                    F: getIsoPoint(currentSize, 0, currentSize, currentOriginX, currentOriginY),
-                    G: getIsoPoint(currentSize, currentSize, currentSize, currentOriginX, currentOriginY),
-                    H: getIsoPoint(0, currentSize, currentSize, currentOriginX, currentOriginY)
-                };
-                drawFaceGrid(ctx, pts.D, pts.C, pts.G, pts.H, 10, 1.0);
-                drawFaceGrid(ctx, pts.B, pts.C, pts.G, pts.F, 10, 1.0);
-                drawFaceGrid(ctx, pts.E, pts.F, pts.G, pts.H, 10, 1.0);
-
-                drawCallout(ctx, targetScreenPos.x, targetScreenPos.y, t);
-
-                document.getElementById('val-focus-alpha').textContent = "1.00";
-                document.getElementById('val-back-alpha').textContent = backAlpha.toFixed(2);
-            }
-            // ----------------------------------------------------
-            // 階段 F (92% 到 100%)：歸位完工與全螢幕慶祝
-            // ----------------------------------------------------
-            else if (currentProgress > 92) {
-                const backAlpha = 0.75;
-
-                for (let z = 0; z < 10; z++) {
-                    for (let y = 0; y < 10; y++) {
-                        for (let x = 0; x < 10; x++) {
-                            const isTarget = (x === 9 && y === 9 && z === 9);
-                            if (isTarget) continue;
-
-                            const px = x * (cubeSize + maxGap);
-                            const py = y * (cubeSize + maxGap);
-                            const pz = z * (cubeSize + maxGap);
-
-                            drawCube(ctx, px, py, pz, cubeSize, gridOriginX, gridOriginY, backAlpha, false);
-                            renderCubeCount++;
-                        }
-                    }
-                }
-
-                const currentOriginX = targetScreenPos.x;
-                const currentOriginY = targetScreenPos.y;
-                drawCube(ctx, 0, 0, 0, cubeSize, currentOriginX, currentOriginY, 1.0, true);
-                renderCubeCount++;
-
-                const pts = {
-                    B: getIsoPoint(cubeSize, 0, 0, currentOriginX, currentOriginY),
-                    C: getIsoPoint(cubeSize, cubeSize, 0, currentOriginX, currentOriginY),
-                    D: getIsoPoint(0, cubeSize, 0, currentOriginX, currentOriginY),
-                    E: getIsoPoint(0, 0, cubeSize, currentOriginX, currentOriginY),
-                    F: getIsoPoint(cubeSize, 0, cubeSize, currentOriginX, currentOriginY),
-                    G: getIsoPoint(cubeSize, cubeSize, cubeSize, currentOriginX, currentOriginY),
-                    H: getIsoPoint(0, cubeSize, cubeSize, currentOriginX, currentOriginY)
-                };
-                drawFaceGrid(ctx, pts.D, pts.C, pts.G, pts.H, 10, 1.0);
-                drawFaceGrid(ctx, pts.B, pts.C, pts.G, pts.F, 10, 1.0);
-                drawFaceGrid(ctx, pts.E, pts.F, pts.G, pts.H, 10, 1.0);
-
-                drawCallout(ctx, targetScreenPos.x, targetScreenPos.y, 1.0);
-
-                if (currentProgress >= 99 && !hasConfettiTriggered) {
-                    triggerConfetti(targetScreenPos.x - 50, targetScreenPos.y - 100);
-                    hasConfettiTriggered = true;
-                }
-                
-                document.getElementById('val-focus-alpha').textContent = "1.00";
-                document.getElementById('val-back-alpha').textContent = backAlpha.toFixed(2);
-            }
-        }
-
-        // 右上氣泡框拉引 (完全解決左下遮蔽與切角 Bug)
         function drawCallout(context, tx, ty, alpha) {
             context.save();
             context.globalAlpha = alpha;
@@ -839,7 +608,7 @@
             const startX = tx + 30;
             const startY = ty - 10;
             const midX = startX + 50;
-            const midY = startY - 60; 
+            const midY = startY - 60; // 朝右上方折，完全避免邊界遮擋
             const endX = midX + 60;
 
             context.strokeStyle = '#E53E3E';
@@ -879,104 +648,893 @@
             context.restore();
         }
 
-        // --- 5. 實時 UI 與動態公式排版同步 ---
+        function renderScene() {
+            if (activeMainTab === 'LV2') {
+                renderLV2();
+            } else if (activeMainTab === 'LV4') {
+                renderLV4();
+            } else if (activeMainTab === 'LV5') {
+                if (activeLv5Sub === 'density') {
+                    renderLV5Density();
+                } else {
+                    renderLV5Speed();
+                }
+            }
+        }
+
+        function renderLV2() {
+            const gridOriginX = 420;
+            const gridOriginY = 480;
+            const cubeSize = 20;
+            const maxGap = 7.5;
+
+            const finalSlideFactor = 140;
+            const px_end = 9 * (cubeSize + maxGap) + finalSlideFactor;
+            const py_end = px_end;
+            const pz_end = px_end;
+            const targetScreenPos = getIsoPoint(px_end, py_end, pz_end, gridOriginX, gridOriginY);
+
+            if (currentProgress <= 25) {
+                const t = currentProgress / 25;
+                const gap = t * maxGap; 
+
+                for (let z = 0; z < 10; z++) {
+                    for (let y = 0; y < 10; y++) {
+                        for (let x = 0; x < 10; x++) {
+                            const px = x * (cubeSize + gap);
+                            const py = y * (cubeSize + gap);
+                            const pz = z * (cubeSize + gap);
+                            const isTarget = (x === 9 && y === 9 && z === 9);
+                            drawCube(ctx, px, py, pz, cubeSize, gridOriginX, gridOriginY, 1.0, isTarget);
+                        }
+                    }
+                }
+            }
+            else if (currentProgress > 25 && currentProgress <= 45) {
+                const t = (currentProgress - 25) / 20; 
+                const fadeAlpha = 1 - t; 
+                const slideFactor = t * finalSlideFactor; 
+
+                for (let z = 0; z < 10; z++) {
+                    for (let y = 0; y < 10; y++) {
+                        for (let x = 0; x < 10; x++) {
+                            const isTarget = (x === 9 && y === 9 && z === 9);
+                            let px = x * (cubeSize + maxGap);
+                            let py = y * (cubeSize + maxGap);
+                            let pz = z * (cubeSize + maxGap);
+
+                            if (isTarget) {
+                                px += slideFactor;
+                                py += slideFactor;
+                                pz += slideFactor;
+                                drawCube(ctx, px, py, pz, cubeSize, gridOriginX, gridOriginY, 1.0, true);
+                            } else {
+                                if (fadeAlpha > 0.02) {
+                                    drawCube(ctx, px, py, pz, cubeSize, gridOriginX, gridOriginY, fadeAlpha, false);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (currentProgress > 45 && currentProgress <= 65) {
+                const t = (currentProgress - 45) / 20; 
+                const currentSize = cubeSize + (240 - cubeSize) * t;
+                const currentOriginX = targetScreenPos.x;
+                const currentOriginY = targetScreenPos.y;
+
+                drawCube(ctx, 0, 0, 0, currentSize, currentOriginX, currentOriginY, 1.0, true);
+            }
+            else if (currentProgress > 65 && currentProgress <= 80) {
+                const t = (currentProgress - 65) / 15; 
+                const size = 240;
+                const currentOriginX = targetScreenPos.x;
+                const currentOriginY = targetScreenPos.y;
+
+                drawCube(ctx, 0, 0, 0, size, currentOriginX, currentOriginY, 1.0, true);
+
+                const pts = {
+                    B: getIsoPoint(size, 0, 0, currentOriginX, currentOriginY),
+                    C: getIsoPoint(size, size, 0, currentOriginX, currentOriginY),
+                    D: getIsoPoint(0, size, 0, currentOriginX, currentOriginY),
+                    E: getIsoPoint(0, 0, size, currentOriginX, currentOriginY),
+                    F: getIsoPoint(size, 0, size, currentOriginX, currentOriginY),
+                    G: getIsoPoint(size, size, size, currentOriginX, currentOriginY),
+                    H: getIsoPoint(0, size, size, currentOriginX, currentOriginY)
+                };
+
+                const linesCount = 10;
+                drawFaceGrid(ctx, pts.D, pts.C, pts.G, pts.H, linesCount, t);
+                drawFaceGrid(ctx, pts.B, pts.C, pts.G, pts.F, linesCount, t);
+                drawFaceGrid(ctx, pts.E, pts.F, pts.G, pts.H, linesCount, t);
+            }
+            else if (currentProgress > 80 && currentProgress <= 92) {
+                const t = (currentProgress - 80) / 12; 
+                const currentSize = 240 + (cubeSize - 240) * t; 
+                const backAlpha = t * 0.7; 
+
+                for (let z = 0; z < 10; z++) {
+                    for (let y = 0; y < 10; y++) {
+                        for (let x = 0; x < 10; x++) {
+                            const isTarget = (x === 9 && y === 9 && z === 9);
+                            if (isTarget) continue;
+
+                            const px = x * (cubeSize + maxGap);
+                            const py = y * (cubeSize + maxGap);
+                            const pz = z * (cubeSize + maxGap);
+                            drawCube(ctx, px, py, pz, cubeSize, gridOriginX, gridOriginY, backAlpha, false);
+                        }
+                    }
+                }
+
+                const currentOriginX = targetScreenPos.x;
+                const currentOriginY = targetScreenPos.y;
+                drawCube(ctx, 0, 0, 0, currentSize, currentOriginX, currentOriginY, 1.0, true);
+
+                const pts = {
+                    B: getIsoPoint(currentSize, 0, 0, currentOriginX, currentOriginY),
+                    C: getIsoPoint(currentSize, currentSize, 0, currentOriginX, currentOriginY),
+                    D: getIsoPoint(0, currentSize, 0, currentOriginX, currentOriginY),
+                    E: getIsoPoint(0, 0, currentSize, currentOriginX, currentOriginY),
+                    F: getIsoPoint(currentSize, 0, currentSize, currentOriginX, currentOriginY),
+                    G: getIsoPoint(currentSize, currentSize, currentSize, currentOriginX, currentOriginY),
+                    H: getIsoPoint(0, currentSize, currentSize, currentOriginX, currentOriginY)
+                };
+                drawFaceGrid(ctx, pts.D, pts.C, pts.G, pts.H, 10, 1.0);
+                drawFaceGrid(ctx, pts.B, pts.C, pts.G, pts.F, 10, 1.0);
+                drawFaceGrid(ctx, pts.E, pts.F, pts.G, pts.H, 10, 1.0);
+
+                drawCallout(ctx, targetScreenPos.x, targetScreenPos.y, t);
+            }
+            else if (currentProgress > 92) {
+                const backAlpha = 0.75;
+
+                for (let z = 0; z < 10; z++) {
+                    for (let y = 0; y < 10; y++) {
+                        for (let x = 0; x < 10; x++) {
+                            const isTarget = (x === 9 && y === 9 && z === 9);
+                            if (isTarget) continue;
+
+                            const px = x * (cubeSize + maxGap);
+                            const py = y * (cubeSize + maxGap);
+                            const pz = z * (cubeSize + maxGap);
+                            drawCube(ctx, px, py, pz, cubeSize, gridOriginX, gridOriginY, backAlpha, false);
+                        }
+                    }
+                }
+
+                const currentOriginX = targetScreenPos.x;
+                const currentOriginY = targetScreenPos.y;
+                drawCube(ctx, 0, 0, 0, cubeSize, currentOriginX, currentOriginY, 1.0, true);
+
+                const pts = {
+                    B: getIsoPoint(cubeSize, 0, 0, currentOriginX, currentOriginY),
+                    C: getIsoPoint(cubeSize, cubeSize, 0, currentOriginX, currentOriginY),
+                    D: getIsoPoint(0, cubeSize, 0, currentOriginX, currentOriginY),
+                    E: getIsoPoint(0, 0, cubeSize, currentOriginX, currentOriginY),
+                    F: getIsoPoint(cubeSize, 0, cubeSize, currentOriginX, currentOriginY),
+                    G: getIsoPoint(cubeSize, cubeSize, cubeSize, currentOriginX, currentOriginY),
+                    H: getIsoPoint(0, cubeSize, cubeSize, currentOriginX, currentOriginY)
+                };
+                drawFaceGrid(ctx, pts.D, pts.C, pts.G, pts.H, 10, 1.0);
+                drawFaceGrid(ctx, pts.B, pts.C, pts.G, pts.F, 10, 1.0);
+                drawFaceGrid(ctx, pts.E, pts.F, pts.G, pts.H, 10, 1.0);
+
+                drawCallout(ctx, targetScreenPos.x, targetScreenPos.y, 1.0);
+
+                if (currentProgress >= 99 && !hasConfettiTriggered) {
+                    triggerConfetti(targetScreenPos.x - 50, targetScreenPos.y - 100);
+                    hasConfettiTriggered = true;
+                }
+            }
+        }
+
+        let amoebaWaveAngle = 0; 
+        function renderLV4() {
+            const centerX = 380;
+            const centerY = 360;
+            
+            let scale1 = 1.0, alpha1 = 1.0;
+            let scale2 = 1.0, alpha2 = 0.0;
+            let scale3 = 1.0, alpha3 = 0.0;
+
+            if (currentProgress <= 45) {
+                const t = currentProgress / 45;
+                scale1 = 1.0 + t * 4.0; 
+                alpha1 = 1.0 - t;      
+                scale2 = 0.15 + t * 0.85; 
+                alpha2 = t;             
+            } else {
+                const t = (currentProgress - 45) / 55;
+                alpha1 = 0.0;
+                scale2 = 1.0 + t * 5.0; 
+                alpha2 = 1.0 - t;      
+                scale3 = 0.15 + t * 0.85; 
+                alpha3 = t;             
+            }
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 230, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.strokeStyle = '#BEE3F8';
+            ctx.lineWidth = 10;
+            ctx.stroke();
+            ctx.clip(); 
+
+            if (alpha1 > 0.01) {
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.scale(scale1, scale1);
+                ctx.globalAlpha = alpha1;
+
+                amoebaWaveAngle += 0.015;
+                ctx.fillStyle = 'rgba(168, 218, 220, 0.4)';
+                ctx.strokeStyle = '#457B9D';
+                ctx.lineWidth = 3;
+                
+                ctx.beginPath();
+                const pointsCount = 12;
+                const rBase = 120;
+                for (let i = 0; i <= pointsCount; i++) {
+                    const angle = (i / pointsCount) * Math.PI * 2;
+                    const wave = Math.sin(amoebaWaveAngle + i * 1.5) * 12;
+                    const r = rBase + wave;
+                    const px = Math.cos(angle) * r;
+                    const py = Math.sin(angle) * r;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(69, 123, 157, 0.3)';
+                for (let i = 0; i < 6; i++) {
+                    ctx.beginPath();
+                    const dotAngle = (i / 6) * Math.PI * 2;
+                    ctx.arc(Math.cos(dotAngle) * 50, Math.sin(dotAngle) * 50, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = 'rgba(230, 57, 70, 0.5)';
+                ctx.beginPath();
+                ctx.arc(0, 0, 20, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            if (alpha2 > 0.01) {
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.scale(scale2, scale2);
+                ctx.globalAlpha = alpha2;
+
+                ctx.fillStyle = 'rgba(255, 173, 173, 0.35)'; 
+                ctx.strokeStyle = '#E53E3E';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(0, 0, 130, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 6;
+                for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+                    ctx.beginPath();
+                    ctx.arc(130 * Math.cos(a), 130 * Math.sin(a), 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fill();
+                }
+
+                ctx.strokeStyle = 'rgba(229, 62, 62, 0.45)';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(-70, -30);
+                ctx.bezierCurveTo(-30, -80, 30, -50, 40, -10);
+                ctx.bezierCurveTo(50, 40, -20, 60, -60, 20);
+                ctx.bezierCurveTo(-100, -20, -50, -40, 0, -20);
+                ctx.stroke();
+
+                ctx.fillStyle = '#C53030';
+                ctx.beginPath();
+                ctx.arc(15, -15, 30, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            if (alpha3 > 0.01) {
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.scale(scale3, scale3);
+                ctx.globalAlpha = alpha3;
+
+                const dnaTime = Date.now() * 0.0025;
+                const helixW = 280;
+                const helixPoints = 18;
+                const waveAmp = 55; 
+
+                for (let i = 0; i < helixPoints; i++) {
+                    const ratio = i / (helixPoints - 1);
+                    const lx = -helixW / 2 + ratio * helixW;
+                    const phase1 = lx * 0.025 + dnaTime;
+                    const phase2 = phase1 + Math.PI; 
+                    const ly1 = Math.sin(phase1) * waveAmp;
+                    const ly2 = Math.sin(phase2) * waveAmp;
+
+                    const colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#BDB2FF'];
+                    ctx.strokeStyle = colors[i % colors.length];
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.moveTo(lx, ly1);
+                    ctx.lineTo(lx, ly2);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.arc(lx, (ly1 + ly2)/2, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.strokeStyle = '#4299E1';
+                ctx.lineWidth = 7;
+                ctx.beginPath();
+                for (let i = 0; i < helixPoints; i++) {
+                    const ratio = i / (helixPoints - 1);
+                    const lx = -helixW / 2 + ratio * helixW;
+                    const ly = Math.sin(lx * 0.025 + dnaTime) * waveAmp;
+                    if (i === 0) ctx.moveTo(lx, ly);
+                    else ctx.lineTo(lx, ly);
+                }
+                ctx.stroke();
+
+                ctx.strokeStyle = '#ED64A6';
+                ctx.lineWidth = 7;
+                ctx.beginPath();
+                for (let i = 0; i < helixPoints; i++) {
+                    const ratio = i / (helixPoints - 1);
+                    const lx = -helixW / 2 + ratio * helixW;
+                    const ly = Math.sin(lx * 0.025 + dnaTime + Math.PI) * waveAmp;
+                    if (i === 0) ctx.moveTo(lx, ly);
+                    else ctx.lineTo(lx, ly);
+                }
+                ctx.stroke();
+
+                ctx.fillStyle = '#4A5568';
+                ctx.font = 'bold 20px "Noto Sans TC", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('1 奈米 (nm) 分子結構', 0, 160);
+                ctx.restore();
+
+                if (currentProgress >= 99 && !hasConfettiTriggered) {
+                    triggerConfetti(centerX, centerY - 80);
+                    hasConfettiTriggered = true;
+                }
+            }
+            ctx.restore(); 
+
+            ctx.fillStyle = '#1D3557';
+            ctx.font = 'bold 28px "Kosugi Maru", sans-serif';
+            ctx.textAlign = 'center';
+            
+            let magStr = '10倍 實體鏡';
+            if (currentProgress <= 45) {
+                const t = currentProgress / 45;
+                magStr = `放大：${Math.round(1 + t * 999)} 倍`;
+            } else {
+                const t = (currentProgress - 45) / 55;
+                magStr = `放大：${(Math.round(1000 + t * 999000)).toLocaleString()} 倍`;
+            }
+            ctx.fillText(magStr, centerX, centerY + 280);
+        }
+
+        function renderLV5Density() {
+            const t = currentProgress / 100;
+            const scaleX = 350;
+            const scaleY = 380;
+            const balanceAngle = (t >= 0.5) ? (t - 0.5) * 2 * 0.08 : 0; 
+
+            ctx.save();
+            ctx.translate(scaleX, scaleY);
+
+            ctx.strokeStyle = '#718096';
+            ctx.lineWidth = 10;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, 150);
+            ctx.stroke();
+
+            ctx.fillStyle = '#4A5568';
+            ctx.fillRect(-60, 150, 120, 15);
+
+            ctx.rotate(balanceAngle);
+            ctx.strokeStyle = '#CBD5E0';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(-120, 0);
+            ctx.lineTo(120, 0);
+            ctx.stroke();
+
+            ctx.save();
+            ctx.translate(-120, 0);
+            ctx.rotate(-balanceAngle); 
+            ctx.strokeStyle = '#A0AEC0';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-20, 50);
+            ctx.lineTo(20, 50);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fillStyle = '#E2E8F0';
+            ctx.fillRect(-35, 50, 70, 6);
+
+            if (t >= 0.3) {
+                ctx.globalAlpha = Math.min(1.0, (t - 0.3) * 4);
+                ctx.fillStyle = 'rgba(66, 153, 225, 0.85)';
+                ctx.strokeStyle = '#2B6CB0';
+                ctx.lineWidth = 2;
+                ctx.fillRect(-12, 26, 24, 24);
+                ctx.strokeRect(-12, 26, 24, 24);
+
+                ctx.fillStyle = '#2B6CB0';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('1 cm³', 0, 16);
+            }
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(120, 0);
+            ctx.rotate(-balanceAngle);
+            ctx.strokeStyle = '#A0AEC0';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-20, 50);
+            ctx.lineTo(20, 50);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fillRect(-35, 50, 70, 6);
+
+            if (t >= 0.5) {
+                ctx.globalAlpha = Math.min(1.0, (t - 0.5) * 4);
+                ctx.fillStyle = '#ECC94B'; 
+                ctx.fillRect(-10, 34, 20, 16);
+                ctx.fillStyle = '#2D3748';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('1 g', 0, 46);
+            }
+            ctx.restore();
+            ctx.restore(); 
+
+            ctx.fillStyle = '#1D3557';
+            ctx.font = 'bold 24px "Kosugi Maru", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('微觀天平：1 cm³ 水滴 = 1 公克 (g)', scaleX, scaleY + 200);
+
+            const scaleRightX = 850;
+            const scaleRightY = 380;
+
+            ctx.save();
+            ctx.translate(scaleRightX, scaleRightY);
+
+            ctx.fillStyle = '#4A5568';
+            ctx.fillRect(-120, 120, 240, 30);
+            ctx.fillStyle = '#A0AEC0';
+            ctx.fillRect(-30, 20, 60, 100);
+
+            ctx.beginPath();
+            ctx.arc(0, 0, 95, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.strokeStyle = '#4A5568';
+            ctx.lineWidth = 8;
+            ctx.stroke();
+
+            ctx.strokeStyle = '#2D3748';
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.moveTo(80 * Math.cos(angle), 80 * Math.sin(angle));
+                ctx.lineTo(90 * Math.cos(angle), 90 * Math.sin(angle));
+                ctx.stroke();
+            }
+
+            const targetPointerAngle = -Math.PI / 2 + t * Math.PI * 1.5; 
+            ctx.save();
+            ctx.rotate(targetPointerAngle);
+            ctx.strokeStyle = '#E53E3E';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, -75);
+            ctx.stroke();
+            ctx.fillStyle = '#2D3748';
+            ctx.beginPath();
+            ctx.arc(0, 0, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            if (t >= 0.2) {
+                ctx.save();
+                ctx.translate(0, -220); 
+                ctx.globalAlpha = Math.min(1.0, (t - 0.2) * 5);
+                
+                const size = 100;
+                drawCube(ctx, 0, 0, 0, size, -size * Math.cos(radRight)/2 + 25, size * Math.sin(radLeft) + 40, 0.9, false);
+                
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 20px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('1 m³ 水', 25, 45);
+                ctx.restore();
+            }
+            ctx.restore(); 
+
+            ctx.fillStyle = '#1D3557';
+            ctx.font = 'bold 24px "Kosugi Maru", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('宏觀磅秤：1 m³ 水箱 = 1000 公斤 (kg)', scaleRightX, scaleRightY + 200);
+
+            if (currentProgress >= 99 && !hasConfettiTriggered) {
+                triggerConfetti(scaleRightX, scaleRightY - 140);
+                hasConfettiTriggered = true;
+            }
+        }
+
+        function renderLV5Speed() {
+            const trainY = 460;
+            const t = currentProgress / 100;
+            const isMoving = (currentStepIndex === 2);
+            if (isMoving) {
+                speedBgCloudX = (speedBgCloudX + 0.5) % BASE_WIDTH;
+                speedBgMountainX = (speedBgMountainX + 2.5) % BASE_WIDTH;
+                speedBgTreeX = (speedBgTreeX + 10) % BASE_WIDTH;
+            }
+
+            ctx.fillStyle = 'rgba(237, 242, 247, 0.8)';
+            ctx.fillRect(40, 130, 1200, 420); 
+
+            ctx.save();
+            ctx.fillStyle = '#FFFFFF';
+            for (let i = 0; i < 3; i++) {
+                const cx = (150 + i * 400 - speedBgCloudX + BASE_WIDTH) % BASE_WIDTH;
+                ctx.beginPath();
+                ctx.arc(cx, 180, 25, 0, Math.PI * 2);
+                ctx.arc(cx + 30, 180, 35, 0, Math.PI * 2);
+                ctx.arc(cx + 60, 180, 25, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            ctx.save();
+            ctx.fillStyle = '#E2E8F0';
+            for (let i = 0; i < 4; i++) {
+                const mx = (i * 350 - speedBgMountainX + BASE_WIDTH) % BASE_WIDTH;
+                ctx.beginPath();
+                ctx.moveTo(mx, 400);
+                ctx.lineTo(mx + 180, 260);
+                ctx.lineTo(mx + 360, 400);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+
+            ctx.save();
+            ctx.fillStyle = '#CAFFBF'; 
+            for (let i = 0; i < 12; i++) {
+                const tx = (i * 120 - speedBgTreeX + BASE_WIDTH) % BASE_WIDTH;
+                ctx.beginPath();
+                ctx.arc(tx, 400, 18, 0, Math.PI * 2);
+                ctx.arc(tx + 15, 390, 22, 0, Math.PI * 2);
+                ctx.arc(tx + 30, 400, 18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#A0AEC0';
+                ctx.fillRect(tx + 12, 400, 6, 40);
+            }
+            ctx.restore();
+
+            ctx.strokeStyle = '#4A5568';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(40, trainY + 32);
+            ctx.lineTo(1240, trainY + 32);
+            ctx.stroke();
+            
+            ctx.strokeStyle = '#CBD5E0';
+            ctx.lineWidth = 3;
+            for (let x = 60; x < 1240; x += 35) {
+                ctx.beginPath();
+                ctx.moveTo(x, trainY + 32);
+                ctx.lineTo(x - 10, trainY + 45);
+                ctx.stroke();
+            }
+
+            const joltY = isMoving ? Math.sin(Date.now() * 0.08) * 2.5 : 0;
+            const trainSlideX = isMoving ? t * 450 : 0; 
+
+            ctx.save();
+            ctx.translate(220 + trainSlideX, trainY + joltY);
+
+            ctx.fillStyle = '#9BF6FF'; 
+            ctx.strokeStyle = '#3182CE';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-180, 0);
+            ctx.lineTo(40, 0);
+            ctx.bezierCurveTo(80, 0, 110, 15, 110, 30);
+            ctx.lineTo(-180, 30);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#1A365D';
+            for (let i = 0; i < 4; i++) {
+                ctx.fillRect(-150 + i * 45, 6, 30, 10);
+            }
+            ctx.beginPath();
+            ctx.moveTo(45, 6);
+            ctx.lineTo(75, 6);
+            ctx.lineTo(85, 18);
+            ctx.lineTo(45, 18);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#E53E3E';
+            ctx.fillRect(-180, 22, 240, 4);
+            ctx.restore(); 
+
+            if (isMoving) {
+                ctx.strokeStyle = '#E53E3E';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([6, 4]);
+                
+                ctx.beginPath();
+                ctx.moveTo(330, trainY - 80);
+                ctx.lineTo(330, trainY + 30);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(330 + 450, trainY - 80);
+                ctx.lineTo(330 + 450, trainY + 30);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.strokeStyle = '#E53E3E';
+                ctx.fillStyle = '#E53E3E';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(330, trainY - 40);
+                ctx.lineTo(330 + 450, trainY - 40);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(330, trainY - 40); ctx.lineTo(340, trainY - 48); ctx.lineTo(340, trainY - 32); ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(330 + 450, trainY - 40); ctx.lineTo(330 + 450 - 10, trainY - 48); ctx.lineTo(330 + 450 - 10, trainY - 32); ctx.fill();
+
+                ctx.font = 'bold 22px "Noto Sans TC", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('秒針移動 1 秒：前進了 25 公尺 (m)', 330 + 225, trainY - 55);
+
+                if (currentProgress >= 99 && !hasConfettiTriggered) {
+                    triggerConfetti(330 + 450, trainY - 100);
+                    hasConfettiTriggered = true;
+                }
+            }
+        }
+
         const labelPhase = document.getElementById('txt-animation-phase');
         const cardTitle = document.getElementById('math-card-title');
         const formulaContainer = document.getElementById('math-formula');
 
-        // 當步驟改變時，自動同步更新公式與文案
         function updateDOMUIByStep() {
-            // 更新下方步驟指示圓點
-            const dots = document.querySelectorAll('.step-dot');
-            dots.forEach((dot, idx) => {
-                if (idx === currentStepIndex) {
-                    dot.classList.add('active');
-                } else {
-                    dot.classList.remove('active');
-                }
-            });
-
-            // 依據當前步驟 Index 顯示對應引導
-            switch(currentStepIndex) {
-                case 0:
-                    labelPhase.textContent = `步驟 1 / 6：正在將 ${questionVolume} m³ 切割為中型方塊`;
-                    labelPhase.style.color = '#3182CE';
-                    cardTitle.textContent = `第一步：拆成 10 cm 中方塊`;
-                    formulaContainer.innerHTML = `
-                        <span>${questionVolume} m<sup>3</sup> 體積</span>
-                        <span>=</span>
-                        <span style="color: #3182CE;">1000 個 10 cm 中方塊</span>
-                    `;
-                    hasConfettiTriggered = false;
-                    break;
-                case 1:
-                    labelPhase.textContent = '步驟 2 / 6：抽出其中 1 個 10 cm 立方體進行觀察';
-                    labelPhase.style.color = '#ED64A6';
-                    cardTitle.textContent = '第二步：抽出 1 份代表觀察';
-                    formulaContainer.innerHTML = `
-                        <span>仔細看 1000 個裡的這 1 個：</span>
-                        <br>
-                        <span style="font-size: 24px; color: #ED64A6;">邊長 = 10 公分 (cm)</span>
-                    `;
-                    break;
-                case 2:
-                    labelPhase.textContent = '步驟 3 / 6：原位放大這顆 10 cm 立方體';
-                    labelPhase.style.color = '#D69E2E';
-                    cardTitle.textContent = '準備揭曉中方塊的秘密...';
-                    formulaContainer.innerHTML = `
-                        <span>這顆 10 cm 的中方塊</span>
-                        <br>
-                        <span style="font-size: 24px; color: #D69E2E;">放大中，看它能被切成幾格？</span>
-                    `;
-                    break;
-                case 3:
-                    labelPhase.textContent = '步驟 4 / 6：切開了！這 1 個中方塊內含 1000 個小立方公分';
-                    labelPhase.style.color = '#E53E3E';
-                    cardTitle.textContent = '第三步：1 個中方塊包含 1000 格！';
-                    formulaContainer.innerHTML = `
-                        <span>1 個中方塊</span>
-                        <span>=</span>
-                        <span>10 cm × 10 cm × 10 cm</span>
-                        <span>=</span>
-                        <span style="color: #E53E3E;">1000 個 1 cm<sup>3</sup> 小格子</span>
-                    `;
-                    hasConfettiTriggered = false;
-                    break;
-                case 4:
-                    labelPhase.textContent = `步驟 5 / 6：原位縮小對照，這疊原本一共有 1000 個！`;
-                    labelPhase.style.color = '#D69E2E';
-                    cardTitle.textContent = '第四步：放回群體，驚人對比！';
-                    formulaContainer.innerHTML = `
-                        <span>1 個中方塊 = 1000 個小格子</span>
-                        <br>
-                        <span style="font-size: 22px; color: #2B6CB0;">而這整疊大方塊有 1000 個中方塊！</span>
-                    `;
-                    hasConfettiTriggered = false;
-                    break;
-                case 5:
-                    labelPhase.textContent = '步驟 6 / 6：百萬倍二階段分裂圓滿成功！';
-                    labelPhase.style.color = '#38A169';
-                    cardTitle.textContent = '第五步：終極百萬倍率換算公式';
-                    
-                    const finalCubicCm = (1000000 * questionVolume).toLocaleString();
-                    formulaContainer.innerHTML = `
-                        <span style="font-size: 24px; color: #4A5568;">1000 × 1000 (每個切1000格) =</span>
-                        <br>
-                        <span style="color: #48BB78; font-size: 42px; font-weight: 900;">${finalCubicCm} cm<sup>3</sup></span>
-                    `;
-                    break;
+            const config = getStepConfig();
+            
+            const dotsContainer = document.getElementById('step-dots-container');
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < config.count; i++) {
+                const dot = document.createElement('div');
+                dot.className = `step-dot ${i === currentStepIndex ? 'active' : ''}`;
+                dotsContainer.appendChild(dot);
             }
 
-            // 動態禁用邊界導航按鈕
+            if (activeMainTab === 'LV2') {
+                switch(currentStepIndex) {
+                    case 0:
+                        labelPhase.textContent = '步驟 1 / 6：正在將 1 m³ 切割為中型方塊';
+                        labelPhase.style.color = '#3182CE';
+                        cardTitle.textContent = '第一步：大方塊拆成 1000 份';
+                        formulaContainer.innerHTML = `
+                            <span>1 m<sup>3</sup> 巨大體積</span>
+                            <span>=</span>
+                            <span style="color: #3182CE;">1000 個 10 cm 中方塊</span>
+                        `;
+                        hasConfettiTriggered = false;
+                        break;
+                    case 1:
+                        labelPhase.textContent = '步驟 2 / 6：抽出其中 1 個 10 cm 立方體進行觀察';
+                        labelPhase.style.color = '#ED64A6';
+                        cardTitle.textContent = '第二步：抽出 1 份代表觀察';
+                        formulaContainer.innerHTML = `
+                            <span>仔細看 1000 個裡的這 1 個：</span>
+                            <br>
+                            <span style="font-size: 24px; color: #ED64A6;">邊長 = 10 公分 (cm)</span>
+                        `;
+                        break;
+                    case 2:
+                        labelPhase.textContent = '步驟 3 / 6：原位放大這顆 10 cm 立方體';
+                        labelPhase.style.color = '#D69E2E';
+                        cardTitle.textContent = '準備揭曉中方塊的秘密...';
+                        formulaContainer.innerHTML = `
+                            <span>這顆 10 cm 的中方塊</span>
+                            <br>
+                            <span style="font-size: 24px; color: #D69E2E;">放大中，看它能被切成幾格？</span>
+                        `;
+                        break;
+                    case 3:
+                        labelPhase.textContent = '步驟 4 / 6：切開了！這 1 個中方塊內含 1000 個小立方公分';
+                        labelPhase.style.color = '#E53E3E';
+                        cardTitle.textContent = '第三步：1 個中方塊包含 1000 格！';
+                        formulaContainer.innerHTML = `
+                            <span>1 個中方塊</span>
+                            <span>=</span>
+                            <span>10 cm × 10 cm × 10 cm</span>
+                            <span>=</span>
+                            <span style="color: #E53E3E;">1000 個 1 cm<sup>3</sup> 小格子</span>
+                        `;
+                        hasConfettiTriggered = false;
+                        break;
+                    case 4:
+                        labelPhase.textContent = '步驟 5 / 6：原位縮小對照，這疊原本一共有 1000 個！';
+                        labelPhase.style.color = '#D69E2E';
+                        cardTitle.textContent = '第四步：放回群體，驚人對比！';
+                        formulaContainer.innerHTML = `
+                            <span>1 個中方塊 = 1000 個小格子</span>
+                            <br>
+                            <span style="font-size: 22px; color: #2B6CB0;">而這整疊大方塊有 1000 個中方塊！</span>
+                        `;
+                        hasConfettiTriggered = false;
+                        break;
+                    case 5:
+                        labelPhase.textContent = '步驟 6 / 6：百萬倍二階段分裂圓滿成功！';
+                        labelPhase.style.color = '#38A169';
+                        cardTitle.textContent = '第五步：終極百萬倍率換算公式';
+                        formulaContainer.innerHTML = `
+                            <span style="font-size: 24px; color: #4A5568;">1000 × 1000 (每個切1000格) =</span>
+                            <br>
+                            <span style="color: #48BB78; font-size: 42px; font-weight: 900;">1,000,000 cm<sup>3</sup></span>
+                        `;
+                        break;
+                }
+            } 
+            else if (activeMainTab === 'LV4') {
+                switch(currentStepIndex) {
+                    case 0:
+                        labelPhase.textContent = '步驟 1 / 3：變形蟲本體 (大小約為 1 毫米 mm)';
+                        labelPhase.style.color = '#3182CE';
+                        cardTitle.textContent = '初探微觀世界（毫米級）';
+                        formulaContainer.innerHTML = `
+                            <span>肉眼極限：變形蟲</span>
+                            <br>
+                            <span style="font-size: 24px; color: #3182CE;">大小 ≈ 1 mm (公厘)</span>
+                        `;
+                        hasConfettiTriggered = false;
+                        break;
+                    case 1:
+                        labelPhase.textContent = '步驟 2 / 3：放大 1000 倍，聚焦細胞核 (微米 μm)';
+                        labelPhase.style.color = '#ED64A6';
+                        cardTitle.textContent = '進入細胞內部（微米級）';
+                        formulaContainer.innerHTML = `
+                            <span>1 毫米 (mm) 切割為 1000 份：</span>
+                            <br>
+                            <span style="color: #ED64A6; font-size: 32px;">1 mm = 1000 μm (微米)</span>
+                        `;
+                        hasConfettiTriggered = false;
+                        break;
+                    case 2:
+                        labelPhase.textContent = '步驟 3 / 3：再放大 1000 倍，看見分子 DNA (奈米 nm)';
+                        labelPhase.style.color = '#38A169';
+                        cardTitle.textContent = '極限分子尺度（奈米級）';
+                        formulaContainer.innerHTML = `
+                            <span>1 微米 (μm) 切割為 1000 份：</span>
+                            <br>
+                            <span style="color: #38A169; font-size: 32px;">1 μm = 1000 nm (奈米)</span>
+                            <br>
+                            <span style="font-size: 20px; color: #4A5568;">總計放大 1,000,000 倍！</span>
+                        `;
+                        break;
+                }
+            } 
+            else if (activeMainTab === 'LV5') {
+                if (activeLv5Sub === 'density') {
+                    switch(currentStepIndex) {
+                        case 0:
+                            labelPhase.textContent = '步驟 1 / 3：水的基礎密度為 1 g/cm³';
+                            labelPhase.style.color = '#3182CE';
+                            cardTitle.textContent = '微觀密度概念';
+                            formulaContainer.innerHTML = `
+                                <span>1 cm<sup>3</sup> 的 water 重 1 公克</span>
+                                <br>
+                                <span style="font-size: 24px; color: #3182CE;">水的密度 = 1 g/cm<sup>3</sup></span>
+                            `;
+                            hasConfettiTriggered = false;
+                            break;
+                        case 1:
+                            labelPhase.textContent = '步驟 2 / 3：想像 1 立方公尺 (1 m³) 的大水箱';
+                            labelPhase.style.color = '#ED64A6';
+                            cardTitle.textContent = '宏觀體積大變身';
+                            formulaContainer.innerHTML = `
+                                <span>1 m<sup>3</sup> 包含 1,000,000 cm<sup>3</sup></span>
+                                <br>
+                                <span style="font-size: 24px; color: #ED64A6;">這代表水箱裡裝滿 100 萬滴水！</span>
+                            `;
+                            hasConfettiTriggered = false;
+                            break;
+                        case 2:
+                            labelPhase.textContent = '步驟 3 / 3：計算總重量：水的複合單位換算成功！';
+                            labelPhase.style.color = '#38A169';
+                            cardTitle.textContent = '複合密度終極換算';
+                            formulaContainer.innerHTML = `
+                                <span>1,000,000 公克 (g)</span>
+                                <span>=</span>
+                                <span style="color: #38A169; font-size: 36px;">1000 公斤 (kg)</span>
+                                <br>
+                                <span style="font-size: 22px; color: #2D3748;">1 g/cm<sup>3</sup> = 1000 kg/m<sup>3</sup> (1公噸)</span>
+                            `;
+                            break;
+                    }
+                } else {
+                    switch(currentStepIndex) {
+                        case 0:
+                            labelPhase.textContent = '步驟 1 / 3：高鐵時速 90 公里 (km/hr)';
+                            labelPhase.style.color = '#3182CE';
+                            cardTitle.textContent = '時速概念拆解';
+                            formulaContainer.innerHTML = `
+                                <span>列車每小時前進 90 公里</span>
+                                <br>
+                                <span style="font-size: 24px; color: #3182CE;">距離 = 90,000 公尺 (m)</span>
+                            `;
+                            hasConfettiTriggered = false;
+                            break;
+                        case 1:
+                            labelPhase.textContent = '步驟 2 / 3：一小時包含 3600 秒 (s)';
+                            labelPhase.style.color = '#ED64A6';
+                            cardTitle.textContent = '時間基準轉換';
+                            formulaContainer.innerHTML = `
+                                <span>1 小時 = 60 分 × 60 秒</span>
+                                <br>
+                                <span style="font-size: 24px; color: #ED64A6;">總時間 = 3600 秒 (s)</span>
+                            `;
+                            hasConfettiTriggered = false;
+                            break;
+                        case 2:
+                            labelPhase.textContent = '步驟 3 / 3：計算每秒鐘飛奔的距離（秒速）';
+                            labelPhase.style.color = '#38A169';
+                            cardTitle.textContent = '複合速度終極換算';
+                            formulaContainer.innerHTML = `
+                                <span>90,000 m ÷ 3600 s =</span>
+                                <br>
+                                <span style="color: #38A169; font-size: 38px;">25 m/s (秒速)</span>
+                                <br>
+                                <span style="font-size: 18px; color: #4A5568;">時速 90 公里，相當於每秒飛奔五間教室！</span>
+                            `;
+                            break;
+                    }
+                }
+            }
+
             document.getElementById('btn-prev').disabled = (currentStepIndex === 0);
-            document.getElementById('btn-next').textContent = (currentStepIndex === 5) ? '挑戰完成 🎉' : '下一步 ▶';
+            document.getElementById('btn-next').textContent = (currentStepIndex === config.count - 1) ? '挑戰完成 🎉' : '下一步 ▶';
         }
 
-        // --- 6. 步驟插值平滑物理動畫過渡器 (Tween Loop) ---
         function mainLoop() {
             ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
 
-            // A. 繪製背景格線
             ctx.strokeStyle = 'rgba(190, 227, 248, 0.35)';
             ctx.lineWidth = 2;
             for (let i = 0; i < BASE_WIDTH; i += 40) {
@@ -986,20 +1544,19 @@
                 ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(BASE_WIDTH, j); ctx.stroke();
             }
 
-            // B. 步驟插值平滑过渡
-            const targetProgress = STEP_PROGRESS_TARGETS[currentStepIndex];
+            const config = getStepConfig();
+            const targetProgress = config.targets[currentStepIndex];
             const diff = targetProgress - currentProgress;
             
+            // 降低至 0.035 實現慢動作優雅移動
             if (Math.abs(diff) > 0.05) {
-                currentProgress += diff * 0.08;
+                currentProgress += diff * 0.035; 
             } else {
                 currentProgress = targetProgress;
             }
 
-            // C. 渲染幾何主體
-            renderMultiStageVolume();
+            renderScene();
 
-            // D. 物理碎紙花粒子更新
             for (let i = confettiList.length - 1; i >= 0; i--) {
                 const particle = confettiList[i];
                 particle.update();
@@ -1009,20 +1566,16 @@
                 }
             }
 
-            // 同步更新偵錯面板
-            document.getElementById('val-progress').textContent = currentProgress.toFixed(2);
-            document.getElementById('val-draw-count').textContent = renderCubeCount;
-
             requestAnimationFrame(mainLoop);
         }
 
-        // --- 7. 手勢與步驟導覽事件綁定 (極致流暢觸控) ---
         const prevBtn = document.getElementById('btn-prev');
         const nextBtn = document.getElementById('btn-next');
 
         const goNext = (e) => {
             e.preventDefault();
-            if (currentStepIndex < 5) {
+            const config = getStepConfig();
+            if (currentStepIndex < config.count - 1) {
                 currentStepIndex++;
                 updateDOMUIByStep();
             } else {
@@ -1043,11 +1596,53 @@
         prevBtn.addEventListener('touchstart', goPrev);
         prevBtn.addEventListener('click', goPrev);
 
-        document.getElementById('btn-toggle-debug').addEventListener('click', (e) => {
-            document.getElementById('debug-panel').classList.toggle('collapsed');
-        });
+        function selectMainTab(tab) {
+            activeMainTab = tab;
+            currentStepIndex = 0;
+            currentProgress = 0;
+            confettiList.length = 0;
+            hasConfettiTriggered = false;
 
-        // 初始化
+            document.getElementById('btn-tab-lv2').className = `tab-btn ${tab === 'LV2' ? 'active' : ''}`;
+            document.getElementById('btn-tab-lv4').className = `tab-btn ${tab === 'LV4' ? 'active' : ''}`;
+            document.getElementById('btn-tab-lv5').className = `tab-btn ${tab === 'LV5' ? 'active' : ''}`;
+
+            const lv5SubSelector = document.getElementById('lv5-sub-selector');
+            if (tab === 'LV5') {
+                lv5SubSelector.style.display = 'flex';
+                document.getElementById('status-header').textContent = 'LV.5 終極複合單位：跨界科學換算';
+            } else {
+                lv5SubSelector.style.display = 'none';
+                if (tab === 'LV2') {
+                    document.getElementById('status-header').textContent = 'LV.2 三維體積：「百萬大分裂」引導式探索';
+                } else {
+                    document.getElementById('status-header').textContent = 'LV.4 微觀尺度：從毫米到奈米的極限放大';
+                }
+            }
+
+            updateDOMUIByStep();
+        }
+
+        document.getElementById('btn-tab-lv2').addEventListener('click', () => selectMainTab('LV2'));
+        document.getElementById('btn-tab-lv4').addEventListener('click', () => selectMainTab('LV4'));
+        document.getElementById('btn-tab-lv5').addEventListener('click', () => selectMainTab('LV5'));
+
+        function selectLv5Sub(sub) {
+            activeLv5Sub = sub;
+            currentStepIndex = 0;
+            currentProgress = 0;
+            confettiList.length = 0;
+            hasConfettiTriggered = false;
+
+            document.getElementById('btn-sub-density').className = `sub-tab-btn ${sub === 'density' ? 'active' : ''}`;
+            document.getElementById('btn-sub-speed').className = `sub-tab-btn ${sub === 'speed' ? 'active' : ''}`;
+
+            updateDOMUIByStep();
+        }
+
+        document.getElementById('btn-sub-density').addEventListener('click', () => selectLv5Sub('density'));
+        document.getElementById('btn-sub-speed').addEventListener('click', () => selectLv5Sub('speed'));
+
         window.addEventListener('resize', updateLayout);
         window.addEventListener('orientationchange', () => {
             setTimeout(updateLayout, 200);
@@ -1056,7 +1651,7 @@
         canvas.width = BASE_WIDTH;
         canvas.height = BASE_HEIGHT;
         updateLayout();
-        updateDOMUIByStep();
+        selectMainTab('LV2'); 
         mainLoop();
 
     </script>
