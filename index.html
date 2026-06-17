@@ -53,23 +53,20 @@
             display: block;
         }
 
-        /* 【行動端優化】偵錯面板 
-           將其移出 app-viewport 縮放限制，直接置於 body 層，
-           確保在任何手機解析度下都維持 100% 原始物理像素，不縮小！
-        */
+        /* 【行動端高度優化】偵錯面板 */
         #debug-panel {
             position: fixed;
             top: 10px;
             left: 10px;
             z-index: 999; /* 絕對置頂 */
-            background: rgba(255, 255, 255, 0.96);
+            background: rgba(255, 255, 255, 0.98);
             border: 2px solid #BEE3F8;
             border-radius: 14px;
-            width: 320px;
+            width: 280px; /* 從 320px 縮減，防止遮擋過多 Canvas */
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             overflow: hidden;
-            max-height: 95vh;
+            max-height: calc(100vh - 20px); /* 限制最大高度為物理螢幕高度 */
             display: flex;
             flex-direction: column;
         }
@@ -77,25 +74,25 @@
         /* 折疊狀態樣式 */
         #debug-panel.collapsed {
             width: 180px;
-            height: 48px;
+            height: 44px;
             background: rgba(255, 255, 255, 0.9);
         }
 
-        /* 摺疊切換按鈕 (符合行動端 44px 觸控高度) */
+        /* 摺疊切換按鈕 */
         #btn-toggle-debug {
             width: 100%;
-            height: 48px;
+            height: 44px;
             background: #4299E1;
             color: white;
             border: none;
             font-family: inherit;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 16px;
+            padding: 0 14px;
             outline: none;
         }
 
@@ -105,7 +102,7 @@
 
         #btn-toggle-debug::after {
             content: '▼';
-            font-size: 12px;
+            font-size: 10px;
             transition: transform 0.3s ease;
         }
 
@@ -113,32 +110,29 @@
             content: '▲';
         }
 
-        /* 面板內部真實內容區 */
+        /* 面板內部內容區（加入順暢的觸控滾動支援） */
         .debug-body {
-            padding: 16px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             overflow-y: auto;
-        }
-
-        #debug-panel.collapsed .debug-body {
-            display: none; /* 折疊時隱藏內容 */
+            -webkit-overflow-scrolling: touch; /* 解鎖 iOS 物理動態滾動 */
         }
 
         #debug-panel h3 {
-            font-size: 16px;
+            font-size: 14px;
             color: #2B6CB0;
             border-bottom: 2px dashed #E2E8F0;
-            padding-bottom: 6px;
+            padding-bottom: 4px;
         }
 
         .debug-row {
             display: flex;
             justify-content: space-between;
-            font-size: 14px; /* 提高到 14px，行動端最佳閱讀尺寸 */
+            font-size: 13px;
             color: #4A5568;
-            margin: 2px 0;
+            margin: 1px 0;
         }
 
         .debug-value {
@@ -146,40 +140,41 @@
             color: #2D3748;
         }
 
-        /* 行動端觸控友善按鈕 (符合 Apple/Google 44px 人體工學) */
+        /* 行動端觸控按鈕 */
         .btn-test {
             display: block;
             width: 100%;
-            height: 46px; /* 行動端觸控友善高度 */
-            line-height: 44px;
+            height: 42px;
+            line-height: 40px;
             padding: 0;
-            background-color: #48BB78; /* 極光綠 */
+            background-color: #48BB78;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             font-family: inherit;
-            font-size: 15px; /* 更容易閱讀的字體 */
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 0px #2F855A;
+            box-shadow: 0 3px 0px #2F855A;
             transition: transform 0.05s ease, box-shadow 0.05s ease;
             text-align: center;
         }
 
         .btn-test:active {
-            transform: translateY(3px);
+            transform: translateY(2px);
             box-shadow: 0 1px 0px #2F855A;
         }
 
-        /* 歷史通訊事件記錄器 (加大字型與行高，確保實機清晰可見) */
+        /* 縮小高度並優化滑動的歷史通訊紀錄框 */
         #event-log {
             background: #EDF2F7;
-            border-radius: 8px;
-            padding: 8px;
-            height: 110px;
+            border-radius: 6px;
+            padding: 6px;
+            height: 75px; /* 降低高度以適應橫向窄螢幕 */
             overflow-y: auto;
-            font-size: 12px; /* 提升物理尺寸 */
-            line-height: 1.5;
+            -webkit-overflow-scrolling: touch; /* 解鎖觸控滾動 */
+            font-size: 11px;
+            line-height: 1.4;
             color: #2D3748;
             font-family: monospace;
             border: 1px solid #CBD5E0;
@@ -194,7 +189,7 @@
             height: 100%;
             background-color: #3182CE;
             z-index: 9999;
-            display: none; /* 預設隱藏，由 CSS 與 JS 動態控制 */
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -255,11 +250,7 @@
         <canvas id="game-canvas"></canvas>
     </div>
 
-    <!-- 
-        【優化調整】將偵錯面板完全自 16:9 視口移出，置於最上層。
-        如此一來，面板將 100% 忠實呈現實體像素大小，
-        同時加入行動端最需要的「折疊/收納」功能，防止擋住遊戲畫面。
-    -->
+    <!-- 偵錯面板 (置於最外層，不受縮放影響) -->
     <div id="debug-panel" class="collapsed">
         <button id="btn-toggle-debug">⚙️ 開啟/關閉偵錯面板</button>
         <div class="debug-body">
@@ -282,9 +273,9 @@
             </div>
             
             <button class="btn-test" id="btn-ready-test">測試 GAME_READY</button>
-            <button class="btn-test" id="btn-over-test" style="background-color: #ED64A6; box-shadow: 0 4px 0px #B83280;">測試 GAME_OVER</button>
+            <button class="btn-test" id="btn-over-test" style="background-color: #ED64A6; box-shadow: 0 3px 0px #B83280;">測試 GAME_OVER</button>
             
-            <div style="font-size: 12px; font-weight: bold; margin-top: 4px; color: #4A5568;">
+            <div style="font-size: 11px; font-weight: bold; margin-top: 4px; color: #4A5568;">
                 虛擬外層訊息接收紀錄：
             </div>
             <div id="event-log"></div>
@@ -319,19 +310,15 @@
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
 
-            // 計算能夠塞入當前視窗的最大等比例縮放倍率
             const scaleX = windowWidth / BASE_WIDTH;
             const scaleY = windowHeight / BASE_HEIGHT;
             currentScale = Math.min(scaleX, scaleY);
 
-            // 套用 transform scale 控制
             viewport.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
 
-            // 更新偵錯面板資訊
             document.getElementById('val-win-size').textContent = `${windowWidth} x ${windowHeight}`;
             document.getElementById('val-scale').textContent = currentScale.toFixed(3);
 
-            // 觸發螢幕直立防呆二重確認
             const blocker = document.getElementById('orientation-blocker');
             if (windowHeight > windowWidth) {
                 blocker.style.display = 'flex';
@@ -347,13 +334,16 @@
             debugPanel.classList.toggle('collapsed');
         });
 
+        // 阻止偵錯面板內部的觸控拖曳事件冒泡到 body，防止整頁被橡皮筋鎖死
+        debugPanel.addEventListener('touchmove', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+
         // --- 4. 跨界通訊協定與虛擬接收器 ---
         function sendEventToParent(payload) {
             if (isEmbedded) {
-                // 如果在 iframe 中，直接向 parent 發送資料
                 window.parent.postMessage(payload, '*');
             } else {
-                // 本地獨立開發時，將訊息直接輸出到本地控制面板
                 logLocalEvent(payload);
             }
         }
@@ -363,10 +353,10 @@
             const logBox = document.getElementById('event-log');
             const timeStr = new Date().toTimeString().split(' ')[0];
             const newMsg = document.createElement('div');
-            newMsg.style.marginBottom = '6px';
+            newMsg.style.marginBottom = '4px';
             newMsg.style.borderBottom = '1px solid #E2E8F0';
-            newMsg.style.paddingBottom = '4px';
-            newMsg.innerHTML = `<span style="color: #3182CE; font-weight:bold;">[${timeStr}]</span><br>${JSON.stringify(payload)}`;
+            newMsg.style.paddingBottom = '2px';
+            newMsg.innerHTML = `<span style="color: #3182CE; font-weight:bold;">[${timeStr}]</span> ${payload.type}`;
             logBox.appendChild(newMsg);
             logBox.scrollTop = logBox.scrollHeight;
         }
@@ -391,7 +381,6 @@
             });
         };
 
-        // 同時綁定 touch 與 click，並防範重複觸發
         readyBtn.addEventListener('touchstart', triggerReady, { passive: false });
         readyBtn.addEventListener('click', triggerReady);
         overBtn.addEventListener('touchstart', triggerOver, { passive: false });
@@ -447,7 +436,7 @@
                 }
 
                 const centerX = BASE_WIDTH / 2;
-                const centerY = BASE_HEIGHT / 2;
+                const centerY = BASE_HEIGHT / 2 - 40; // 稍微往上調，移開下方字體空間
                 
                 ctx.save();
                 ctx.translate(centerX, centerY);
@@ -455,26 +444,32 @@
                 
                 // 繪製圓環
                 ctx.beginPath();
-                ctx.arc(0, 0, 80, 0, Math.PI * 2);
-                ctx.lineWidth = 15;
+                ctx.arc(0, 0, 70, 0, Math.PI * 2);
+                ctx.lineWidth = 12;
                 ctx.strokeStyle = '#BEE3F8';
                 ctx.stroke();
                 
                 ctx.fillStyle = '#63B3ED';
                 for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-                    ctx.fillRect(90 * Math.cos(a) - 6, 90 * Math.sin(a) - 6, 12, 12);
+                    ctx.fillRect(80 * Math.cos(a) - 5, 80 * Math.sin(a) - 5, 10, 10);
                 }
                 ctx.restore();
 
-                // 【行動端閱讀優化】顯著調大 Canvas 內部文字
+                // 【全新優化】大幅放大 Canvas 字體，並採取高可讀性雙行排版
                 ctx.fillStyle = '#2B6CB0';
-                ctx.font = 'bold 36px "Kosugi Maru", sans-serif'; // 從 28px 提升至 36px
+                ctx.font = 'bold 52px "Kosugi Maru", sans-serif'; // 大幅提升至 52px
                 ctx.textAlign = 'center';
                 ctx.fillText('步驟一：基礎環境與縮放已就緒', centerX, centerY + 160);
 
                 ctx.fillStyle = '#4A5568';
-                ctx.font = 'bold 20px "Noto Sans TC", sans-serif'; // 從 16px 提升至 20px
-                ctx.fillText('點擊左上角「⚙️ 齒輪」展開或收折偵錯面板，進行行動端手勢測試。', centerX, centerY + 210);
+                ctx.font = 'bold 24px "Noto Sans TC", sans-serif'; // 提升至 24px
+                
+                // 雙行說明，防止在低寬高比螢幕下擠壓變形
+                const subLine1 = '點擊左上角「⚙️ 齒輪」展開或收折偵錯面板';
+                const subLine2 = '進行行動端手勢與跨界通訊測試';
+                
+                ctx.fillText(subLine1, centerX, centerY + 220);
+                ctx.fillText(subLine2, centerX, centerY + 265);
 
                 rotationAngle += 0.015;
                 requestAnimationFrame(drawFrame);
@@ -488,7 +483,6 @@
             setTimeout(updateLayout, 200);
         });
 
-        // 偵測 iframe 嵌入狀態
         document.getElementById('val-embed').textContent = isEmbedded ? 'Iframe 嵌入中' : '獨立運行';
         if (isEmbedded) {
             document.getElementById('val-embed').style.color = '#3182CE';
