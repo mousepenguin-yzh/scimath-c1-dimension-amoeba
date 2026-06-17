@@ -664,7 +664,7 @@
             }
         }
 
-        // 【恢復位置與向右抽取】：重構 3D 方塊錨定在原先的黃金中心點，向右上方抽離，放大後向左下方復原
+        // 【STREAMING_CHUNK: 繪製LV2三維體積「百萬大分裂」】
         function renderLV2() {
             const gridOriginX = 420; // 恢復黃金中心起點，保證左側不會切到畫面！
             const gridOriginY = 480;
@@ -835,6 +835,7 @@
             }
         }
 
+        // 【STREAMING_CHUNK: 繪製LV4微觀尺度「極限放大」】
         let amoebaWaveAngle = 0; 
         function renderLV4() {
             const centerX = 340; 
@@ -1058,28 +1059,50 @@
                     }
                 }
 
-                // 畫微觀水滴與重量引導線 (引導至 X=620, Y=360 的小紅角落方塊)
+                // 畫微觀水滴與重量引導線 (向左上折出，完美與算式卡對齊，消滅切除)
                 const targetPos = getIsoPoint(9*(cubeSize+maxGap), 9*(cubeSize+maxGap), 9*(cubeSize+maxGap), gridOriginX, gridOriginY);
                 ctx.save();
-                ctx.strokeStyle = '#3182CE';
+                ctx.strokeStyle = '#E53E3E';
                 ctx.lineWidth = 3;
+                
+                // 起點在角落小紅 cube 中心偏上
+                const startX = targetPos.x + 10;
+                const startY = targetPos.y - 10;
+                // 向左上方拉伸 (X減小，Y減小)
+                const midX = startX - 70;
+                const midY = startY - 70;
+                const endX = midX - 50;
+
                 ctx.beginPath();
-                ctx.moveTo(targetPos.x - 20, targetPos.y + 10);
-                ctx.lineTo(targetPos.x - 100, targetPos.y + 50);
-                ctx.lineTo(targetPos.x - 180, targetPos.y + 50);
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(midX, midY);
+                ctx.lineTo(endX, midY);
                 ctx.stroke();
 
-                ctx.fillStyle = '#3182CE';
+                ctx.fillStyle = '#E53E3E';
                 ctx.beginPath();
-                ctx.arc(targetPos.x - 20, targetPos.y + 10, 5, 0, Math.PI * 2);
+                ctx.arc(startX, startY, 5, 0, Math.PI * 2);
                 ctx.fill();
 
-                // 文字說明
-                ctx.fillStyle = '#2B6CB0';
-                ctx.font = 'bold 20px "Noto Sans TC", sans-serif';
-                ctx.textAlign = 'right';
-                ctx.fillText('1 cm³ (立方公分) 微觀小水滴', targetPos.x - 190, targetPos.y + 40);
-                ctx.fillText('實體重量剛好是：1 公克 (g)', targetPos.x - 190, targetPos.y + 68);
+                // 繪製氣泡提示框
+                const bubbleW = 340;
+                const bubbleH = 80;
+                const bx = endX - bubbleW;
+                const by = midY - bubbleH / 2;
+
+                ctx.fillStyle = '#FFF5F5';
+                ctx.strokeStyle = '#FEB2B2';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.roundRect(bx, by, bubbleW, bubbleH, 12);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#C53030';
+                ctx.font = 'bold 18px "Noto Sans TC", sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText('1 cm³ (立方公分) 微觀小水滴，', bx + 15, by + 32);
+                ctx.fillText('實體重量剛好是：1 公克 (g)', bx + 15, by + 58);
                 ctx.restore();
             }
             // 2. 步驟 2/3 (1m³ 宏觀水箱標示)
