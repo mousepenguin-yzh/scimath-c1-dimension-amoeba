@@ -376,7 +376,7 @@
     </div>
 
     <script>
-        // --- 1. 全域變數與資源定錨宣告 ---
+        // --- STREAMING_CHUNK: Initializing state variables... ---
         const BASE_WIDTH = 1280;
         const BASE_HEIGHT = 720;
         
@@ -389,6 +389,7 @@
         // 核心狀態機變數 (100% 嚴謹初始值，杜絕空指標崩潰)
         let activeMainTab = 'LV2'; 
         let activeLv5Sub = 'density'; 
+
         const questionVolume = 1;
 
         // 定義步驟目標
@@ -422,7 +423,7 @@
             }
         };
 
-        // --- 2. 幾何基礎與物理粒子計算 ---
+        // --- STREAMING_CHUNK: Defining core helper methods... ---
         function getStepConfig() {
             if (activeMainTab === 'LV2') return STEP_CONFIGS['LV2'];
             if (activeMainTab === 'LV4') return STEP_CONFIGS['LV4'];
@@ -568,7 +569,8 @@
             }
         }
 
-        // --- 3. 對話氣泡定位系統 (100% 往左上方折出) ---
+        // --- STREAMING_CHUNK: Configuring text callouts with left-upwards projection... ---
+        // 指向說明框 (向左上方折出，懸浮在立方體堆頂部，完全避開右側字卡)
         function drawCallout(context, tx, ty, alpha) {
             context.save();
             context.globalAlpha = alpha;
@@ -666,7 +668,7 @@
             context.restore();
         }
 
-        // --- 4. 關卡專屬 3D 與向量繪圖器 ---
+        // --- STREAMING_CHUNK: Designing 3D Cube rendering for Level 2... ---
         function renderLV2() {
             const gridOriginX = 420; 
             const gridOriginY = 480;
@@ -840,6 +842,7 @@
             }
         }
 
+        // --- STREAMING_CHUNK: Designing 2D Amoeba-microscopic crossfade for Level 4... ---
         let amoebaWaveAngle = 0; 
         function renderLV4() {
             const centerX = 340; 
@@ -1040,6 +1043,7 @@
             ctx.fillText(magStr, centerX, centerY + 220);
         }
 
+        // --- STREAMING_CHUNK: Designing 3D Cube density and weight indicators for Level 5... ---
         // 【LV.5 密度簡化】：全對齊左上折出定位氣泡，完全消滅左側切邊與右側卡片遮擋
         function renderLV5Density() {
             const gridOriginX = 420; 
@@ -1102,7 +1106,7 @@
             }
         }
 
-        // --- 5. 列車慢動作與起點對齊幾何 ---
+        // --- STREAMING_CHUNK: Designing Parallax train rolling animations for Level 5... ---
         function renderLV5Speed() {
             const trainY = 460;
             const t = currentProgress / 100;
@@ -1302,7 +1306,7 @@
             }
         }
 
-        // --- 6. DOM UI 算式字卡文字同步 ---
+        // --- STREAMING_CHUNK: Dynamic DOM text updating and stage routing... ---
         const labelPhase = document.getElementById('txt-animation-phase');
         const cardTitle = document.getElementById('math-card-title');
         const formulaContainer = document.getElementById('math-formula');
@@ -1514,52 +1518,7 @@
             }
         }
 
-        // --- 7. 平滑物理緩動主迴圈與事件綁定 ---
-        function mainLoop() {
-            ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
-
-            ctx.strokeStyle = 'rgba(190, 227, 248, 0.35)';
-            ctx.lineWidth = 2;
-            for (let i = 0; i < BASE_WIDTH; i += 40) {
-                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, BASE_HEIGHT); ctx.stroke();
-            }
-            for (let j = 0; j < BASE_HEIGHT; j += 40) {
-                ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(BASE_WIDTH, j); ctx.stroke();
-            }
-
-            const config = getStepConfig();
-            if (config) {
-                const targetProgress = config.targets[currentStepIndex];
-                const diff = targetProgress - currentProgress;
-                
-                let easeRate = 0.035;
-                if (activeMainTab === 'LV4') {
-                    easeRate = 0.015; 
-                } else if (activeMainTab === 'LV5') {
-                    easeRate = 0.02;  
-                }
-
-                if (Math.abs(diff) > 0.05) {
-                    currentProgress += diff * easeRate; 
-                } else {
-                    currentProgress = targetProgress;
-                }
-
-                renderScene();
-            }
-
-            for (let i = confettiList.length - 1; i >= 0; i--) {
-                const particle = confettiList[i];
-                particle.update();
-                particle.draw(ctx);
-                if (particle.alpha <= 0) {
-                    confettiList.splice(i, 1);
-                }
-            }
-
-            requestAnimationFrame(mainLoop);
-        }
-
+        // --- STREAMING_CHUNK: Binding event listeners and resolving window load race condition... ---
         const prevBtn = document.getElementById('btn-prev');
         const nextBtn = document.getElementById('btn-next');
 
@@ -1570,7 +1529,8 @@
                 currentStepIndex++;
                 updateDOMUIByStep();
             } else {
-                triggerConfetti(640, 240);
+                const originalScreenPos = getIsoPoint(9 * (20 + 7.5), 9 * (20 + 7.5), 9 * (20 + 7.5), 420, 480);
+                triggerConfetti(originalScreenPos.x, originalScreenPos.y - 50);
             }
         };
 
@@ -1641,14 +1601,27 @@
             setTimeout(updateLayout, 200);
         });
 
-        // --- 8. Window Onload 穩健啟動架構 (100% 解決 race condition 錯誤) ---
-        window.onload = function() {
+        // --- STREAMING_CHUNK: Initializing canvas state immediately on page load... ---
+        function initApp() {
             canvas.width = BASE_WIDTH;
             canvas.height = BASE_HEIGHT;
             updateLayout();
             selectMainTab('LV2'); 
-            mainLoop();
-        };
+            
+            // 啟動 60FPS 渲染循環
+            function animationFrameLoop() {
+                mainLoop();
+                requestAnimationFrame(animationFrameLoop);
+            }
+            requestAnimationFrame(animationFrameLoop);
+        }
+
+        // 【終極解決 Race Condition 的黃金架構】：直接偵測 readyState，繞過 iframe onload 黑洞！
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            initApp();
+        } else {
+            window.addEventListener('DOMContentLoaded', initApp);
+        }
 
     </script>
 </body>
