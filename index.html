@@ -2,25 +2,23 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <!-- 行動端硬化：強制禁止雙擊縮放，確保觸控反應無延遲 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>空間維度與單位變形蟲 - 步驟一</title>
-    <!-- 引入 Google Fonts 親和力開源日系圓體 -->
+    <title>空間維度與單位變形蟲 - 步驟二</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
     
     <style>
-        /* 1. 馬卡龍與舒適對比風格 */
         :root {
-            --bg-dark-plate: #1e272e; /* 外部深色底板，用以突顯遊戲 16:9 邊界 */
-            --bg-game: #f5f6fa;       /* 遊戲本體乾淨背景 */
-            --macaron-pink: #ffb8b8;  /* 粉紅馬卡龍 */
-            --macaron-blue: #81ecec;  /* 湖水綠藍 */
-            --macaron-yellow: #ffeaa7;/* 警示亮黃 */
-            --text-main: #2d3436;     /* 深碳色文字（高對比度） */
-            --text-muted: #4a5568;    /* 次要說明文字（提升行動端 legibility） */
-            --panel-white: #ffffff;   /* 亮白控制卡片 */
+            --bg-dark-plate: #1e272e; 
+            --bg-game: #f5f6fa;       
+            --macaron-pink: #ffb8b8;  
+            --macaron-blue: #81ecec;  
+            --macaron-yellow: #ffeaa7;
+            --macaron-green: #55efc4; 
+            --text-main: #2d3436;     
+            --text-muted: #4a5568;    
+            --panel-white: #ffffff;   
         }
 
         * {
@@ -29,13 +27,11 @@
             padding: 0;
             user-select: none;
             -webkit-user-select: none;
-            /* 消除行動端點擊時出現的半透明藍色高亮背景 */
             -webkit-tap-highlight-color: transparent;
         }
 
         body, html {
             width: 100%;
-            /* 使用 dvh (Dynamic Viewport Height) 解決行動端網址列擠壓與切邊問題 */
             height: 100dvh;
             overflow: hidden;
             background-color: var(--bg-dark-plate);
@@ -45,7 +41,6 @@
             align-items: center;
         }
 
-        /* 2. 核心遊戲沙盒容器 */
         #game-container {
             position: relative;
             width: 100vw;
@@ -53,7 +48,7 @@
             overflow: hidden;
         }
 
-        /* 3. 嚴格鎖定 16:9 的視區 (Base Size: 1280x720) */
+        /* 16:9 核心畫布 */
         #game-viewport {
             position: absolute;
             width: 1280px;
@@ -67,19 +62,19 @@
             border-radius: 20px;
             overflow: hidden;
             display: flex;
-            flex-direction: column;
             transition: opacity 0.2s ease;
         }
 
-        /* 步驟一：展示排版骨架 */
-        #viewport-content {
+        /* 遊戲主視區 */
+        #main-game-area {
             flex: 1;
             display: flex;
             flex-direction: column;
             padding: 35px;
+            height: 100%;
+            transition: all 0.3s ease;
         }
 
-        /* 頂部標題（放大字型，提升手機閱讀舒適度） */
         header {
             display: flex;
             justify-content: space-between;
@@ -91,7 +86,7 @@
 
         h1 {
             color: var(--text-main);
-            font-size: 34px; /* 從 28px 調大至 34px */
+            font-size: 34px;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -102,11 +97,10 @@
             color: white;
             padding: 6px 16px;
             border-radius: 25px;
-            font-size: 20px; /* 從 16px 調大至 20px */
+            font-size: 20px;
             font-weight: bold;
         }
 
-        /* 雙欄對比佈局 */
         .split-container {
             flex: 1;
             display: flex;
@@ -122,7 +116,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.03);
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* 均勻分配內部元素空間 */
+            justify-content: space-between;
             align-items: center;
             text-align: center;
         }
@@ -135,28 +129,27 @@
         }
 
         .panel-icon {
-            font-size: 72px; /* 從 64px 放大 */
+            font-size: 72px;
             margin-bottom: 10px;
         }
 
         .panel-title {
-            font-size: 28px; /* 從 22px 調大至 28px */
+            font-size: 28px;
             color: var(--text-main);
             font-weight: bold;
         }
 
         .panel-desc {
-            font-size: 21px; /* 從 16px 調大至 21px，確保縮放後半折依然清晰 */
+            font-size: 21px;
             color: var(--text-muted);
             line-height: 1.6;
             max-width: 90%;
         }
 
-        /* 增大行動端按鈕觸控範圍與字體 */
         .macaron-btn {
             width: 85%;
-            padding: 16px 30px; /* 增大內襯墊 */
-            font-size: 22px; /* 從 18px 調大至 22px */
+            padding: 16px 30px;
+            font-size: 22px;
             font-family: 'Kosugi Maru', sans-serif;
             font-weight: bold;
             color: var(--text-main);
@@ -173,26 +166,111 @@
             box-shadow: 0 4px 0 #00ced1;
         }
 
-        /* 4. 將測試面板移入 16:9 Viewport 內部！
-           這能確保它跟著遊戲主體一起做 transform 縮放，永遠不會游離或被手機系統導航條切掉 */
-        #test-overlay {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background-color: rgba(45, 52, 54, 0.95);
-            color: #55efc4;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-family: monospace;
-            font-size: 18px; /* 放大資訊面板字體 */
-            font-weight: bold;
-            z-index: 1000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border: 2px solid #55efc4;
-            pointer-events: none;
+        /* ----------------------------------
+           步驟二專屬：虛擬測試沙盒面板 (僅在 window === top 時渲染)
+        ------------------------------------- */
+        #sandbox-panel {
+            width: 380px;
+            background-color: #2d3436;
+            border-left: 6px solid var(--macaron-blue);
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+            color: #f5f6fa;
+            z-index: 100;
         }
 
-        /* 5. 直螢幕強制攔截層 */
+        .sandbox-title {
+            font-size: 22px;
+            color: var(--macaron-blue);
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4a5568;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sandbox-section-title {
+            font-size: 16px;
+            color: var(--macaron-yellow);
+            margin: 15px 0 8px 0;
+            font-weight: bold;
+        }
+
+        .sandbox-btn-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .sandbox-btn {
+            padding: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.1s;
+        }
+
+        .sandbox-btn:hover {
+            background-color: #576574;
+        }
+
+        .sandbox-btn:active {
+            transform: scale(0.97);
+        }
+
+        .sandbox-btn.accent {
+            background-color: var(--macaron-pink);
+            color: var(--text-main);
+        }
+
+        .sandbox-btn.accent:hover {
+            background-color: #ff9f9f;
+        }
+
+        /* 通訊日誌監控器 */
+        #sandbox-logger {
+            flex: 1;
+            background-color: #1e272e;
+            border-radius: 12px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 13px;
+            overflow-y: auto;
+            margin-top: 10px;
+            border: 1px solid #4a5568;
+            line-height: 1.5;
+        }
+
+        .log-entry {
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #34495e;
+            word-break: break-all;
+        }
+
+        .log-time {
+            color: #95a5a6;
+        }
+
+        .log-dir-in {
+            color: var(--macaron-blue);
+            font-weight: bold;
+        }
+
+        .log-dir-out {
+            color: var(--macaron-green);
+            font-weight: bold;
+        }
+
+        /* 直螢幕強制攔截層 */
         #orientation-overlay {
             position: fixed;
             top: 0;
@@ -216,7 +294,6 @@
             margin-bottom: 35px;
         }
 
-        /* 手機旋轉動畫 */
         .phone-icon {
             font-size: 100px;
             display: inline-block;
@@ -247,41 +324,64 @@
 <body>
 
     <div id="game-container">
-        <!-- 遊戲本體 -->
+        <!-- 核心遊戲 16:9 Viewport -->
         <div id="game-viewport">
-            <div id="viewport-content">
+            
+            <!-- 遊戲主畫面（左側欄與右側欄） -->
+            <div id="main-game-area">
                 <header>
-                    <h1>空間維度與單位變形蟲 <span class="level-badge">LV.1 測試</span></h1>
-                    <div style="font-size: 24px; color: var(--text-main); font-weight: bold;">分數：000</div>
+                    <h1>空間維度與單位變形蟲 <span class="level-badge" id="current-level-display">LV.1 測試</span></h1>
+                    <div style="font-size: 24px; color: var(--text-main); font-weight: bold;">分數：<span id="score-display">000</span></div>
                 </header>
 
                 <div class="split-container">
-                    <!-- 左半部 -->
                     <div class="split-panel" style="border-top: 8px solid var(--macaron-pink);">
                         <div class="panel-top-info">
-                            <div class="panel-icon">📐</div>
-                            <div class="panel-title">原始二維面積</div>
-                            <div class="panel-desc">長 1 公尺，寬 1 公尺。<br>我們將在此處繪製基本的 Canvas 立方。</div>
+                            <div class="panel-icon" id="left-panel-icon">📐</div>
+                            <div class="panel-title" id="left-panel-title">原始二維面積</div>
+                            <div class="panel-desc" id="left-panel-desc">長 1 公尺，寬 1 公尺。<br>我們將在此處繪製基本的 Canvas 立方。</div>
                         </div>
-                        <button class="macaron-btn">點擊測試反饋</button>
+                        <button class="macaron-btn" id="action-btn-left">點擊測試反饋</button>
                     </div>
 
-                    <!-- 右半部 -->
                     <div class="split-panel" style="border-top: 8px solid var(--macaron-blue);">
                         <div class="panel-top-info">
-                            <div class="panel-icon">💡</div>
-                            <div class="panel-title">切分對比與提示</div>
-                            <div class="panel-desc">點擊左側提示按鈕時，此處將同步載入切分網格。</div>
+                            <div class="panel-icon" id="right-panel-icon">💡</div>
+                            <div class="panel-title" id="right-panel-title">切分對比與提示</div>
+                            <div class="panel-desc" id="right-panel-desc">點擊左側提示按鈕時，此處將同步載入切分網格。</div>
                         </div>
-                        <button class="macaron-btn" style="background-color: var(--macaron-pink); box-shadow: 0 8px 0 #e84118; color: white;">提示按鈕測試</button>
+                        <button class="macaron-btn" id="action-btn-right" style="background-color: var(--macaron-pink); box-shadow: 0 8px 0 #e84118; color: white;">提示按鈕測試</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 修正：將調試標籤放進 Viewport 內部，與遊戲同步縮放，防止在手機上超出邊界 -->
-            <div id="test-overlay">
-                <span id="test-label">[偵測狀態：正在載入...]</span>
+            <!-- 虛擬沙盒控制台（當獨立運行時，會自動出現於 Viewport 右側內） -->
+            <div id="sandbox-panel" style="display: none;">
+                <div class="sandbox-title">🛠️ 虛擬沙盒控制台</div>
+                
+                <div class="sandbox-section-title">模擬父視窗指令 (向下通訊)</div>
+                <div class="sandbox-btn-grid">
+                    <button class="sandbox-btn" onclick="GameModule.mockReceiveStartGame(1)">啟動 LV.1</button>
+                    <button class="sandbox-btn" onclick="GameModule.mockReceiveStartGame(2)">啟動 LV.2</button>
+                    <button class="sandbox-btn" onclick="GameModule.mockReceiveStartGame(3)">啟動 LV.3</button>
+                    <button class="sandbox-btn" onclick="GameModule.mockReceiveStartGame(4)">啟動 LV.4</button>
+                    <button class="sandbox-btn" onclick="GameModule.mockReceiveStartGame(5)">啟動 LV.5</button>
+                </div>
+
+                <div class="sandbox-section-title">模擬遊戲內事件 (向上通訊)</div>
+                <div class="sandbox-btn-grid">
+                    <button class="sandbox-btn accent" onclick="GameModule.mockTriggerLevelUp()">模擬答對升級</button>
+                    <button class="sandbox-btn accent" onclick="GameModule.mockTriggerGameOver(true)">完美通關(成功)</button>
+                    <button class="sandbox-btn accent" style="background-color: #ff7675;" onclick="GameModule.mockTriggerGameOver(false)">失敗結算</button>
+                </div>
+
+                <div class="sandbox-section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>通訊傳輸日誌</span>
+                    <span style="font-size:11px; color:#95a5a6; cursor:pointer;" onclick="GameModule.clearLogs()">清除</span>
+                </div>
+                <div id="sandbox-logger"></div>
             </div>
+
         </div>
     </div>
 
@@ -295,66 +395,287 @@
     </div>
 
     <script>
-        // 設定基準解析度
-        const BASE_WIDTH = 1280;
-        const BASE_HEIGHT = 720;
-
         /**
-         * 透過動態矩陣運算，維持完美的 16:9 比例與動態置中
+         * 2. 封裝命名空間：隔離內部邏輯，防止與主網站產生全域命名衝突
          */
-        function resizeGame() {
-            const container = document.getElementById('game-container');
-            const viewport = document.getElementById('game-viewport');
-            const testLabel = document.getElementById('test-label');
-            const overlay = document.getElementById('orientation-overlay');
-
-            if (!container || !viewport) return;
-
-            // 取得扣除瀏覽器網址列、導航條後的真實動態視區尺寸
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-
-            // 1. 計算縮放比例
-            const scaleX = windowWidth / BASE_WIDTH;
-            const scaleY = windowHeight / BASE_HEIGHT;
+        const GameModule = {
+            // 基礎參數設定
+            config: {
+                baseWidth: 1280,
+                baseHeight: 720,
+                challengeId: 1
+            },
             
-            // 取最小縮放係數，確保畫面完整容納於瀏覽器中而不被切邊
-            const scale = Math.min(scaleX, scaleY);
+            // 遊戲當前內部狀態
+            state: {
+                currentLevel: 1,
+                score: 0,
+                isPerfect: true
+            },
 
-            // 2. 利用 translate 修正置中，並執行 scale 縮放
-            viewport.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            /**
+             * 初始化遊戲
+             */
+            init() {
+                this.bindEvents();
+                this.resizeGame();
+                this.detectSandboxMode();
+                
+                // 子傳父：發送 GAME_READY 訊號，宣告遊戲載入完畢
+                this.postToParent({
+                    type: 'GAME_READY',
+                    challengeId: this.config.challengeId
+                });
+            },
 
-            // 3. 判斷直橫螢幕狀態
-            const isPortrait = windowHeight > windowWidth;
-            const statusText = isPortrait ? '直螢幕 (已封鎖)' : '橫螢幕 16:9';
+            /**
+             * 監聽與綁定事件
+             */
+            bindEvents() {
+                // 監聽父視窗（主網站）向下發送的 message
+                window.addEventListener('message', (event) => {
+                    this.handleIncomingMessage(event);
+                });
 
-            // 4. 更新測試 UI（現在由於位於 Viewport 內部，其字體也會完美跟著縮放，保證清晰不跑版）
-            if (testLabel) {
-                testLabel.textContent = `[狀態：${statusText} / 縮放比：${scale.toFixed(2)}]`;
-            }
+                // 綁定視窗縮放與旋轉事件
+                window.addEventListener('resize', () => this.resizeGame());
+                window.addEventListener('orientationchange', () => this.resizeGame());
+            },
 
-            // 5. 控制直螢幕遮罩的顯示與隱藏
-            if (overlay) {
-                if (isPortrait) {
-                    overlay.style.display = 'flex';
-                    viewport.style.opacity = '0';
-                    viewport.style.pointerEvents = 'none';
+            /**
+             * 偵測當前是否為獨立運行（Sandbox 模式）
+             */
+            detectSandboxMode() {
+                const isStandalone = (window === top);
+                const sandboxPanel = document.getElementById('sandbox-panel');
+                
+                if (isStandalone) {
+                    // 若不在 iframe 內，顯現右側虛擬測試面板，並微調遊戲寬度
+                    sandboxPanel.style.display = 'flex';
+                    this.log('系統偵測：獨立運行環境。已自動啟用【虛擬沙盒控制台】。', 'system');
                 } else {
-                    overlay.style.display = 'none';
-                    viewport.style.opacity = '1';
-                    viewport.style.pointerEvents = 'auto';
+                    sandboxPanel.style.display = 'none';
+                }
+            },
+
+            /**
+             * 統一處理向父視窗發送的通訊封包（子傳父）
+             */
+            postToParent(data) {
+                // 向上發送至父視窗
+                parent.postMessage(data, '*');
+                
+                // 同步將發送紀錄渲染至畫面的「通訊傳輸日誌」中，以供肉眼直觀驗證
+                this.log(`[發送 ↗] ${JSON.stringify(data)}`, 'out');
+            },
+
+            /**
+             * 統一處理父視窗傳入的通訊封包（父傳子）
+             */
+            handleIncomingMessage(event) {
+                const data = event.data;
+                if (!data) return;
+
+                this.log(`[接收 ↙] ${JSON.stringify(data)}`, 'in');
+
+                // 處理 START_GAME 指令
+                if (data.type === 'START_GAME') {
+                    const requestedLevel = data.config?.level || 1;
+                    this.transitionToLevel(requestedLevel);
+                }
+            },
+
+            /**
+             * 實作關卡狀態切換 (關卡核心驅動)
+             */
+            transitionToLevel(level) {
+                this.state.currentLevel = level;
+                
+                // 更新畫面 DOM UI
+                document.getElementById('current-level-display').textContent = `LV.${level} 測試`;
+                
+                const leftTitle = document.getElementById('left-panel-title');
+                const leftDesc = document.getElementById('left-panel-desc');
+                const leftIcon = document.getElementById('left-panel-icon');
+                
+                const rightTitle = document.getElementById('right-panel-title');
+                const rightDesc = document.getElementById('right-panel-desc');
+                const rightIcon = document.getElementById('right-panel-icon');
+
+                // 依據不同關卡渲染不同的測試文字（為步驟三、四的圖形做預備）
+                switch (level) {
+                    case 1:
+                        leftIcon.textContent = "📐";
+                        leftTitle.textContent = "原始二維面積";
+                        leftDesc.innerHTML = "長 1 公尺，寬 1 公尺。<br>這是一個純粹的二維平面空間。";
+                        
+                        rightIcon.textContent = "💡";
+                        rightTitle.textContent = "二維切分對比";
+                        rightDesc.innerHTML = "切分為長 100 公分，寬 100 公分的細密網格。";
+                        break;
+                    case 2:
+                        leftIcon.textContent = "📦";
+                        leftTitle.textContent = "三維等角立方體";
+                        leftDesc.innerHTML = "長、寬、高皆為 1 公尺。<br>立體空間的三維世界。";
+                        
+                        rightIcon.textContent = "💡";
+                        rightTitle.textContent = "三維嵌套放大分解";
+                        rightDesc.innerHTML = "點擊提示後展示 1,000,000 個立方公分的驚人對比！";
+                        break;
+                    case 3:
+                        leftIcon.textContent = "🧪";
+                        leftTitle.textContent = "1000 立方公分正方體";
+                        leftDesc.innerHTML = "物理課本裡的基礎容積：長 10 釐米的正方體。";
+                        
+                        rightIcon.textContent = "💡";
+                        rightTitle.textContent = "容積與體積的橋樑";
+                        rightDesc.innerHTML = "並排繪製 1 公升牛奶盒與 1000 毫升量筒。";
+                        break;
+                    case 4:
+                        leftIcon.textContent = "🔬";
+                        leftTitle.textContent = "微觀尺度階梯";
+                        leftDesc.innerHTML = "肉眼看不見的世界：<br>毫米(mm)、微米(μm)、奈米(nm)。";
+                        
+                        rightIcon.textContent = "💡";
+                        rightTitle.textContent = "微觀千倍換算律";
+                        rightDesc.innerHTML = "展示階梯與箭頭：「每跨出一步就是 1000 倍差距！」";
+                        break;
+                    case 5:
+                        leftIcon.textContent = "⚡";
+                        leftTitle.textContent = "複合單位拆解";
+                        leftDesc.innerHTML = "密度換算與速度換算：<br>例如 1 g/cm³ 或 90 km/hr。";
+                        
+                        rightIcon.textContent = "💡";
+                        rightTitle.textContent = "分數上下拆解框";
+                        rightDesc.innerHTML = "獨立處理分子與分母：將複合單位還原為第一性原理。";
+                        break;
+                }
+            },
+
+            /* =================================================================
+               沙盒模擬專屬函數 (僅供畫面按鈕直接觸發通訊，不影響主網站功能)
+               ================================================================= */
+            
+            /**
+             * 模擬父視窗向子網頁發送 START_GAME 封包
+             */
+            mockReceiveStartGame(level) {
+                // 利用 postMessage 模擬從父層傳過來的事件，以此徹底檢驗事件監聽是否完美暢通
+                window.postMessage({
+                    type: 'START_GAME',
+                    config: { level: level }
+                }, '*');
+            },
+
+            /**
+             * 模擬遊戲中答對、積分增加並推進關卡
+             */
+            mockTriggerLevelUp() {
+                this.state.score += 20;
+                document.getElementById('score-display').textContent = this.state.score.toString().padStart(3, '0');
+                
+                let nextLevel = this.state.currentLevel + 1;
+                if (nextLevel > 5) nextLevel = 1; // 循環回到 LV.1
+                
+                this.transitionToLevel(nextLevel);
+                this.log(`模擬事件：學生答對了！分數增加。跳轉至 LV.${nextLevel}。`, 'system');
+            },
+
+            /**
+             * 模擬學生玩完遊戲，發送 GAME_OVER 資料包
+             */
+            mockTriggerGameOver(isPerfect) {
+                this.state.isPerfect = isPerfect;
+                
+                // 子傳父：發送 GAME_OVER 報告至父層
+                this.postToParent({
+                    type: 'GAME_OVER',
+                    challengeId: this.config.challengeId,
+                    currentLevel: this.state.currentLevel,
+                    isPerfect: this.state.isPerfect,
+                    score: this.state.score
+                });
+            },
+
+            /**
+             * 在畫面的日誌框中列印一條訊息 (純視覺驗證，取代開 F12 的麻煩)
+             */
+            log(msg, direction) {
+                const logger = document.getElementById('sandbox-logger');
+                if (!logger) return;
+
+                const timeStr = new Date().toLocaleTimeString();
+                let dirClass = '';
+                let prefix = '';
+
+                if (direction === 'in') {
+                    dirClass = 'log-dir-in';
+                    prefix = '📥 ';
+                } else if (direction === 'out') {
+                    dirClass = 'log-dir-out';
+                    prefix = '📤 ';
+                } else {
+                    prefix = '⚙️ ';
+                }
+
+                logger.innerHTML += `
+                    <div class="log-entry">
+                        <span class="log-time">[${timeStr}]</span> 
+                        <span class="${dirClass}">${prefix}${msg}</span>
+                    </div>
+                `;
+                // 自動捲動到底部
+                logger.scrollTop = logger.scrollHeight;
+            },
+
+            /**
+             * 清空日誌顯示
+             */
+            clearLogs() {
+                const logger = document.getElementById('sandbox-logger');
+                if (logger) logger.innerHTML = '';
+            },
+
+            /**
+             * 動態縮放計算
+             */
+            resizeGame() {
+                const container = document.getElementById('game-container');
+                const viewport = document.getElementById('game-viewport');
+                const overlay = document.getElementById('orientation-overlay');
+
+                if (!container || !viewport) return;
+
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+
+                const scaleX = windowWidth / this.config.baseWidth;
+                const scaleY = windowHeight / this.config.baseHeight;
+                const scale = Math.min(scaleX, scaleY);
+
+                viewport.style.transform = `translate(-50%, -50%) scale(${scale})`;
+
+                // 判斷直螢幕狀態
+                const isPortrait = windowHeight > windowWidth;
+
+                if (overlay) {
+                    if (isPortrait) {
+                        overlay.style.display = 'flex';
+                        viewport.style.opacity = '0';
+                        viewport.style.pointerEvents = 'none';
+                    } else {
+                        overlay.style.display = 'none';
+                        viewport.style.opacity = '1';
+                        viewport.style.pointerEvents = 'auto';
+                    }
                 }
             }
-        }
+        };
 
-        // 綁定事件監聽器
-        window.addEventListener('resize', resizeGame);
-        window.addEventListener('orientationchange', resizeGame);
-        window.addEventListener('DOMContentLoaded', resizeGame);
-        
-        // 防止行動端瀏覽器渲染時間差，做延遲複驗
-        setTimeout(resizeGame, 100);
-        setTimeout(resizeGame, 400);
+        // 啟動模組
+        window.addEventListener('DOMContentLoaded', () => {
+            GameModule.init();
+        });
     </script>
 </body>
 </html>
