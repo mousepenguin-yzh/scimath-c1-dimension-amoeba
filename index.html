@@ -142,7 +142,6 @@
             color: white;
         }
 
-        /* 答題算式卡片 - 往上、往左微調，防範與導航線重疊 */
         #math-display-card {
             top: 220px;
             right: 40px; 
@@ -376,6 +375,29 @@
         <p>本挑戰僅支援【橫螢幕】操作，請開啟手機自動旋轉功能並橫放以獲得最佳遊戲體驗。</p>
     </div>
 
+    <!-- 開發者偵錯面板 (保留做為 Vercel 機制備用，預設不干擾畫面) -->
+    <div id="debug-panel" style="display: none;">
+        <button id="btn-toggle-debug">⚙️ 展開/收折偵錯面板</button>
+        <div class="debug-body">
+            <div class="debug-row">
+                <span>時間軸進度:</span>
+                <span id="val-progress" class="debug-value">0.00</span>
+            </div>
+            <div class="debug-row">
+                <span>繪製方塊數:</span>
+                <span id="val-draw-count" class="debug-value">0</span>
+            </div>
+            <div class="debug-row">
+                <span>聚焦方塊 Alpha:</span>
+                <span id="val-focus-alpha" class="debug-value">1.00</span>
+            </div>
+            <div class="debug-row">
+                <span>背景方塊 Alpha:</span>
+                <span id="val-back-alpha" class="debug-value">1.00</span>
+            </div>
+        </div>
+    </div>
+
     <script>
         const BASE_WIDTH = 1280;
         const BASE_HEIGHT = 720;
@@ -386,21 +408,23 @@
         
         let currentScale = 1;
 
-        // 全域當前狀態機
-        let activeMainTab = 'LV2'; // 'LV2', 'LV4', 'LV5'
-        let activeLv5Sub = 'density'; // 'density' 或 'speed'
-        
+        // 【致命 Bug 1 完全修復】：確實在全域變數區，宣告並初始化狀態機變數！
+        let activeMainTab = 'LV2'; 
+        let activeLv5Sub = 'density'; 
+
+        const questionVolume = 1;
+
+        // 定義 6 個離散的步驟目標時間軸位置
+        const STEP_PROGRESS_TARGETS = [0, 25, 45, 65, 80, 100];
         let currentStepIndex = 0; 
-        let currentProgress = 0;   // 緩動插值後的平滑進度 (0 ~ 100)
+        let currentProgress = 0;   
         const confettiList = [];
         let hasConfettiTriggered = false;
 
-        // LV.5 速度題視差背景滾動 X 軸偏移
         let speedBgCloudX = 0;
         let speedBgMountainX = 0;
         let speedBgTreeX = 0;
 
-        // 離散步驟目標錨定點定義
         const STEP_CONFIGS = {
             'LV2': {
                 targets: [0, 25, 45, 65, 80, 100],
@@ -495,7 +519,21 @@
             setTimeout(() => card.classList.remove('success-pulse'), 600);
         }
 
-        // --- 3. 非對稱二等角投影幾何計算 ---
+        // 【致命 Bug 2 完全修復】：手寫通用圓角矩形路徑函數，100% 繞過行動端不支援 roundRect() 產生的空指標崩潰！
+        function drawRoundRectPath(context, x, y, w, h, r) {
+            context.beginPath();
+            context.moveTo(x + r, y);
+            context.lineTo(x + w - r, y);
+            context.quadraticCurveTo(x + w, y, x + w, y + r);
+            context.lineTo(x + w, y + h - r);
+            context.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            context.lineTo(x + r, y + h);
+            context.quadraticCurveTo(x, y + h, x, y + h - r);
+            context.lineTo(x, y + r);
+            context.quadraticCurveTo(x, y, x + r, y);
+            context.closePath();
+        }
+
         const radLeft = 22 * Math.PI / 180;
         const radRight = 38 * Math.PI / 180;
 
@@ -534,7 +572,6 @@
             context.lineCap = 'round';
             context.lineJoin = 'round';
 
-            // 1. 左前側面：D -> C -> G -> H
             context.fillStyle = colorLeft;
             context.beginPath();
             context.moveTo(pts.D.x, pts.D.y);
@@ -546,7 +583,6 @@
             context.strokeStyle = strokeStyle;
             context.stroke();
 
-            // 2. 右前側面：B -> C -> G -> F
             context.fillStyle = colorRight;
             context.beginPath();
             context.moveTo(pts.B.x, pts.B.y);
@@ -557,7 +593,6 @@
             context.fill();
             context.stroke();
 
-            // 3. 頂部面：E -> F -> G -> H
             context.fillStyle = colorTop;
             context.beginPath();
             context.moveTo(pts.E.x, pts.E.y);
@@ -602,22 +637,23 @@
             }
         }
 
-        // 【空間重組修正】：引導氣泡往右上方折出，完美與右邊算式卡區隔
+        //        // 【引導氣泡指向與安全圓角重構 - 左上方折出，徹底隔離右側算式卡片】
         function drawCallout(context, tx, ty, alpha) {
             context.save();
             context.globalAlpha = alpha;
 
-            const startX = tx + 30;
-            const startY = ty - 10;
-            const midX = startX + 50;
-            const midY = startY - 60; 
-            const endX = midX + 40;
+            const startX = tx - 10;
+            const startY = ty - 15;
+            const midX = startX - 140;
+            const midY = startY - 150; 
+            const endX = 160;
 
             context.strokeStyle = '#E53E3E';
             context.lineWidth = 3;
             context.beginPath();
             context.moveTo(startX, startY);
-            context.lineTo(midX, midY);
+            const cappedMidX = Math.max(180, midX);
+            context.lineTo(cappedMidX, midY);
             context.lineTo(endX, midY);
             context.stroke();
 
@@ -635,8 +671,8 @@
             context.strokeStyle = '#FEB2B2';
             context.lineWidth = 3;
             
-            context.beginPath();
-            context.roundRect(bx, by, bubbleW, bubbleH, 12);
+            // 安全性圓角重繪
+            drawRoundRectPath(context, bx, by, bubbleW, bubbleH, 12);
             context.fill();
             context.stroke();
 
@@ -644,8 +680,60 @@
             context.font = 'bold 18px "Noto Sans TC", sans-serif';
             context.textAlign = 'left';
             
-            context.fillText('這顆切滿 1000 個小格子的中方塊，', bx + 15, by + 32);
-            context.fillText(`只是這 1000 個中方塊裡的 1 個！`, bx + 15, by + 58);
+            if (activeMainTab === 'LV2') {
+                context.fillText('這顆切滿 1000 個小格子的中方塊，', bx + 15, by + 32);
+                context.fillText(`只是這 1000 個中方塊裡的 1 個！`, bx + 15, by + 58);
+            } else {
+                context.fillText('1 cm³ (立方公分) 微觀小水滴，', bx + 15, by + 32);
+                context.fillText(`實體重量剛好是：1 公克 (g)`, bx + 15, by + 58);
+            }
+
+            context.restore();
+        }
+
+        //        // 【新增高彈性宏觀標記引導線 - 100% 複製 LV2 安全對角方向，完美避開左/右邊界】
+        function drawMacroCallout(context, tx, ty, text1, text2, alpha, colorBg = '#FFF5F5', colorBorder = '#FEB2B2', colorText = '#C53030') {
+            context.save();
+            context.globalAlpha = alpha;
+
+            // 仿效 LV2 設計，將起點往左上方向延伸拉伸
+            const startX = tx - 10;
+            const startY = ty - 15;
+            const midX = startX - 140;
+            const midY = startY - 150; 
+            const endX = 160; // 氣泡框左緣完美定位在 X = 160
+
+            context.strokeStyle = colorBorder;
+            context.lineWidth = 3;
+            context.beginPath();
+            context.moveTo(startX, startY);
+            const cappedMidX = Math.max(180, midX);
+            context.lineTo(cappedMidX, midY);
+            context.lineTo(endX, midY);
+            context.stroke();
+
+            context.fillStyle = colorBorder;
+            context.beginPath();
+            context.arc(startX, startY, 5, 0, Math.PI * 2);
+            context.fill();
+
+            const bubbleW = 350;
+            const bubbleH = 80;
+            const bx = endX;
+            const by = midY - bubbleH / 2;
+
+            ctx.fillStyle = colorBg;
+            ctx.strokeStyle = colorBorder;
+            ctx.lineWidth = 3;
+            drawRoundRectPath(context, bx, by, bubbleW, bubbleH, 12);
+            context.fill();
+            context.stroke();
+
+            context.fillStyle = colorText;
+            context.font = 'bold 17px "Noto Sans TC", sans-serif';
+            context.textAlign = 'left';
+            context.fillText(text1, bx + 15, by + 32);
+            context.fillText(text2, bx + 15, by + 58);
 
             context.restore();
         }
@@ -665,17 +753,18 @@
         }
 
         function renderLV2() {
-            const gridOriginX = 420; // 恢復黃金中心起點，保證左側不會切到畫面！
+            const gridOriginX = 420; 
             const gridOriginY = 480;
             const cubeSize = 20;
             const maxGap = 7.5;
 
-            // 【核心重構】：大幅降低滑動係數（約一個半方塊寬度），並修正幾何投影端端點，達成100%無縫對準
             const finalSlideFactor = 30; 
             const px_end = 9 * (cubeSize + maxGap) + finalSlideFactor * 1.5;
             const py_end = 9 * (cubeSize + maxGap) - finalSlideFactor * 0.2;
             const pz_end = 9 * (cubeSize + maxGap) + finalSlideFactor * 0.4;
             const targetScreenPos = getIsoPoint(px_end, py_end, pz_end, gridOriginX, gridOriginY);
+            
+            const originalScreenPos = getIsoPoint(9 * (cubeSize + maxGap), 9 * (cubeSize + maxGap), 9 * (cubeSize + maxGap), gridOriginX, gridOriginY);
 
             if (currentProgress <= 25) {
                 const t = currentProgress / 25;
@@ -693,7 +782,6 @@
                     }
                 }
             }
-            // 【抽出方向調整】：向右、向右上方拉出 (沿 +x軸 增長，-y軸 減少，+z軸 增長)
             else if (currentProgress > 25 && currentProgress <= 45) {
                 const t = (currentProgress - 25) / 20; 
                 const fadeAlpha = 1 - t; 
@@ -708,9 +796,9 @@
                             let pz = z * (cubeSize + maxGap);
 
                             if (isTarget) {
-                                px += slideFactor * 1.5; // moves down-right
-                                py -= slideFactor * 0.2; // moves slightly up-right
-                                pz += slideFactor * 0.4; // moves up
+                                px += slideFactor * 1.5; 
+                                py -= slideFactor * 0.2; 
+                                pz += slideFactor * 0.4; 
                                 drawCube(ctx, px, py, pz, cubeSize, gridOriginX, gridOriginY, 1.0, true);
                             } else {
                                 if (fadeAlpha > 0.02) {
@@ -752,11 +840,10 @@
                 drawFaceGrid(ctx, pts.B, pts.C, pts.G, pts.F, linesCount, t);
                 drawFaceGrid(ctx, pts.E, pts.F, pts.G, pts.H, linesCount, t);
             }
-            // 【歸位方向】：原位平滑縮小並向左下方歸位回最前方角落
             else if (currentProgress > 80 && currentProgress <= 92) {
                 const t = (currentProgress - 80) / 12; 
                 const currentSize = 240 + (cubeSize - 240) * t; 
-                const backAlpha = t * 0.7; 
+                const backAlpha = t * 0.75; 
 
                 for (let z = 0; z < 10; z++) {
                     for (let y = 0; y < 10; y++) {
@@ -772,9 +859,9 @@
                     }
                 }
 
-                // 目標格線立方體原位平滑縮小
-                const currentOriginX = targetScreenPos.x;
-                const currentOriginY = targetScreenPos.y;
+                const currentOriginX = targetScreenPos.x + (originalScreenPos.x - targetScreenPos.x) * t;
+                const currentOriginY = targetScreenPos.y + (originalScreenPos.y - targetScreenPos.y) * t;
+
                 drawCube(ctx, 0, 0, 0, currentSize, currentOriginX, currentOriginY, 1.0, true);
 
                 const pts = {
@@ -790,7 +877,7 @@
                 drawFaceGrid(ctx, pts.B, pts.C, pts.G, pts.F, 10, 1.0);
                 drawFaceGrid(ctx, pts.E, pts.F, pts.G, pts.H, 10, 1.0);
 
-                drawCallout(ctx, targetScreenPos.x, targetScreenPos.y, t);
+                drawCallout(ctx, currentOriginX, currentOriginY, t);
             }
             else if (currentProgress > 92) {
                 const backAlpha = 0.75;
@@ -809,8 +896,8 @@
                     }
                 }
 
-                const currentOriginX = targetScreenPos.x;
-                const currentOriginY = targetScreenPos.y;
+                const currentOriginX = originalScreenPos.x;
+                const currentOriginY = originalScreenPos.y;
                 drawCube(ctx, 0, 0, 0, cubeSize, currentOriginX, currentOriginY, 1.0, true);
 
                 const pts = {
@@ -826,16 +913,15 @@
                 drawFaceGrid(ctx, pts.B, pts.C, pts.G, pts.F, 10, 1.0);
                 drawFaceGrid(ctx, pts.E, pts.F, pts.G, pts.H, 10, 1.0);
 
-                drawCallout(ctx, targetScreenPos.x, targetScreenPos.y, 1.0);
+                drawCallout(ctx, originalScreenPos.x, originalScreenPos.y, 1.0);
 
                 if (currentProgress >= 99 && !hasConfettiTriggered) {
-                    triggerConfetti(targetScreenPos.x - 50, targetScreenPos.y - 100);
+                    triggerConfetti(originalScreenPos.x - 50, originalScreenPos.y - 100);
                     hasConfettiTriggered = true;
                 }
             }
         }
 
-        // 【STREAMING_CHUNK: 繪製LV4微觀尺度「極限放大」】
         let amoebaWaveAngle = 0; 
         function renderLV4() {
             const centerX = 340; 
@@ -1036,78 +1122,33 @@
             ctx.fillText(magStr, centerX, centerY + 220);
         }
 
-        // ====================================================
-        // 【LV.5 密度簡化重構】：複用 LV.2 的 3D 立方體堆，加入馬卡龍半透明藍水體與重量標示！
-        // ====================================================
+        //        // 【LV.5 密度簡化重構】：複用 LV.2 完美定錨的 3D 立方體堆，將其說明的引導線與氣泡全部修改為「向左上方」折出（100% 避開右側字卡）
         function renderLV5Density() {
-            const gridOriginX = 420; // 與 LV.2 完全對齊的黃金中心點
+            const gridOriginX = 420; 
             const gridOriginY = 480;
             const cubeSize = 20;
             const maxGap = 7.5;
             const t = currentProgress / 100;
 
+            const originalScreenPos = getIsoPoint(9 * (cubeSize + maxGap), 9 * (cubeSize + maxGap), 9 * (cubeSize + maxGap), gridOriginX, gridOriginY);
+
             // 1. 步驟 1/3 (微觀 cm³ 標示)
             if (currentStepIndex === 0) {
-                // 將其他 999 顆方塊設為超低不透明度的淡藍色
                 const baseAlpha = 0.15;
                 for (let z = 0; z < 10; z++) {
                     for (let y = 0; y < 10; y++) {
                         for (let x = 0; x < 10; x++) {
-                            const isTarget = (x === 9 && y === 9 && z === 9); // Corner
+                            const isTarget = (x === 9 && y === 9 && z === 9); 
                             drawCube(ctx, x * (cubeSize + maxGap), y * (cubeSize + maxGap), z * (cubeSize + maxGap), cubeSize, gridOriginX, gridOriginY, isTarget ? 1.0 : baseAlpha, isTarget);
                         }
                     }
                 }
 
-                // 畫微觀水滴與重量引導線 (向左上折出，完美與算式卡對齊，消滅切除)
-                const targetPos = getIsoPoint(9*(cubeSize+maxGap), 9*(cubeSize+maxGap), 9*(cubeSize+maxGap), gridOriginX, gridOriginY);
-                ctx.save();
-                ctx.strokeStyle = '#E53E3E';
-                ctx.lineWidth = 3;
-                
-                // 起點在角落小紅 cube 中心偏上
-                const startX = targetPos.x + 10;
-                const startY = targetPos.y - 10;
-                // 向左上方拉伸 (X減小，Y減小)
-                const midX = startX - 70;
-                const midY = startY - 70;
-                const endX = midX - 50;
-
-                ctx.beginPath();
-                ctx.moveTo(startX, startY);
-                ctx.lineTo(midX, midY);
-                ctx.lineTo(endX, midY);
-                ctx.stroke();
-
-                ctx.fillStyle = '#E53E3E';
-                ctx.beginPath();
-                ctx.arc(startX, startY, 5, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 繪製氣泡提示框
-                const bubbleW = 340;
-                const bubbleH = 80;
-                const bx = endX - bubbleW;
-                const by = midY - bubbleH / 2;
-
-                ctx.fillStyle = '#FFF5F5';
-                ctx.strokeStyle = '#FEB2B2';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.roundRect(bx, by, bubbleW, bubbleH, 12);
-                ctx.fill();
-                ctx.stroke();
-
-                ctx.fillStyle = '#C53030';
-                ctx.font = 'bold 18px "Noto Sans TC", sans-serif';
-                ctx.textAlign = 'left';
-                ctx.fillText('1 cm³ (立方公分) 微觀小水滴，', bx + 15, by + 32);
-                ctx.fillText('實體重量剛好是：1 公克 (g)', bx + 15, by + 58);
-                ctx.restore();
+                // 朝左上方折出，完美與右邊公式卡（X >= 760）保持安全隔離距離
+                drawCallout(ctx, originalScreenPos.x, originalScreenPos.y, 1.0);
             }
             // 2. 步驟 2/3 (1m³ 宏觀水箱標示)
             else if (currentStepIndex === 1) {
-                // 將 1000 顆方塊設為高飽和度的馬卡龍透明藍
                 const baseAlpha = 0.8;
                 for (let z = 0; z < 10; z++) {
                     for (let y = 0; y < 10; y++) {
@@ -1117,30 +1158,12 @@
                     }
                 }
 
-                // 拉一組大範圍的大引導線包裹整個大方塊
                 const centerPos = getIsoPoint(5*(cubeSize+maxGap), 5*(cubeSize+maxGap), 5*(cubeSize+maxGap), gridOriginX, gridOriginY);
-                ctx.save();
-                ctx.strokeStyle = '#3182CE';
-                ctx.lineWidth = 3.5;
-                ctx.beginPath();
-                ctx.moveTo(centerPos.x - 120, centerPos.y);
-                ctx.lineTo(centerPos.x - 220, centerPos.y);
-                ctx.stroke();
-
-                ctx.fillStyle = '#3182CE';
-                ctx.beginPath();
-                ctx.arc(centerPos.x - 120, centerPos.y, 6, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = '#1A365D';
-                ctx.font = 'bold 22px "Noto Sans TC", sans-serif';
-                ctx.textAlign = 'right';
-                ctx.fillText('這整疊 1 m³ (立方公尺) 巨大水箱', centerPos.x - 240, centerPos.y - 12);
-                ctx.fillText('一共包含 1,000,000 cm³ 的小水滴', centerPos.x - 240, centerPos.y + 18);
-                ctx.restore();
+                // 【完美修復】：調用左上方折出型引導氣泡 `drawMacroCallout`，底色採用亮粉藍，徹底擺脫左邊邊界切除！
+                drawMacroCallout(ctx, centerPos.x, centerPos.y, '這整疊 1 m³ (立方公尺) 巨大水箱', '一共包含 1,000,000 cm³ 的小水滴', 1.0, '#EBF8FF', '#90CDF4', '#2B6CB0');
             }
             // 3. 步驟 3/3 (1000kg 總重連動)
-            else {
+            else if (currentStepIndex === 2) {
                 const baseAlpha = 0.85;
                 for (let z = 0; z < 10; z++) {
                     for (let y = 0; y < 10; y++) {
@@ -1150,68 +1173,32 @@
                     }
                 }
 
-                // 拉大標示框
                 const centerPos = getIsoPoint(5*(cubeSize+maxGap), 5*(cubeSize+maxGap), 5*(cubeSize+maxGap), gridOriginX, gridOriginY);
-                ctx.save();
-                ctx.strokeStyle = '#38A169'; // 耀眼馬卡龍綠
-                ctx.lineWidth = 3.5;
-                ctx.beginPath();
-                ctx.moveTo(centerPos.x - 120, centerPos.y);
-                ctx.lineTo(centerPos.x - 240, centerPos.y);
-                ctx.stroke();
-
-                ctx.fillStyle = '#38A169';
-                ctx.beginPath();
-                ctx.arc(centerPos.x - 120, centerPos.y, 6, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 彈出一個圓潤的馬卡龍重量指針牌
-                const rx = centerPos.x - 520;
-                const ry = centerPos.y - 60;
-                ctx.fillStyle = '#F0FFF4';
-                ctx.strokeStyle = '#48BB78';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.roundRect(rx, ry, 260, 110, 12);
-                ctx.fill();
-                ctx.stroke();
-
-                ctx.fillStyle = '#276749';
-                ctx.font = 'bold 20px "Noto Sans TC", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('秤重儀：總重量', rx + 130, ry + 36);
-                ctx.font = 'bold 28px sans-serif';
-                ctx.fillText('1000 公斤 (kg)', rx + 130, ry + 78);
-                ctx.restore();
+                // 【完美修復】：將磅秤計量重合說明同樣改為左上折出，綠色主題，完全在 Canvas 安全繪圖軸內呈像
+                drawMacroCallout(ctx, centerPos.x, centerPos.y, '秤重儀：總重量', '1000 公斤 (kg) [ 相當於 1 公噸 ]', 1.0, '#F0FFF4', '#48BB78', '#276749');
 
                 if (currentProgress >= 99 && !hasConfettiTriggered) {
-                    triggerConfetti(gridOriginX, gridOriginY - 140);
+                    triggerConfetti(originalScreenPos.x - 50, originalScreenPos.y - 100);
                     hasConfettiTriggered = true;
                 }
             }
         }
 
-        // ====================================================
-        // 【LV.5 速度重構】：初始快速前進 → 步驟2 慢動作對焦起點線 → 步驟3 眨眼 1秒前進 25公尺尺標
-        // ====================================================
-        function renderLV5Speed() {
+        //        function renderLV5Speed() {
             const trainY = 460;
             const t = currentProgress / 100;
 
-            // 1. 動態計算背景視差 X 軸移動偏移
-            // 第一步（常速巡航，快）：speedFactor = 18px/frame
-            // 第二步（慢動作模式，慢）：speedFactor = 1px/frame
-            // 第三步（一秒演示位移，慢）：speedFactor = 1px/frame
+            const isMoving = (currentStepIndex === 2); 
+
             let speedFactor = 18;
             if (currentStepIndex === 1 || currentStepIndex === 2) {
-                speedFactor = 1.2; // 超級慢動作
+                speedFactor = 1.2; 
             }
 
             speedBgCloudX = (speedBgCloudX + speedFactor * 0.05) % BASE_WIDTH;
             speedBgMountainX = (speedBgMountainX + speedFactor * 0.25) % BASE_WIDTH;
             speedBgTreeX = (speedBgTreeX + speedFactor * 1.0) % BASE_WIDTH;
 
-            // 2. 繪製視差背景 (裁剪限縮在 X=40 到 X=720 之間，防止遮擋卡片)
             ctx.fillStyle = 'rgba(237, 242, 247, 0.8)';
             ctx.fillRect(40, 130, 680, 420); 
 
@@ -1254,7 +1241,6 @@
             }
             ctx.restore();
 
-            // 鐵軌與枕木
             ctx.strokeStyle = '#4A5568';
             ctx.lineWidth = 4;
             ctx.beginPath();
@@ -1271,25 +1257,14 @@
                 ctx.stroke();
             }
 
-            // 3. 列車位置與晃動計算
-            // 常速時（步驟1）：列車晃動明顯，位移為零。
-            // 慢動作步驟2：列車晃動極慢，車頭對準紅色起點線（X=280）。
-            // 慢動作步驟3：列車從紅色起點線緩緩前進 200 像素（代表25公尺）。
-            const joltY = Math.sin(Date.now() * (currentStepIndex === 0 ? 0.08 : 0.015)) * 2.5;
-            
-            let trainOffset = 0;
-            if (currentStepIndex === 2) {
-                // 步驟 3 的平滑進度從 50 走到 100，列車位移從 0 走完 200 像素
-                const step3T = Math.max(0, (currentProgress - 50) / 50);
-                trainOffset = step3T * 200; 
-            }
+            const joltY = isMoving ? Math.sin(Date.now() * (currentStepIndex === 0 ? 0.08 : 0.015)) * 2.5 : 0;
+            const trainSlideX = isMoving ? t * 200 : 0; 
 
-            const baseTrainX = 220; // 基礎車尾起點
+            const baseTrainX = 220; 
 
             ctx.save();
-            ctx.translate(baseTrainX + trainOffset, trainY + joltY);
+            ctx.translate(baseTrainX + trainSlideX, trainY + joltY);
 
-            // 繪製高鐵列車
             ctx.fillStyle = '#9BF6FF'; 
             ctx.strokeStyle = '#3182CE';
             ctx.lineWidth = 4;
@@ -1318,10 +1293,8 @@
             ctx.fillRect(-100, 22, 150, 4);
             ctx.restore(); 
 
-            // 4. 起點線與 1秒鐘倒數計時尺標繪製
-            const noseStartPos = baseTrainX + 90; // 車頭初始點 (220+90 = 310)
+            const noseStartPos = baseTrainX + 90; 
 
-            // 【步驟 2/3 (慢動作起點對準)】
             if (currentStepIndex === 1) {
                 ctx.save();
                 ctx.strokeStyle = '#E53E3E';
@@ -1331,7 +1304,6 @@
                 ctx.lineTo(noseStartPos, trainY + 30);
                 ctx.stroke();
 
-                // 起點標籤
                 ctx.fillStyle = '#E53E3E';
                 ctx.font = 'bold 16px "Noto Sans TC", sans-serif';
                 ctx.textAlign = 'center';
@@ -1339,12 +1311,10 @@
                 ctx.restore();
             }
 
-            // 【步驟 3/3 (眨眼 1秒前進 25公尺)】
             if (currentStepIndex === 2) {
                 const step3T = Math.max(0, (currentProgress - 50) / 50);
 
                 ctx.save();
-                // A. 紅色起點固定線
                 ctx.strokeStyle = '#E53E3E';
                 ctx.lineWidth = 3.5;
                 ctx.beginPath();
@@ -1352,33 +1322,30 @@
                 ctx.lineTo(noseStartPos, trainY + 30);
                 ctx.stroke();
 
-                // B. 紅色當前移動線 (隨車頭前進)
                 ctx.strokeStyle = '#E53E3E';
                 ctx.lineWidth = 2.5;
                 ctx.setLineDash([4, 3]);
                 ctx.beginPath();
-                ctx.moveTo(noseStartPos + trainOffset, trainY - 80);
-                ctx.lineTo(noseStartPos + trainOffset, trainY + 30);
+                ctx.moveTo(noseStartPos + trainSlideX, trainY - 80);
+                ctx.lineTo(noseStartPos + trainSlideX, trainY + 30);
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                // C. 雙向尺標箭頭
                 ctx.strokeStyle = '#E53E3E';
                 ctx.fillStyle = '#E53E3E';
                 ctx.lineWidth = 4;
                 ctx.beginPath();
                 ctx.moveTo(noseStartPos, trainY - 40);
-                ctx.lineTo(noseStartPos + trainOffset, trainY - 40);
+                ctx.lineTo(noseStartPos + trainSlideX, trainY - 40);
                 ctx.stroke();
 
-                if (trainOffset > 15) {
+                if (trainSlideX > 15) {
                     ctx.beginPath();
                     ctx.moveTo(noseStartPos, trainY - 40); ctx.lineTo(noseStartPos + 10, trainY - 48); ctx.lineTo(noseStartPos + 10, trainY - 32); ctx.fill();
                     ctx.beginPath();
-                    ctx.moveTo(noseStartPos + trainOffset, trainY - 40); ctx.lineTo(noseStartPos + trainOffset - 10, trainY - 48); ctx.lineTo(noseStartPos + trainOffset - 10, trainY - 32); ctx.fill();
+                    ctx.moveTo(noseStartPos + trainSlideX, trainY - 40); ctx.lineTo(noseStartPos + trainSlideX - 10, trainY - 48); ctx.lineTo(noseStartPos + trainSlideX - 10, trainY - 32); ctx.fill();
                 }
 
-                // D. 1秒圓形倒數計時盤 (繪製在左上方)
                 const timerX = 140;
                 const timerY = 220;
                 ctx.beginPath();
@@ -1389,7 +1356,6 @@
                 ctx.lineWidth = 6;
                 ctx.stroke();
 
-                // 綠色時間流逝扇形
                 ctx.beginPath();
                 ctx.moveTo(timerX, timerY);
                 ctx.arc(timerX, timerY, 40, -Math.PI/2, -Math.PI/2 + step3T * Math.PI * 2);
@@ -1403,7 +1369,6 @@
                 ctx.fillText(`${Math.round(step3T * 100)}%`, timerX, timerY + 6);
                 ctx.fillText('秒針走了 1 秒鐘', timerX, timerY - 55);
 
-                // 尺標文字標籤
                 ctx.fillStyle = '#E53E3E';
                 ctx.font = 'bold 22px "Noto Sans TC", sans-serif';
                 ctx.textAlign = 'center';
@@ -1418,7 +1383,7 @@
             }
         }
 
-        const labelPhase = document.getElementById('txt-animation-phase');
+        //        const labelPhase = document.getElementById('txt-animation-phase');
         const cardTitle = document.getElementById('math-card-title');
         const formulaContainer = document.getElementById('math-formula');
 
@@ -1622,7 +1587,7 @@
             document.getElementById('btn-next').textContent = (currentStepIndex === config.count - 1) ? '挑戰完成 🎉' : '下一步 ▶';
         }
 
-        function mainLoop() {
+        //        function mainLoop() {
             ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
 
             ctx.strokeStyle = 'rgba(190, 227, 248, 0.35)';
@@ -1692,7 +1657,7 @@
         prevBtn.addEventListener('touchstart', goPrev);
         prevBtn.addEventListener('click', goPrev);
 
-        function selectMainTab(tab) {
+        //        function selectMainTab(tab) {
             activeMainTab = tab;
             currentStepIndex = 0;
             currentProgress = 0;
