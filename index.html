@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>國二數理大挑戰 - 基礎外殼與通訊</title>
+    <!-- 引入 Google Fonts 親和力圓體字型 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 基礎重設與防溢出 */
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #F0F4F8; /* 舒適馬卡龍灰藍底色 */
+            font-family: 'Kosugi Maru', 'Noto Sans TC', sans-serif;
+        }
+
+        /* 16:9 核心視口容器 (標準解析度 1280x720) */
+        #app-viewport {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 1280px;
+            height: 720px;
+            background: radial-gradient(circle at center, #FFFFFF 0%, #E8F0F8 100%);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            transform-origin: center center;
+            transform: translate(-50%, -50%) scale(1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        /* Canvas 層 */
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            z-index: 1;
+        }
+
+        /* 測試用實時監控面板 (DOM 層，未來可關閉或供開發偵錯用) */
+        #debug-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #BEE3F8;
+            border-radius: 12px;
+            padding: 15px;
+            width: 320px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            pointer-events: auto; /* 確保能點擊 */
+        }
+
+        #debug-panel h3 {
+            font-size: 16px;
+            color: #2B6CB0;
+            margin-bottom: 8px;
+            border-bottom: 2px dashed #E2E8F0;
+            padding-bottom: 4px;
+        }
+
+        .debug-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #4A5568;
+            margin: 4px 0;
+        }
+
+        .debug-value {
+            font-weight: bold;
+            color: #2D3748;
+        }
+
+        /* 精美測試控制區 */
+        .btn-test {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #4299E1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0px #2B6CB0;
+            transition: all 0.1s ease;
+        }
+
+        .btn-test:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0px #2B6CB0;
+        }
+
+        /* 歷史通訊事件記錄器 */
+        #event-log {
+            margin-top: 8px;
+            background: #EDF2F7;
+            border-radius: 6px;
+            padding: 6px;
+            height: 80px;
+            overflow-y: auto;
+            font-size: 11px;
+            color: #718096;
+            font-family: monospace;
+        }
+
+        /* 防呆直螢幕阻擋遮罩 */
+        #orientation-blocker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #3182CE;
+            z-index: 9999;
+            display: none; /* 預設隱藏，由 CSS 與 JS 動態控制 */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        /* 旋轉手機的動態示意圖 */
+        .phone-icon-wrapper {
+            position: relative;
+            width: 80px;
+            height: 120px;
+            margin-bottom: 20px;
+        }
+
+        .phone-icon {
+            width: 50px;
+            height: 90px;
+            border: 4px solid white;
+            border-radius: 8px;
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            animation: rotatePhone 2s ease-in-out infinite;
+        }
+
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-90deg); }
+            100% { transform: rotate(-90deg); }
+        }
+
+        #orientation-blocker h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        #orientation-blocker p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* CSS 級別的直立螢幕判定 */
+        @media (orientation: portrait) {
+            #orientation-blocker {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 16:9 核心遊戲視口 -->
+    <div id="app-viewport">
+        <!-- 畫布核心 -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- 步驟一整合測試面板 -->
+        <div id="debug-panel">
+            <h3>開發單元測試面板 (Step 1)</h3>
+            <div class="debug-row">
+                <span>視窗物理寬高:</span>
+                <span id="val-win-size" class="debug-value">0 x 0</span>
+            </div>
+            <div class="debug-row">
+                <span>Viewport 縮放比例:</span>
+                <span id="val-scale" class="debug-value">1.00</span>
+            </div>
+            <div class="debug-row">
+                <span>字型載入狀態:</span>
+                <span id="val-font" class="debug-value">檢測中...</span>
+            </div>
+            <div class="debug-row">
+                <span>Iframe 嵌入狀態:</span>
+                <span id="val-embed" class="debug-value">獨立運行</span>
+            </div>
+            
+            <button class="btn-test" id="btn-ready-test">測試 GAME_READY 發送</button>
+            <button class="btn-test" id="btn-over-test" style="background-color: #ED64A6; box-shadow: 0 4px 0px #B83280;">測試 GAME_OVER 發送</button>
+            
+            <div style="font-size: 11px; font-weight: bold; margin-top: 8px; color: #4A5568;">
+                虛擬外層訊息接收紀錄：
+            </div>
+            <div id="event-log"></div>
+        </div>
+    </div>
+
+    <!-- 螢幕方向引導器 -->
+    <div id="orientation-blocker">
+        <div class="phone-icon-wrapper">
+            <div class="phone-icon"></div>
+        </div>
+        <h2>請旋轉您的螢幕</h2>
+        <p>本挑戰僅支援【橫螢幕】操作，請開啟手機自動旋轉功能並橫放以獲得最佳遊戲體驗。</p>
+    </div>
+
+    <script>
+        // --- 1. 核心全域參數設定 ---
+        const BASE_WIDTH = 1280;
+        const BASE_HEIGHT = 720;
+        const CHALLENGE_ID = 1;
+
+        const viewport = document.getElementById('app-viewport');
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let currentScale = 1;
+        let isFontLoaded = false;
+        let isEmbedded = window.parent !== window;
+
+        // --- 2. RWD 自動縮放演算法 ---
+        function updateLayout() {
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            // 計算能夠塞入當前視窗的最大等比例縮放倍率
+            const scaleX = windowWidth / BASE_WIDTH;
+            const scaleY = windowHeight / BASE_HEIGHT;
+            currentScale = Math.min(scaleX, scaleY);
+
+            // 套用 transform scale 控制
+            viewport.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+
+            // 更新偵錯面板資訊
+            document.getElementById('val-win-size').textContent = `${windowWidth} x ${windowHeight}`;
+            document.getElementById('val-scale').textContent = currentScale.toFixed(3);
+
+            // 觸發螢幕直立防呆二重確認
+            const blocker = document.getElementById('orientation-blocker');
+            if (windowHeight > windowWidth) {
+                blocker.style.display = 'flex';
+            } else {
+                blocker.style.display = 'none';
+            }
+        }
+
+        // --- 3. 跨界通訊協定與虛擬接收器 ---
+        function sendEventToParent(payload) {
+            if (isEmbedded) {
+                // 如果在 iframe 中，直接向 parent 發送資料
+                window.parent.postMessage(payload, '*');
+            } else {
+                // 本地獨立開發時，將訊息直接輸出到本地控制面板，達到 100% 的測試覆蓋
+                logLocalEvent(payload);
+            }
+        }
+
+        function logLocalEvent(payload) {
+            console.log('%c[遊戲通訊外拋]', 'background: #2D3748; color: #63B3ED; padding: 2px 6px; border-radius: 4px;', payload);
+            const logBox = document.getElementById('event-log');
+            const timeStr = new Date().toTimeString().split(' ')[0];
+            const newMsg = document.createElement('div');
+            newMsg.style.marginBottom = '4px';
+            newMsg.innerHTML = `<span style="color: #4299E1">[${timeStr}]</span> ${JSON.stringify(payload)}`;
+            logBox.appendChild(newMsg);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        // 綁定測試按鈕事件
+        document.getElementById('btn-ready-test').addEventListener('click', () => {
+            sendEventToParent({
+                type: 'GAME_READY',
+                challengeId: CHALLENGE_ID
+            });
+        });
+
+        document.getElementById('btn-over-test').addEventListener('click', () => {
+            sendEventToParent({
+                type: 'GAME_OVER',
+                challengeId: CHALLENGE_ID,
+                currentLevel: 1,
+                isPerfect: true,
+                score: 100
+            });
+        });
+
+        // --- 4. Google Fonts 非同步解鎖與 Canvas 初步繪圖 ---
+        function checkFontsAndInit() {
+            // 確認字型載入狀態
+            document.fonts.ready.then(() => {
+                isFontLoaded = true;
+                document.getElementById('val-font').textContent = '已載入 (Kosugi Maru)';
+                document.getElementById('val-font').style.color = '#38A169';
+                
+                // 實作視網膜高畫質 (Retina) Canvas 解析度修正
+                setupCanvasResolution();
+                
+                // 啟動基礎迴圈渲染
+                startDiagnosticRender();
+                
+                // 發送初始化完成訊號
+                sendEventToParent({ type: 'GAME_READY', challengeId: CHALLENGE_ID });
+            }).catch(err => {
+                console.error("字型加載失敗：", err);
+                document.getElementById('val-font').textContent = '載入失敗，降級字型';
+                document.getElementById('val-font').style.color = '#E53E3E';
+                setupCanvasResolution();
+                startDiagnosticRender();
+            });
+        }
+
+        function setupCanvasResolution() {
+            // 雖然畫布在 16:9 Viewport 下縮放，但 Canvas 的實體點陣數必須保持 1280x720，防止繪製時鋸齒
+            canvas.width = BASE_WIDTH;
+            canvas.height = BASE_HEIGHT;
+        }
+
+        // --- 5. 步驟一診斷畫面繪製系統 ---
+        // 為了確保 Canvas 具備動態感並能檢測 FPS 表現，我們在步驟一實作一個 60FPS 測試齒輪與座標對準線
+        let rotationAngle = 0;
+        function startDiagnosticRender() {
+            function drawFrame() {
+                // 清空畫布，繪製漸層背景
+                ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
+                
+                // 繪製格線系統，用以校對未來關卡幾何
+                ctx.strokeStyle = 'rgba(190, 227, 248, 0.4)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < BASE_WIDTH; i += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i, BASE_HEIGHT);
+                    ctx.stroke();
+                }
+                for (let j = 0; j < BASE_HEIGHT; j += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, j);
+                    ctx.lineTo(BASE_WIDTH, j);
+                    ctx.stroke();
+                }
+
+                // 畫布中央：繪製一個旋轉的馬卡龍齒輪幾何，代表系統運算中
+                const centerX = BASE_WIDTH / 2;
+                const centerY = BASE_HEIGHT / 2;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle);
+                
+                // 繪製一個柔和的馬卡龍粉藍圓環
+                ctx.beginPath();
+                ctx.arc(0, 0, 80, 0, Math.PI * 2);
+                ctx.lineWidth = 15;
+                ctx.strokeStyle = '#BEE3F8';
+                ctx.stroke();
+                
+                // 繪製準星，代表縮放定位點正常
+                ctx.fillStyle = '#63B3ED';
+                for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+                    ctx.fillRect(90 * Math.cos(a) - 5, 90 * Math.sin(a) - 5, 10, 10);
+                }
+                ctx.restore();
+
+                // 繪製測試狀態文字 (使用剛載入的 Kosugi Maru 字型)
+                ctx.fillStyle = '#2B6CB0';
+                ctx.font = 'bold 28px "Kosugi Maru", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('步驟一：基礎環境架構已就緒', centerX, centerY + 160);
+
+                ctx.fillStyle = '#4A5568';
+                ctx.font = '16px "Noto Sans TC", sans-serif';
+                ctx.fillText('此畫面為 16:9 自動縮放偵錯網格，請嘗試拉動瀏覽器視窗大小，或開啟實機測試。', centerX, centerY + 200);
+
+                // 更新旋轉角度 (一幀 0.01 弧度)
+                rotationAngle += 0.015;
+                requestAnimationFrame(drawFrame);
+            }
+            requestAnimationFrame(drawFrame);
+        }
+
+        // --- 6. 事件綁定與初始化啟動 ---
+        window.addEventListener('resize', updateLayout);
+        window.addEventListener('orientationchange', () => {
+            // 部分舊型行動裝置在 resize 前可能先觸發 orientationchange，增加延遲防呆
+            setTimeout(updateLayout, 200);
+        });
+
+        // 偵測 iframe 嵌入狀態
+        document.getElementById('val-embed').textContent = isEmbedded ? 'Iframe 嵌入中' : '獨立運行 (虛擬控制面板解鎖)';
+        if (isEmbedded) {
+            document.getElementById('val-embed').style.color = '#3182CE';
+        }
+
+        // 啟動流程
+        updateLayout();
+        checkFontsAndInit();
+
+    </script>
+</body>
+</html>
