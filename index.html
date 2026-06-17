@@ -40,6 +40,7 @@
             transform-origin: center center;
             transform: translate(-50%, -50%) scale(1);
             transition: box-shadow 0.3s ease;
+            z-index: 1;
         }
 
         /* Canvas 層 */
@@ -50,38 +51,94 @@
             width: 100%;
             height: 100%;
             display: block;
-            z-index: 1;
         }
 
-        /* 測試用實時監控面板 (DOM 層，未來可關閉或供開發偵錯用) */
+        /* 【行動端優化】偵錯面板 
+           將其移出 app-viewport 縮放限制，直接置於 body 層，
+           確保在任何手機解析度下都維持 100% 原始物理像素，不縮小！
+        */
         #debug-panel {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 10;
-            background: rgba(255, 255, 255, 0.9);
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 999; /* 絕對置頂 */
+            background: rgba(255, 255, 255, 0.96);
             border: 2px solid #BEE3F8;
-            border-radius: 12px;
-            padding: 15px;
+            border-radius: 14px;
             width: 320px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            pointer-events: auto; /* 確保能點擊 */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow: hidden;
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 折疊狀態樣式 */
+        #debug-panel.collapsed {
+            width: 180px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 摺疊切換按鈕 (符合行動端 44px 觸控高度) */
+        #btn-toggle-debug {
+            width: 100%;
+            height: 48px;
+            background: #4299E1;
+            color: white;
+            border: none;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            outline: none;
+        }
+
+        #btn-toggle-debug:active {
+            background: #3182CE;
+        }
+
+        #btn-toggle-debug::after {
+            content: '▼';
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        #debug-panel.collapsed #btn-toggle-debug::after {
+            content: '▲';
+        }
+
+        /* 面板內部真實內容區 */
+        .debug-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        #debug-panel.collapsed .debug-body {
+            display: none; /* 折疊時隱藏內容 */
         }
 
         #debug-panel h3 {
             font-size: 16px;
             color: #2B6CB0;
-            margin-bottom: 8px;
             border-bottom: 2px dashed #E2E8F0;
-            padding-bottom: 4px;
+            padding-bottom: 6px;
         }
 
         .debug-row {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
+            font-size: 14px; /* 提高到 14px，行動端最佳閱讀尺寸 */
             color: #4A5568;
-            margin: 4px 0;
+            margin: 2px 0;
         }
 
         .debug-value {
@@ -89,40 +146,43 @@
             color: #2D3748;
         }
 
-        /* 精美測試控制區 */
+        /* 行動端觸控友善按鈕 (符合 Apple/Google 44px 人體工學) */
         .btn-test {
             display: block;
             width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            background-color: #4299E1;
+            height: 46px; /* 行動端觸控友善高度 */
+            line-height: 44px;
+            padding: 0;
+            background-color: #48BB78; /* 極光綠 */
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 15px; /* 更容易閱讀的字體 */
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 0px #2B6CB0;
-            transition: all 0.1s ease;
+            box-shadow: 0 4px 0px #2F855A;
+            transition: transform 0.05s ease, box-shadow 0.05s ease;
+            text-align: center;
         }
 
         .btn-test:active {
-            transform: translateY(4px);
-            box-shadow: 0 0px 0px #2B6CB0;
+            transform: translateY(3px);
+            box-shadow: 0 1px 0px #2F855A;
         }
 
-        /* 歷史通訊事件記錄器 */
+        /* 歷史通訊事件記錄器 (加大字型與行高，確保實機清晰可見) */
         #event-log {
-            margin-top: 8px;
             background: #EDF2F7;
-            border-radius: 6px;
-            padding: 6px;
-            height: 80px;
+            border-radius: 8px;
+            padding: 8px;
+            height: 110px;
             overflow-y: auto;
-            font-size: 11px;
-            color: #718096;
+            font-size: 12px; /* 提升物理尺寸 */
+            line-height: 1.5;
+            color: #2D3748;
             font-family: monospace;
+            border: 1px solid #CBD5E0;
         }
 
         /* 防呆直螢幕阻擋遮罩 */
@@ -193,31 +253,38 @@
     <div id="app-viewport">
         <!-- 畫布核心 -->
         <canvas id="game-canvas"></canvas>
+    </div>
 
-        <!-- 步驟一整合測試面板 -->
-        <div id="debug-panel">
+    <!-- 
+        【優化調整】將偵錯面板完全自 16:9 視口移出，置於最上層。
+        如此一來，面板將 100% 忠實呈現實體像素大小，
+        同時加入行動端最需要的「折疊/收納」功能，防止擋住遊戲畫面。
+    -->
+    <div id="debug-panel" class="collapsed">
+        <button id="btn-toggle-debug">⚙️ 開啟/關閉偵錯面板</button>
+        <div class="debug-body">
             <h3>開發單元測試面板 (Step 1)</h3>
             <div class="debug-row">
-                <span>視窗物理寬高:</span>
+                <span>視窗物理尺寸:</span>
                 <span id="val-win-size" class="debug-value">0 x 0</span>
             </div>
             <div class="debug-row">
-                <span>Viewport 縮放比例:</span>
+                <span>畫布縮放比例:</span>
                 <span id="val-scale" class="debug-value">1.00</span>
             </div>
             <div class="debug-row">
-                <span>字型載入狀態:</span>
+                <span>字型狀態:</span>
                 <span id="val-font" class="debug-value">檢測中...</span>
             </div>
             <div class="debug-row">
-                <span>Iframe 嵌入狀態:</span>
+                <span>Iframe 狀態:</span>
                 <span id="val-embed" class="debug-value">獨立運行</span>
             </div>
             
-            <button class="btn-test" id="btn-ready-test">測試 GAME_READY 發送</button>
-            <button class="btn-test" id="btn-over-test" style="background-color: #ED64A6; box-shadow: 0 4px 0px #B83280;">測試 GAME_OVER 發送</button>
+            <button class="btn-test" id="btn-ready-test">測試 GAME_READY</button>
+            <button class="btn-test" id="btn-over-test" style="background-color: #ED64A6; box-shadow: 0 4px 0px #B83280;">測試 GAME_OVER</button>
             
-            <div style="font-size: 11px; font-weight: bold; margin-top: 8px; color: #4A5568;">
+            <div style="font-size: 12px; font-weight: bold; margin-top: 4px; color: #4A5568;">
                 虛擬外層訊息接收紀錄：
             </div>
             <div id="event-log"></div>
@@ -273,13 +340,20 @@
             }
         }
 
-        // --- 3. 跨界通訊協定與虛擬接收器 ---
+        // --- 3. 摺疊面板事件優化 ---
+        const debugPanel = document.getElementById('debug-panel');
+        document.getElementById('btn-toggle-debug').addEventListener('click', (e) => {
+            e.stopPropagation();
+            debugPanel.classList.toggle('collapsed');
+        });
+
+        // --- 4. 跨界通訊協定與虛擬接收器 ---
         function sendEventToParent(payload) {
             if (isEmbedded) {
                 // 如果在 iframe 中，直接向 parent 發送資料
                 window.parent.postMessage(payload, '*');
             } else {
-                // 本地獨立開發時，將訊息直接輸出到本地控制面板，達到 100% 的測試覆蓋
+                // 本地獨立開發時，將訊息直接輸出到本地控制面板
                 logLocalEvent(payload);
             }
         }
@@ -289,21 +363,25 @@
             const logBox = document.getElementById('event-log');
             const timeStr = new Date().toTimeString().split(' ')[0];
             const newMsg = document.createElement('div');
-            newMsg.style.marginBottom = '4px';
-            newMsg.innerHTML = `<span style="color: #4299E1">[${timeStr}]</span> ${JSON.stringify(payload)}`;
+            newMsg.style.marginBottom = '6px';
+            newMsg.style.borderBottom = '1px solid #E2E8F0';
+            newMsg.style.paddingBottom = '4px';
+            newMsg.innerHTML = `<span style="color: #3182CE; font-weight:bold;">[${timeStr}]</span><br>${JSON.stringify(payload)}`;
             logBox.appendChild(newMsg);
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        // 綁定測試按鈕事件
-        document.getElementById('btn-ready-test').addEventListener('click', () => {
-            sendEventToParent({
-                type: 'GAME_READY',
-                challengeId: CHALLENGE_ID
-            });
-        });
+        // 綁定測試按鈕事件 (支援 Touchstart 以降低行動端延遲)
+        const readyBtn = document.getElementById('btn-ready-test');
+        const overBtn = document.getElementById('btn-over-test');
 
-        document.getElementById('btn-over-test').addEventListener('click', () => {
+        const triggerReady = (e) => {
+            e.preventDefault();
+            sendEventToParent({ type: 'GAME_READY', challengeId: CHALLENGE_ID });
+        };
+
+        const triggerOver = (e) => {
+            e.preventDefault();
             sendEventToParent({
                 type: 'GAME_OVER',
                 challengeId: CHALLENGE_ID,
@@ -311,48 +389,48 @@
                 isPerfect: true,
                 score: 100
             });
-        });
+        };
 
-        // --- 4. Google Fonts 非同步解鎖與 Canvas 初步繪圖 ---
+        // 同時綁定 touch 與 click，並防範重複觸發
+        readyBtn.addEventListener('touchstart', triggerReady, { passive: false });
+        readyBtn.addEventListener('click', triggerReady);
+        overBtn.addEventListener('touchstart', triggerOver, { passive: false });
+        overBtn.addEventListener('click', triggerOver);
+
+        // --- 5. Google Fonts 非同步解鎖與 Canvas 初步繪圖 ---
         function checkFontsAndInit() {
-            // 確認字型載入狀態
             document.fonts.ready.then(() => {
                 isFontLoaded = true;
-                document.getElementById('val-font').textContent = '已載入 (Kosugi Maru)';
-                document.getElementById('val-font').style.color = '#38A169';
+                const fontVal = document.getElementById('val-font');
+                fontVal.textContent = '已就緒 (Kosugi)';
+                fontVal.style.color = '#38A169';
                 
-                // 實作視網膜高畫質 (Retina) Canvas 解析度修正
                 setupCanvasResolution();
-                
-                // 啟動基礎迴圈渲染
                 startDiagnosticRender();
                 
-                // 發送初始化完成訊號
                 sendEventToParent({ type: 'GAME_READY', challengeId: CHALLENGE_ID });
             }).catch(err => {
                 console.error("字型加載失敗：", err);
-                document.getElementById('val-font').textContent = '載入失敗，降級字型';
-                document.getElementById('val-font').style.color = '#E53E3E';
+                const fontVal = document.getElementById('val-font');
+                fontVal.textContent = '載入失敗 (降級)';
+                fontVal.style.color = '#E53E3E';
                 setupCanvasResolution();
                 startDiagnosticRender();
             });
         }
 
         function setupCanvasResolution() {
-            // 雖然畫布在 16:9 Viewport 下縮放，但 Canvas 的實體點陣數必須保持 1280x720，防止繪製時鋸齒
             canvas.width = BASE_WIDTH;
             canvas.height = BASE_HEIGHT;
         }
 
-        // --- 5. 步驟一診斷畫面繪製系統 ---
-        // 為了確保 Canvas 具備動態感並能檢測 FPS 表現，我們在步驟一實作一個 60FPS 測試齒輪與座標對準線
+        // --- 6. 診斷畫面繪製系統 (行動端 legible 優化) ---
         let rotationAngle = 0;
         function startDiagnosticRender() {
             function drawFrame() {
-                // 清空畫布，繪製漸層背景
                 ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
                 
-                // 繪製格線系統，用以校對未來關卡幾何
+                // 繪製格線系統
                 ctx.strokeStyle = 'rgba(190, 227, 248, 0.4)';
                 ctx.lineWidth = 1;
                 for (let i = 0; i < BASE_WIDTH; i += 40) {
@@ -368,7 +446,6 @@
                     ctx.stroke();
                 }
 
-                // 畫布中央：繪製一個旋轉的馬卡龍齒輪幾何，代表系統運算中
                 const centerX = BASE_WIDTH / 2;
                 const centerY = BASE_HEIGHT / 2;
                 
@@ -376,51 +453,47 @@
                 ctx.translate(centerX, centerY);
                 ctx.rotate(rotationAngle);
                 
-                // 繪製一個柔和的馬卡龍粉藍圓環
+                // 繪製圓環
                 ctx.beginPath();
                 ctx.arc(0, 0, 80, 0, Math.PI * 2);
                 ctx.lineWidth = 15;
                 ctx.strokeStyle = '#BEE3F8';
                 ctx.stroke();
                 
-                // 繪製準星，代表縮放定位點正常
                 ctx.fillStyle = '#63B3ED';
                 for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-                    ctx.fillRect(90 * Math.cos(a) - 5, 90 * Math.sin(a) - 5, 10, 10);
+                    ctx.fillRect(90 * Math.cos(a) - 6, 90 * Math.sin(a) - 6, 12, 12);
                 }
                 ctx.restore();
 
-                // 繪製測試狀態文字 (使用剛載入的 Kosugi Maru 字型)
+                // 【行動端閱讀優化】顯著調大 Canvas 內部文字
                 ctx.fillStyle = '#2B6CB0';
-                ctx.font = 'bold 28px "Kosugi Maru", sans-serif';
+                ctx.font = 'bold 36px "Kosugi Maru", sans-serif'; // 從 28px 提升至 36px
                 ctx.textAlign = 'center';
-                ctx.fillText('步驟一：基礎環境架構已就緒', centerX, centerY + 160);
+                ctx.fillText('步驟一：基礎環境與縮放已就緒', centerX, centerY + 160);
 
                 ctx.fillStyle = '#4A5568';
-                ctx.font = '16px "Noto Sans TC", sans-serif';
-                ctx.fillText('此畫面為 16:9 自動縮放偵錯網格，請嘗試拉動瀏覽器視窗大小，或開啟實機測試。', centerX, centerY + 200);
+                ctx.font = 'bold 20px "Noto Sans TC", sans-serif'; // 從 16px 提升至 20px
+                ctx.fillText('點擊左上角「⚙️ 齒輪」展開或收折偵錯面板，進行行動端手勢測試。', centerX, centerY + 210);
 
-                // 更新旋轉角度 (一幀 0.01 弧度)
                 rotationAngle += 0.015;
                 requestAnimationFrame(drawFrame);
             }
             requestAnimationFrame(drawFrame);
         }
 
-        // --- 6. 事件綁定與初始化啟動 ---
+        // --- 7. 事件綁定與初始化啟動 ---
         window.addEventListener('resize', updateLayout);
         window.addEventListener('orientationchange', () => {
-            // 部分舊型行動裝置在 resize 前可能先觸發 orientationchange，增加延遲防呆
             setTimeout(updateLayout, 200);
         });
 
         // 偵測 iframe 嵌入狀態
-        document.getElementById('val-embed').textContent = isEmbedded ? 'Iframe 嵌入中' : '獨立運行 (虛擬控制面板解鎖)';
+        document.getElementById('val-embed').textContent = isEmbedded ? 'Iframe 嵌入中' : '獨立運行';
         if (isEmbedded) {
             document.getElementById('val-embed').style.color = '#3182CE';
         }
 
-        // 啟動流程
         updateLayout();
         checkFontsAndInit();
 
