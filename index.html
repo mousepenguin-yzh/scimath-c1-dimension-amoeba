@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>國二數理大挑戰 - 基礎外殼與通訊</title>
-    <!-- 引入 Google Fonts 親和力圓體字型 -->
+    <title>挑戰一：空間維度與單位變形蟲 - 步驟二</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* 基礎重設與防溢出 */
+        /* 基礎重設 */
         * {
             box-sizing: border-box;
             user-select: none;
@@ -22,11 +21,11 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #F0F4F8; /* 舒適馬卡龍灰藍底色 */
+            background-color: #F0F4F8;
             font-family: 'Kosugi Maru', 'Noto Sans TC', sans-serif;
         }
 
-        /* 16:9 核心視口容器 (標準解析度 1280x720) */
+        /* 16:9 核心視口容器 (1280x720) */
         #app-viewport {
             position: absolute;
             top: 50%;
@@ -43,7 +42,6 @@
             z-index: 1;
         }
 
-        /* Canvas 層 */
         #game-canvas {
             position: absolute;
             top: 0;
@@ -51,38 +49,119 @@
             width: 100%;
             height: 100%;
             display: block;
+            z-index: 1;
         }
 
-        /* 【行動端高度優化】偵錯面板 */
+        /* 【數學排版混合層】
+            此層疊加於 Canvas 之上，且位於 app-viewport 內部。
+            因此它會伴隨 16:9 容器同步進行 CSS Scale 縮放，
+            我們可以直接在裡面用 HTML/CSS 排版出極致清晰的次方、分數等數學符號！
+        */
+        #dom-ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 穿透點擊，不干擾 Canvas 的觸控手勢 */
+            z-index: 2;
+        }
+
+        /* 內建馬卡龍風格 UI 元素 */
+        .interactive-overlay {
+            position: absolute;
+            pointer-events: auto; /* 恢復特定 UI 元素的點擊能力 */
+        }
+
+        /* 測試用答題反饋顯示器 */
+        #math-display-card {
+            top: 40px;
+            right: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 3px solid #BEE3F8;
+            border-radius: 20px;
+            padding: 20px 30px;
+            box-shadow: 0 8px 24px rgba(49, 130, 206, 0.1);
+            color: #2D3748;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #math-display-card.success-pulse {
+            border-color: #48BB78;
+            background-color: #F0FFF4;
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(72, 187, 120, 0.2);
+        }
+
+        /* 標準國中理化數學格式排版 */
+        .formula-text {
+            font-size: 26px;
+            font-weight: bold;
+            color: #2B6CB0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 次方標準呈現 */
+        .formula-text sup {
+            font-size: 16px;
+            color: #E53E3E;
+            margin-left: 2px;
+        }
+
+        /* 觸控測試大按鈕 */
+        .feedback-trigger-btn {
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #48BB78 0%, #38A169 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-family: 'Kosugi Maru', sans-serif;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 0px #276749, 0 15px 30px rgba(56, 161, 105, 0.3);
+            transition: transform 0.05s ease, box-shadow 0.05s ease;
+        }
+
+        .feedback-trigger-btn:active {
+            transform: translateX(-50%) translateY(6px);
+            box-shadow: 0 2px 0px #276749, 0 5px 15px rgba(56, 161, 105, 0.3);
+        }
+
+        /* 外部開發者偵錯面板（加入 Touch-Action 防禦） */
         #debug-panel {
             position: fixed;
             top: 10px;
             left: 10px;
-            z-index: 999; /* 絕對置頂 */
+            z-index: 999;
             background: rgba(255, 255, 255, 0.98);
             border: 2px solid #BEE3F8;
             border-radius: 14px;
-            width: 280px; /* 從 320px 縮減，防止遮擋過多 Canvas */
+            width: 280px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             overflow: hidden;
-            max-height: calc(100vh - 20px); /* 限制最大高度為物理螢幕高度 */
+            max-height: calc(100vh - 20px);
             display: flex;
             flex-direction: column;
+            overscroll-behavior: contain; /* 防止背景頁面跟著橡皮筋滑動 */
+            touch-action: pan-y; /* 限制僅允許垂直觸控滑動 */
         }
 
-        /* 折疊狀態樣式 */
         #debug-panel.collapsed {
             width: 180px;
             height: 44px;
-            background: rgba(255, 255, 255, 0.9);
         }
 
-        /* 摺疊切換按鈕 */
         #btn-toggle-debug {
             width: 100%;
             height: 44px;
-            background: #4299E1;
+            background: #3182CE;
             color: white;
             border: none;
             font-family: inherit;
@@ -93,38 +172,15 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 14px;
-            outline: none;
         }
 
-        #btn-toggle-debug:active {
-            background: #3182CE;
-        }
-
-        #btn-toggle-debug::after {
-            content: '▼';
-            font-size: 10px;
-            transition: transform 0.3s ease;
-        }
-
-        #debug-panel.collapsed #btn-toggle-debug::after {
-            content: '▲';
-        }
-
-        /* 面板內部內容區（加入順暢的觸控滾動支援） */
         .debug-body {
             padding: 12px;
             display: flex;
             flex-direction: column;
             gap: 8px;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* 解鎖 iOS 物理動態滾動 */
-        }
-
-        #debug-panel h3 {
-            font-size: 14px;
-            color: #2B6CB0;
-            border-bottom: 2px dashed #E2E8F0;
-            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
         }
 
         .debug-row {
@@ -132,7 +188,6 @@
             justify-content: space-between;
             font-size: 13px;
             color: #4A5568;
-            margin: 1px 0;
         }
 
         .debug-value {
@@ -140,172 +195,79 @@
             color: #2D3748;
         }
 
-        /* 行動端觸控按鈕 */
-        .btn-test {
-            display: block;
-            width: 100%;
-            height: 42px;
-            line-height: 40px;
-            padding: 0;
-            background-color: #48BB78;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 3px 0px #2F855A;
-            transition: transform 0.05s ease, box-shadow 0.05s ease;
-            text-align: center;
-        }
-
-        .btn-test:active {
-            transform: translateY(2px);
-            box-shadow: 0 1px 0px #2F855A;
-        }
-
-        /* 縮小高度並優化滑動的歷史通訊紀錄框 */
-        #event-log {
-            background: #EDF2F7;
-            border-radius: 6px;
-            padding: 6px;
-            height: 75px; /* 降低高度以適應橫向窄螢幕 */
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* 解鎖觸控滾動 */
-            font-size: 11px;
-            line-height: 1.4;
-            color: #2D3748;
-            font-family: monospace;
-            border: 1px solid #CBD5E0;
-        }
-
-        /* 防呆直螢幕阻擋遮罩 */
-        #orientation-blocker {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #3182CE;
-            z-index: 9999;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        /* 旋轉手機的動態示意圖 */
-        .phone-icon-wrapper {
-            position: relative;
-            width: 80px;
-            height: 120px;
-            margin-bottom: 20px;
-        }
-
-        .phone-icon {
-            width: 50px;
-            height: 90px;
-            border: 4px solid white;
-            border-radius: 8px;
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            animation: rotatePhone 2s ease-in-out infinite;
-        }
-
-        @keyframes rotatePhone {
-            0% { transform: rotate(0deg); }
-            50% { transform: rotate(-90deg); }
-            100% { transform: rotate(-90deg); }
-        }
-
-        #orientation-blocker h2 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        #orientation-blocker p {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-
-        /* CSS 級別的直立螢幕判定 */
-        @media (orientation: portrait) {
-            #orientation-blocker {
-                display: flex;
-            }
+        #touch-coordinates {
+            color: #E53E3E;
         }
     </style>
 </head>
 <body>
 
-    <!-- 16:9 核心遊戲視口 -->
+    <!-- 16:9 遊戲容器 -->
     <div id="app-viewport">
-        <!-- 畫布核心 -->
         <canvas id="game-canvas"></canvas>
+
+        <!-- 
+            標準數學排版層 (DOM Layer)
+            此層直接隸屬於 app-viewport 下，會跟著 Canvas 一起完美縮放。
+            這裡用來繪製漂亮的國中數學算式，完全消滅工程師符號 3^5 
+        -->
+        <div id="dom-ui-layer">
+            <!-- 實時數學算式卡片 -->
+            <div id="math-display-card" class="interactive-overlay">
+                <div class="formula-text">
+                    <span>1 m<sup>3</sup></span>
+                    <span>=</span>
+                    <span>1000 dm<sup>3</sup></span>
+                    <span>=</span>
+                    <span style="color: #3182CE;">1,000,000 cm<sup>3</sup></span>
+                </div>
+            </div>
+
+            <!-- 點擊觸發粒子大按鈕 -->
+            <button id="btn-trigger-success" class="interactive-overlay feedback-trigger-btn">
+                🎉 模擬答對 (發射 Confetti)
+            </button>
+        </div>
     </div>
 
-    <!-- 偵錯面板 (置於最外層，不受縮放影響) -->
+    <!-- 偵錯面板 -->
     <div id="debug-panel" class="collapsed">
-        <button id="btn-toggle-debug">⚙️ 開啟/關閉偵錯面板</button>
+        <button id="btn-toggle-debug">⚙️ 展開/收折偵錯面板</button>
         <div class="debug-body">
-            <h3>開發單元測試面板 (Step 1)</h3>
             <div class="debug-row">
-                <span>視窗物理尺寸:</span>
-                <span id="val-win-size" class="debug-value">0 x 0</span>
-            </div>
-            <div class="debug-row">
-                <span>畫布縮放比例:</span>
-                <span id="val-scale" class="debug-value">1.00</span>
+                <span>Canvas 縮放比:</span>
+                <span id="val-scale" class="debug-value">1.000</span>
             </div>
             <div class="debug-row">
-                <span>字型狀態:</span>
-                <span id="val-font" class="debug-value">檢測中...</span>
+                <span>觸控映射 X:</span>
+                <span id="val-touch-x" class="debug-value">None</span>
             </div>
             <div class="debug-row">
-                <span>Iframe 狀態:</span>
-                <span id="val-embed" class="debug-value">獨立運行</span>
+                <span>觸控映射 Y:</span>
+                <span id="val-touch-y" class="debug-value">None</span>
             </div>
-            
-            <button class="btn-test" id="btn-ready-test">測試 GAME_READY</button>
-            <button class="btn-test" id="btn-over-test" style="background-color: #ED64A6; box-shadow: 0 3px 0px #B83280;">測試 GAME_OVER</button>
-            
-            <div style="font-size: 11px; font-weight: bold; margin-top: 4px; color: #4A5568;">
-                虛擬外層訊息接收紀錄：
+            <div class="debug-row">
+                <span>粒子總數:</span>
+                <span id="val-particles" class="debug-value">0</span>
             </div>
-            <div id="event-log"></div>
+            <div class="debug-row">
+                <span>音效模擬頻率:</span>
+                <span id="val-audio-freq" class="debug-value">0 Hz</span>
+            </div>
         </div>
-    </div>
-
-    <!-- 螢幕方向引導器 -->
-    <div id="orientation-blocker">
-        <div class="phone-icon-wrapper">
-            <div class="phone-icon"></div>
-        </div>
-        <h2>請旋轉您的螢幕</h2>
-        <p>本挑戰僅支援【橫螢幕】操作，請開啟手機自動旋轉功能並橫放以獲得最佳遊戲體驗。</p>
     </div>
 
     <script>
-        // --- 1. 核心全域參數設定 ---
+        // --- 1. 基礎宣告與縮放核心 ---
         const BASE_WIDTH = 1280;
         const BASE_HEIGHT = 720;
-        const CHALLENGE_ID = 1;
-
+        
         const viewport = document.getElementById('app-viewport');
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
-
+        
         let currentScale = 1;
-        let isFontLoaded = false;
-        let isEmbedded = window.parent !== window;
 
-        // --- 2. RWD 自動縮放演算法 ---
         function updateLayout() {
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
@@ -315,181 +277,266 @@
             currentScale = Math.min(scaleX, scaleY);
 
             viewport.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
-
-            document.getElementById('val-win-size').textContent = `${windowWidth} x ${windowHeight}`;
             document.getElementById('val-scale').textContent = currentScale.toFixed(3);
+        }
 
-            const blocker = document.getElementById('orientation-blocker');
-            if (windowHeight > windowWidth) {
-                blocker.style.display = 'flex';
+        // --- 2. 核心工法：等比例觸控座標映射系統 ---
+        function getCanvasPointerCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            
+            // 兼容觸控事件與滑鼠事件
+            let clientX, clientY;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
             } else {
-                blocker.style.display = 'none';
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            // 幾何投影轉換：扣除縮放視口的左/上邊界，並除以當前的 CSS scale 倍率
+            const mappedX = (clientX - rect.left) / currentScale;
+            const mappedY = (clientY - rect.top) / currentScale;
+
+            return {
+                x: Math.max(0, Math.min(BASE_WIDTH, mappedX)),
+                y: Math.max(0, Math.min(BASE_HEIGHT, mappedY))
+            };
+        }
+
+        // --- 3. 粒子物理回饋系統 (Confetti Particle Class) ---
+        class ConfettiParticle {
+            constructor(startX, startY) {
+                this.x = startX;
+                this.y = startY;
+                
+                // 爆炸拋射物理
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 5 + Math.random() * 15;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed - (5 + Math.random() * 5); // 向上噴發力道
+                
+                // 物理尺寸與旋轉
+                this.width = 8 + Math.random() * 12;
+                this.height = 4 + Math.random() * 8;
+                this.rotation = Math.random() * Math.PI;
+                this.rotationSpeed = -0.1 + Math.random() * 0.2;
+                
+                // 重力與風阻
+                this.gravity = 0.35;
+                this.resistance = 0.98;
+                
+                // 馬卡龍色系配色池
+                const colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A8DADC', '#BDB2FF', '#FFC6FF'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                
+                // 生命週期
+                this.alpha = 1;
+                this.decay = 0.01 + Math.random() * 0.015;
+            }
+
+            update() {
+                this.vx *= this.resistance;
+                this.vy *= this.resistance;
+                this.vy += this.gravity;
+                
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                this.rotation += this.rotationSpeed;
+                this.alpha -= this.decay;
+            }
+
+            draw(context) {
+                if (this.alpha <= 0) return;
+                
+                context.save();
+                context.translate(this.x, this.y);
+                context.rotate(this.rotation);
+                context.globalAlpha = this.alpha;
+                context.fillStyle = this.color;
+                
+                // 繪製彩色碎紙片
+                context.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+                context.restore();
             }
         }
 
-        // --- 3. 摺疊面板事件優化 ---
-        const debugPanel = document.getElementById('debug-panel');
-        document.getElementById('btn-toggle-debug').addEventListener('click', (e) => {
-            e.stopPropagation();
-            debugPanel.classList.toggle('collapsed');
-        });
-
-        // 阻止偵錯面板內部的觸控拖曳事件冒泡到 body，防止整頁被橡皮筋鎖死
-        debugPanel.addEventListener('touchmove', (e) => {
-            e.stopPropagation();
-        }, { passive: true });
-
-        // --- 4. 跨界通訊協定與虛擬接收器 ---
-        function sendEventToParent(payload) {
-            if (isEmbedded) {
-                window.parent.postMessage(payload, '*');
-            } else {
-                logLocalEvent(payload);
+        // 粒子管理器
+        const confettiList = [];
+        
+        function triggerSuccessConfetti() {
+            // 在視口中央偏下（按鈕上方）產生大量彩色碎片
+            const emitterX = BASE_WIDTH / 2;
+            const emitterY = BASE_HEIGHT / 2 + 100;
+            
+            for (let i = 0; i < 120; i++) {
+                confettiList.push(new ConfettiParticle(emitterX, emitterY));
             }
+
+            // 觸發算式字卡發光跳躍動畫
+            const mathCard = document.getElementById('math-display-card');
+            mathCard.classList.add('success-pulse');
+            setTimeout(() => {
+                mathCard.classList.remove('success-pulse');
+            }, 600);
+
+            // 模擬音效頻率累加 (Combo 音調升高)
+            simulateComboAudio();
         }
 
-        function logLocalEvent(payload) {
-            console.log('%c[遊戲通訊外拋]', 'background: #2D3748; color: #63B3ED; padding: 2px 6px; border-radius: 4px;', payload);
-            const logBox = document.getElementById('event-log');
-            const timeStr = new Date().toTimeString().split(' ')[0];
-            const newMsg = document.createElement('div');
-            newMsg.style.marginBottom = '4px';
-            newMsg.style.borderBottom = '1px solid #E2E8F0';
-            newMsg.style.paddingBottom = '2px';
-            newMsg.innerHTML = `<span style="color: #3182CE; font-weight:bold;">[${timeStr}]</span> ${payload.type}`;
-            logBox.appendChild(newMsg);
-            logBox.scrollTop = logBox.scrollHeight;
+        // --- 4. 模擬 Combo 升音調音效回饋 ---
+        let comboCount = 0;
+        let comboResetTimer = null;
+        
+        function simulateComboAudio() {
+            comboCount++;
+            clearTimeout(comboResetTimer);
+            
+            // 音效頻率隨 Combo 數升高：基礎 400Hz，每次疊加 150Hz，最高 1600Hz
+            const baseFreq = 400;
+            const currentFreq = Math.min(1600, baseFreq + (comboCount - 1) * 150);
+            
+            document.getElementById('val-audio-freq').textContent = `${currentFreq} Hz (Combo x${comboCount})`;
+            document.getElementById('val-audio-freq').style.color = '#38A169';
+
+            // 3秒無點擊，Combo 歸零重設
+            comboResetTimer = setTimeout(() => {
+                comboCount = 0;
+                document.getElementById('val-audio-freq').textContent = '0 Hz';
+                document.getElementById('val-audio-freq').style.color = '#2D3748';
+            }, 3000);
         }
 
-        // 綁定測試按鈕事件 (支援 Touchstart 以降低行動端延遲)
-        const readyBtn = document.getElementById('btn-ready-test');
-        const overBtn = document.getElementById('btn-over-test');
+        // --- 5. 互動手勢追蹤核心 (畫布拖曳塗鴉測試) ---
+        let isDrawing = false;
+        const trailPoints = [];
 
-        const triggerReady = (e) => {
-            e.preventDefault();
-            sendEventToParent({ type: 'GAME_READY', challengeId: CHALLENGE_ID });
-        };
-
-        const triggerOver = (e) => {
-            e.preventDefault();
-            sendEventToParent({
-                type: 'GAME_OVER',
-                challengeId: CHALLENGE_ID,
-                currentLevel: 1,
-                isPerfect: true,
-                score: 100
-            });
-        };
-
-        readyBtn.addEventListener('touchstart', triggerReady, { passive: false });
-        readyBtn.addEventListener('click', triggerReady);
-        overBtn.addEventListener('touchstart', triggerOver, { passive: false });
-        overBtn.addEventListener('click', triggerOver);
-
-        // --- 5. Google Fonts 非同步解鎖與 Canvas 初步繪圖 ---
-        function checkFontsAndInit() {
-            document.fonts.ready.then(() => {
-                isFontLoaded = true;
-                const fontVal = document.getElementById('val-font');
-                fontVal.textContent = '已就緒 (Kosugi)';
-                fontVal.style.color = '#38A169';
-                
-                setupCanvasResolution();
-                startDiagnosticRender();
-                
-                sendEventToParent({ type: 'GAME_READY', challengeId: CHALLENGE_ID });
-            }).catch(err => {
-                console.error("字型加載失敗：", err);
-                const fontVal = document.getElementById('val-font');
-                fontVal.textContent = '載入失敗 (降級)';
-                fontVal.style.color = '#E53E3E';
-                setupCanvasResolution();
-                startDiagnosticRender();
-            });
+        function handlePointerStart(e) {
+            isDrawing = true;
+            const coords = getCanvasPointerCoords(e);
+            updateTouchLogs(coords.x, coords.y);
+            trailPoints.push({ x: coords.x, y: coords.y, size: 25, alpha: 1 });
         }
 
-        function setupCanvasResolution() {
-            canvas.width = BASE_WIDTH;
-            canvas.height = BASE_HEIGHT;
+        function handlePointerMove(e) {
+            if (!isDrawing) return;
+            const coords = getCanvasPointerCoords(e);
+            updateTouchLogs(coords.x, coords.y);
+            trailPoints.push({ x: coords.x, y: coords.y, size: 25, alpha: 1 });
         }
 
-        // --- 6. 診斷畫面繪製系統 (行動端 legible 優化) ---
-        let rotationAngle = 0;
-        function startDiagnosticRender() {
-            function drawFrame() {
-                ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
-                
-                // 繪製格線系統
-                ctx.strokeStyle = 'rgba(190, 227, 248, 0.4)';
-                ctx.lineWidth = 1;
-                for (let i = 0; i < BASE_WIDTH; i += 40) {
-                    ctx.beginPath();
-                    ctx.moveTo(i, 0);
-                    ctx.lineTo(i, BASE_HEIGHT);
-                    ctx.stroke();
-                }
-                for (let j = 0; j < BASE_HEIGHT; j += 40) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, j);
-                    ctx.lineTo(BASE_WIDTH, j);
-                    ctx.stroke();
-                }
+        function handlePointerEnd() {
+            isDrawing = false;
+        }
 
-                const centerX = BASE_WIDTH / 2;
-                const centerY = BASE_HEIGHT / 2 - 40; // 稍微往上調，移開下方字體空間
-                
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.rotate(rotationAngle);
-                
-                // 繪製圓環
+        function updateTouchLogs(x, y) {
+            document.getElementById('val-touch-x').textContent = Math.round(x);
+            document.getElementById('val-touch-y').textContent = Math.round(y);
+        }
+
+        // --- 6. 遊戲更新與繪圖主迴圈 (60FPS Frame Loop) ---
+        function mainLoop() {
+            ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
+
+            // A. 繪製精緻的馬卡龍網格背景
+            ctx.strokeStyle = 'rgba(190, 227, 248, 0.35)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < BASE_WIDTH; i += 40) {
                 ctx.beginPath();
-                ctx.arc(0, 0, 70, 0, Math.PI * 2);
-                ctx.lineWidth = 12;
-                ctx.strokeStyle = '#BEE3F8';
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, BASE_HEIGHT);
                 ctx.stroke();
-                
-                ctx.fillStyle = '#63B3ED';
-                for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-                    ctx.fillRect(80 * Math.cos(a) - 5, 80 * Math.sin(a) - 5, 10, 10);
-                }
-                ctx.restore();
-
-                // 【全新優化】大幅放大 Canvas 字體，並採取高可讀性雙行排版
-                ctx.fillStyle = '#2B6CB0';
-                ctx.font = 'bold 52px "Kosugi Maru", sans-serif'; // 大幅提升至 52px
-                ctx.textAlign = 'center';
-                ctx.fillText('步驟一：基礎環境與縮放已就緒', centerX, centerY + 160);
-
-                ctx.fillStyle = '#4A5568';
-                ctx.font = 'bold 24px "Noto Sans TC", sans-serif'; // 提升至 24px
-                
-                // 雙行說明，防止在低寬高比螢幕下擠壓變形
-                const subLine1 = '點擊左上角「⚙️ 齒輪」展開或收折偵錯面板';
-                const subLine2 = '進行行動端手勢與跨界通訊測試';
-                
-                ctx.fillText(subLine1, centerX, centerY + 220);
-                ctx.fillText(subLine2, centerX, centerY + 265);
-
-                rotationAngle += 0.015;
-                requestAnimationFrame(drawFrame);
             }
-            requestAnimationFrame(drawFrame);
+            for (let j = 0; j < BASE_HEIGHT; j += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, j);
+                ctx.lineTo(BASE_WIDTH, j);
+                ctx.stroke();
+            }
+
+            // B. 繪製手勢觸控拖曳軌跡 (Pastel Glowing Trail)
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            for (let i = 0; i < trailPoints.length; i++) {
+                const pt = trailPoints[i];
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(168, 218, 220, ${pt.alpha})`;
+                ctx.fill();
+                
+                // 拖曳點逐漸縮小並淡出
+                pt.alpha -= 0.03;
+                pt.size = Math.max(0, pt.size - 0.5);
+            }
+            // 清理已完全淡出的觸控點
+            while (trailPoints.length > 0 && trailPoints[0].alpha <= 0) {
+                trailPoints.shift();
+            }
+
+            // C. 更新與渲染粒子
+            for (let i = confettiList.length - 1; i >= 0; i--) {
+                const particle = confettiList[i];
+                particle.update();
+                particle.draw(ctx);
+                
+                // 清除死去的粒子
+                if (particle.alpha <= 0) {
+                    confettiList.splice(i, 1);
+                }
+            }
+
+            // 更新偵錯數據
+            document.getElementById('val-particles').textContent = confettiList.length;
+
+            // D. 繪製 Canvas 靜態指示
+            ctx.fillStyle = '#4A5568';
+            ctx.font = '24px "Kosugi Maru", sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('觸控測試區：請用手指在畫布上滑動塗鴉，測試縮放投影定位', 60, BASE_HEIGHT - 60);
+
+            requestAnimationFrame(mainLoop);
         }
 
-        // --- 7. 事件綁定與初始化啟動 ---
+        // --- 7. 初始化與事件綁定 ---
         window.addEventListener('resize', updateLayout);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(updateLayout, 200);
+        
+        // 綁定 Canvas 的整合觸控/滑鼠手勢
+        canvas.addEventListener('mousedown', handlePointerStart);
+        canvas.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerEnd);
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // 阻擋 iOS 預設的橡皮筋回彈與縮放
+            handlePointerStart(e);
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            handlePointerMove(e);
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', handlePointerEnd);
+
+        // 綁定粒子觸發按鈕 (整合 touch/click)
+        const successBtn = document.getElementById('btn-trigger-success');
+        successBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            triggerSuccessConfetti();
+        });
+        successBtn.addEventListener('click', triggerSuccessConfetti);
+
+        // 偵錯面板摺疊按鈕
+        document.getElementById('btn-toggle-debug').addEventListener('click', (e) => {
+            document.getElementById('debug-panel').classList.toggle('collapsed');
         });
 
-        document.getElementById('val-embed').textContent = isEmbedded ? 'Iframe 嵌入中' : '獨立運行';
-        if (isEmbedded) {
-            document.getElementById('val-embed').style.color = '#3182CE';
-        }
-
+        // 初始化
+        canvas.width = BASE_WIDTH;
+        canvas.height = BASE_HEIGHT;
         updateLayout();
-        checkFontsAndInit();
+        mainLoop();
 
     </script>
 </body>
