@@ -664,17 +664,17 @@
             }
         }
 
-        // 【STREAMING_CHUNK: 繪製LV2三維體積「百萬大分裂」】
         function renderLV2() {
             const gridOriginX = 420; // 恢復黃金中心起點，保證左側不會切到畫面！
             const gridOriginY = 480;
             const cubeSize = 20;
             const maxGap = 7.5;
 
-            const finalSlideFactor = 140;
-            const px_end = 9 * (cubeSize + maxGap) + finalSlideFactor;
-            const py_end = px_end;
-            const pz_end = px_end;
+            // 【核心重構】：大幅降低滑動係數（約一個半方塊寬度），並修正幾何投影端端點，達成100%無縫對準
+            const finalSlideFactor = 30; 
+            const px_end = 9 * (cubeSize + maxGap) + finalSlideFactor * 1.5;
+            const py_end = 9 * (cubeSize + maxGap) - finalSlideFactor * 0.2;
+            const pz_end = 9 * (cubeSize + maxGap) + finalSlideFactor * 0.4;
             const targetScreenPos = getIsoPoint(px_end, py_end, pz_end, gridOriginX, gridOriginY);
 
             if (currentProgress <= 25) {
