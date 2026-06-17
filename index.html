@@ -375,31 +375,23 @@
         <p>本挑戰僅支援【橫螢幕】操作，請開啟手機自動旋轉功能並橫放以獲得最佳遊戲體驗。</p>
     </div>
 
+    <!-- 核心解鎖指令集：確保 <script> 正確置於 <body> 結尾內，完全避免 RWD 時序崩潰 -->
     <script>
-        // --- STREAMING_CHUNK: Initializing state variables... ---
         const BASE_WIDTH = 1280;
         const BASE_HEIGHT = 720;
         
-        const viewport = document.getElementById('app-viewport');
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
-        
-        let currentScale = 1;
-
-        // 核心狀態機變數 (100% 嚴謹初始值，杜絕空指標崩潰)
+        // 核心狀態機變數 (100% 嚴謹全域宣告)
         let activeMainTab = 'LV2'; 
         let activeLv5Sub = 'density'; 
-
         const questionVolume = 1;
 
-        // 定義步驟目標
+        // 定義步驟目標進度
         const STEP_PROGRESS_TARGETS = [0, 25, 45, 65, 80, 100];
         let currentStepIndex = 0; 
         let currentProgress = 0;   
         const confettiList = [];
         let hasConfettiTriggered = false;
 
-        // 列車滾動視差偏移
         let speedBgCloudX = 0;
         let speedBgMountainX = 0;
         let speedBgTreeX = 0;
@@ -423,7 +415,10 @@
             }
         };
 
-        // --- STREAMING_CHUNK: Defining core helper methods... ---
+        // 【極限安全保護】：全域宣告但不初始化 DOM 變數，100% 消除 null 指標崩潰
+        let viewport, canvas, ctx;
+        let labelPhase, cardTitle, formulaContainer, prevBtn, nextBtn;
+
         function getStepConfig() {
             if (activeMainTab === 'LV2') return STEP_CONFIGS['LV2'];
             if (activeMainTab === 'LV4') return STEP_CONFIGS['LV4'];
@@ -451,7 +446,7 @@
             }
         }
 
-        // 手寫高相容性圓角矩形，完全杜絕原生 roundRect() 在舊設備與行動端 WebView 的崩潰問題
+        // 手寫安全圓角矩形，規避 roundRect() 造成的舊版內建 WebView 崩潰
         function drawRoundRectPath(context, x, y, w, h, r) {
             context.beginPath();
             context.moveTo(x + r, y);
@@ -569,7 +564,6 @@
             }
         }
 
-        // --- STREAMING_CHUNK: Configuring text callouts with left-upwards projection... ---
         // 指向說明框 (向左上方折出，懸浮在立方體堆頂部，完全避開右側字卡)
         function drawCallout(context, tx, ty, alpha) {
             context.save();
@@ -668,14 +662,27 @@
             context.restore();
         }
 
-        // --- STREAMING_CHUNK: Designing 3D Cube rendering for Level 2... ---
+        function renderScene() {
+            if (activeMainTab === 'LV2') {
+                renderLV2();
+            } else if (activeMainTab === 'LV4') {
+                renderLV4();
+            } else if (activeMainTab === 'LV5') {
+                if (activeLv5Sub === 'density') {
+                    renderLV5Density();
+                } else {
+                    renderLV5Speed();
+                }
+            }
+        }
+
         function renderLV2() {
             const gridOriginX = 420; 
             const gridOriginY = 480;
             const cubeSize = 20;
             const maxGap = 7.5;
 
-            // 抽出距離極其克制，只移動約一個方塊寬度的 30px
+            // 微調抽出距離為一格間距 (30px)
             const finalSlideFactor = 30; 
             const px_end = 9 * (cubeSize + maxGap) + finalSlideFactor * 1.5;
             const py_end = 9 * (cubeSize + maxGap) - finalSlideFactor * 0.2;
@@ -758,6 +765,7 @@
                 drawFaceGrid(ctx, pts.B, pts.C, pts.G, pts.F, linesCount, t);
                 drawFaceGrid(ctx, pts.E, pts.F, pts.G, pts.H, linesCount, t);
             }
+            // 【完璧歸趙縮小插值】：平滑由抽出點向角落卡槽點復位
             else if (currentProgress > 80 && currentProgress <= 92) {
                 const t = (currentProgress - 80) / 12; 
                 const currentSize = 240 + (cubeSize - 240) * t; 
@@ -777,7 +785,7 @@
                     }
                 }
 
-                // 2D 座標插值（從抽出滑行點平滑回角落角落卡槽點）
+                // 2D 坐標位置平滑回卡槽
                 const currentOriginX = targetScreenPos.x + (originalScreenPos.x - targetScreenPos.x) * t;
                 const currentOriginY = targetScreenPos.y + (originalScreenPos.y - targetScreenPos.y) * t;
 
@@ -815,7 +823,7 @@
                     }
                 }
 
-                // 完美與大立方體卡槽對齊！
+                // 完美卡合原位
                 const currentOriginX = originalScreenPos.x;
                 const currentOriginY = originalScreenPos.y;
                 drawCube(ctx, 0, 0, 0, cubeSize, currentOriginX, currentOriginY, 1.0, true);
@@ -842,7 +850,6 @@
             }
         }
 
-        // --- STREAMING_CHUNK: Designing 2D Amoeba-microscopic crossfade for Level 4... ---
         let amoebaWaveAngle = 0; 
         function renderLV4() {
             const centerX = 340; 
@@ -1043,8 +1050,6 @@
             ctx.fillText(magStr, centerX, centerY + 220);
         }
 
-        // --- STREAMING_CHUNK: Designing 3D Cube density and weight indicators for Level 5... ---
-        // 【LV.5 密度簡化】：全對齊左上折出定位氣泡，完全消滅左側切邊與右側卡片遮擋
         function renderLV5Density() {
             const gridOriginX = 420; 
             const gridOriginY = 480;
@@ -1054,7 +1059,6 @@
 
             const originalScreenPos = getIsoPoint(9 * (cubeSize + maxGap), 9 * (cubeSize + maxGap), 9 * (cubeSize + maxGap), gridOriginX, gridOriginY);
 
-            // 1. 步驟 1/3 (微觀 cm³ 標示)
             if (currentStepIndex === 0) {
                 const baseAlpha = 0.15;
                 for (let z = 0; z < 10; z++) {
@@ -1065,11 +1069,8 @@
                         }
                     }
                 }
-
-                // 朝左上方折出，與右側卡片（X >= 760）保持安全隔離
                 drawCallout(ctx, originalScreenPos.x, originalScreenPos.y, 1.0);
             }
-            // 2. 步驟 2/3 (1m³ 宏觀水箱標示)
             else if (currentStepIndex === 1) {
                 const baseAlpha = 0.8;
                 for (let z = 0; z < 10; z++) {
@@ -1081,10 +1082,8 @@
                 }
 
                 const centerPos = getIsoPoint(5*(cubeSize+maxGap), 5*(cubeSize+maxGap), 5*(cubeSize+maxGap), gridOriginX, gridOriginY);
-                // 【完美修復】：調用左上方折出型引導氣泡 `drawMacroCallout`，完全免除左側切除
                 drawMacroCallout(ctx, centerPos.x, centerPos.y, '這整疊 1 m³ (立方公尺) 巨大水箱', '一共有包含 1,000,000 cm³ 的小水滴', 1.0, '#EBF8FF', '#90CDF4', '#2B6CB0');
             }
-            // 3. 步驟 3/3 (1000kg 總重連動)
             else if (currentStepIndex === 2) {
                 const baseAlpha = 0.85;
                 for (let z = 0; z < 10; z++) {
@@ -1096,7 +1095,6 @@
                 }
 
                 const centerPos = getIsoPoint(5*(cubeSize+maxGap), 5*(cubeSize+maxGap), 5*(cubeSize+maxGap), gridOriginX, gridOriginY);
-                // 【完美修復】：綠色指針計量，左上折出定位，完全在 Canvas 安全視口呈像
                 drawMacroCallout(ctx, centerPos.x, centerPos.y, '秤重儀：總重量', '1000 公斤 (kg) [ 相當於 1 公噸 ]', 1.0, '#F0FFF4', '#48BB78', '#276749');
 
                 if (currentProgress >= 99 && !hasConfettiTriggered) {
@@ -1106,11 +1104,9 @@
             }
         }
 
-        // --- STREAMING_CHUNK: Designing Parallax train rolling animations for Level 5... ---
         function renderLV5Speed() {
             const trainY = 460;
             const t = currentProgress / 100;
-
             const isMoving = (currentStepIndex === 2); 
 
             let speedFactor = 18;
@@ -1306,11 +1302,6 @@
             }
         }
 
-        // --- STREAMING_CHUNK: Dynamic DOM text updating and stage routing... ---
-        const labelPhase = document.getElementById('txt-animation-phase');
-        const cardTitle = document.getElementById('math-card-title');
-        const formulaContainer = document.getElementById('math-formula');
-
         function updateDOMUIByStep() {
             const config = getStepConfig();
             if (!config) return;
@@ -1325,229 +1316,237 @@
                 }
             }
 
-            if (activeMainTab === 'LV2') {
-                switch(currentStepIndex) {
-                    case 0:
-                        labelPhase.textContent = '步驟 1 / 6：正在將 1 m³ 切割為中型方塊';
-                        labelPhase.style.color = '#3182CE';
-                        cardTitle.textContent = '第一步：大方塊拆成 1000 份';
-                        formulaContainer.innerHTML = `
-                            <span>1 m<sup>3</sup> 巨大體積</span>
-                            <span>=</span>
-                            <span style="color: #3182CE;">1000 個 10 cm 中方塊</span>
-                        `;
-                        hasConfettiTriggered = false;
-                        break;
-                    case 1:
-                        labelPhase.textContent = '步驟 2 / 6：抽出其中 1 個 10 cm 立方體進行觀察';
-                        labelPhase.style.color = '#ED64A6';
-                        cardTitle.textContent = '第二步：抽出 1 份代表觀察';
-                        formulaContainer.innerHTML = `
-                            <span>仔細看 1000 個裡的這 1 個：</span>
-                            <br>
-                            <span style="font-size: 24px; color: #ED64A6;">邊長 = 10 公分 (cm)</span>
-                        `;
-                        break;
-                    case 2:
-                        labelPhase.textContent = '步驟 3 / 6：原位放大這顆 10 cm 立方體';
-                        labelPhase.style.color = '#D69E2E';
-                        cardTitle.textContent = '準備揭曉中方塊的秘密...';
-                        formulaContainer.innerHTML = `
-                            <span>這顆 10 cm 的中方塊</span>
-                            <br>
-                            <span style="font-size: 24px; color: #D69E2E;">放大中，看它能被切成幾格？</span>
-                        `;
-                        break;
-                    case 3:
-                        labelPhase.textContent = '步驟 4 / 6：切開了！這 1 個中方塊內含 1000 個小立方公分';
-                        labelPhase.style.color = '#E53E3E';
-                        cardTitle.textContent = '第三步：1 個中方塊包含 1000 格！';
-                        formulaContainer.innerHTML = `
-                            <span>1 個中方塊</span>
-                            <span>=</span>
-                            <span>10 cm × 10 cm × 10 cm</span>
-                            <span>=</span>
-                            <span style="color: #E53E3E;">1000 個 1 cm<sup>3</sup> 小格子</span>
-                        `;
-                        hasConfettiTriggered = false;
-                        break;
-                    case 4:
-                        labelPhase.textContent = '步驟 5 / 6：原位縮小對照，這疊原本一共有 1000 個！';
-                        labelPhase.style.color = '#D69E2E';
-                        cardTitle.textContent = '第四步：放回群體，驚人對比！';
-                        formulaContainer.innerHTML = `
-                            <span>1 個中方塊 = 1000 個小格子</span>
-                            <br>
-                            <span style="font-size: 22px; color: #2B6CB0;">而這整疊大方塊有 1000 個中方塊！</span>
-                        `;
-                        hasConfettiTriggered = false;
-                        break;
-                    case 5:
-                        labelPhase.textContent = '步驟 6 / 6：百萬倍二階段分裂圓滿成功！';
-                        labelPhase.style.color = '#38A169';
-                        cardTitle.textContent = '第五步：終極百萬倍率換算公式';
-                        formulaContainer.innerHTML = `
-                            <span style="font-size: 24px; color: #4A5568;">1000 × 1000 (每個切1000格) =</span>
-                            <br>
-                            <span style="color: #48BB78; font-size: 42px; font-weight: 900;">1,000,000 cm<sup>3</sup></span>
-                        `;
-                        break;
-                }
-            } 
-            else if (activeMainTab === 'LV4') {
-                switch(currentStepIndex) {
-                    case 0:
-                        labelPhase.textContent = '步驟 1 / 3：變形蟲本體 (大小約為 1 毫米 mm)';
-                        labelPhase.style.color = '#3182CE';
-                        cardTitle.textContent = '初探微觀世界（毫米級）';
-                        formulaContainer.innerHTML = `
-                            <span>肉眼極限：變形蟲</span>
-                            <br>
-                            <span style="font-size: 24px; color: #3182CE;">大小 ≈ 1 mm (公厘)</span>
-                        `;
-                        hasConfettiTriggered = false;
-                        break;
-                    case 1:
-                        labelPhase.textContent = '步驟 2 / 3：放大 1000 倍，聚焦細胞核 (微米 μm)';
-                        labelPhase.style.color = '#ED64A6';
-                        cardTitle.textContent = '進入細胞內部（微米級）';
-                        formulaContainer.innerHTML = `
-                            <span>1 毫米 (mm) 切割為 1000 份：</span>
-                            <br>
-                            <span style="color: #ED64A6; font-size: 32px;">1 mm = 1000 μm (微米)</span>
-                        `;
-                        hasConfettiTriggered = false;
-                        break;
-                    case 2:
-                        labelPhase.textContent = '步驟 3 / 3：再放大 1000 倍，看見分子 DNA (奈米 nm)';
-                        labelPhase.style.color = '#38A169';
-                        cardTitle.textContent = '極限分子尺度（奈米級）';
-                        formulaContainer.innerHTML = `
-                            <span>1 微米 (μm) 切割為 1000 份：</span>
-                            <br>
-                            <span style="color: #38A169; font-size: 32px;">1 μm = 1000 nm (奈米)</span>
-                            <br>
-                            <span style="font-size: 20px; color: #4A5568;">總計放大 1,000,000 倍！</span>
-                        `;
-                        break;
-                }
-            } 
-            else if (activeMainTab === 'LV5') {
-                if (activeLv5Sub === 'density') {
+            if (labelPhase && cardTitle && formulaContainer) {
+                if (activeMainTab === 'LV2') {
                     switch(currentStepIndex) {
                         case 0:
-                            labelPhase.textContent = '步驟 1 / 3：水的基礎密度為 1 g/cm³';
+                            labelPhase.textContent = '步驟 1 / 6：正在將 1 m³ 切割為中型方塊';
                             labelPhase.style.color = '#3182CE';
-                            cardTitle.textContent = '微觀密度概念';
+                            cardTitle.textContent = '第一步：大方塊拆成 1000 份';
                             formulaContainer.innerHTML = `
-                                <span>1 cm<sup>3</sup> 的水重 1 公克</span>
-                                <br>
-                                <span style="font-size: 24px; color: #3182CE;">水的密度 = 1 g/cm<sup>3</sup></span>
+                                <span>1 m<sup>3</sup> 巨大體積</span>
+                                <span>=</span>
+                                <span style="color: #3182CE;">1000 個 10 cm 中方塊</span>
                             `;
                             hasConfettiTriggered = false;
                             break;
                         case 1:
-                            labelPhase.textContent = '步驟 2 / 3：想像 1 立方公尺 (1 m³) 的大水箱';
+                            labelPhase.textContent = '步驟 2 / 6：抽出其中 1 個 10 cm 立方體進行觀察';
                             labelPhase.style.color = '#ED64A6';
-                            cardTitle.textContent = '宏觀體積大變身';
+                            cardTitle.textContent = '第二步：抽出 1 份代表觀察';
                             formulaContainer.innerHTML = `
-                                <span>1 m<sup>3</sup> 包含 1,000,000 cm<sup>3</sup></span>
+                                <span>仔細看 1000 個裡的這 1 個：</span>
                                 <br>
-                                <span style="font-size: 24px; color: #ED64A6;">這代表水箱裡裝滿 100 萬滴水！</span>
+                                <span style="font-size: 24px; color: #ED64A6;">邊長 = 10 公分 (cm)</span>
+                            `;
+                            break;
+                        case 2:
+                            labelPhase.textContent = '步驟 3 / 6：原位放大這顆 10 cm 立方體';
+                            labelPhase.style.color = '#D69E2E';
+                            cardTitle.textContent = '準備揭曉中方塊的秘密...';
+                            formulaContainer.innerHTML = `
+                                <span>這顆 10 cm 的中方塊</span>
+                                <br>
+                                <span style="font-size: 24px; color: #D69E2E;">放大中，看它能被切成幾格？</span>
+                            `;
+                            break;
+                        case 3:
+                            labelPhase.textContent = '步驟 4 / 6：切開了！這 1 個中方塊內含 1000 個小立方公分';
+                            labelPhase.style.color = '#E53E3E';
+                            cardTitle.textContent = '第三步：1 個中方塊包含 1000 格！';
+                            formulaContainer.innerHTML = `
+                                <span>1 個中方塊</span>
+                                <span>=</span>
+                                <span>10 cm × 10 cm × 10 cm</span>
+                                <span>=</span>
+                                <span style="color: #E53E3E;">1000 個 1 cm<sup>3</sup> 小格子</span>
                             `;
                             hasConfettiTriggered = false;
                             break;
-                        case 2:
-                            labelPhase.textContent = '步驟 3 / 3：計算總重量：水的複合單位換算成功！';
-                            labelPhase.style.color = '#38A169';
-                            cardTitle.textContent = '複合密度終極換算';
+                        case 4:
+                            labelPhase.textContent = '步驟 5 / 6：原位縮小對照，這疊原本一共有 1000 個！';
+                            labelPhase.style.color = '#D69E2E';
+                            cardTitle.textContent = '第四步：放回群體，驚人對比！';
                             formulaContainer.innerHTML = `
-                                <span>1,000,000 公克 (g)</span>
-                                <span>=</span>
-                                <span style="color: #38A169; font-size: 32px;">1000 公斤 (kg)</span>
+                                <span>1 個中方塊 = 1000 個小格子</span>
                                 <br>
-                                <span style="font-size: 22px; color: #2D3748;">1 g/cm<sup>3</sup> = 1000 kg/m<sup>3</sup> (1公噸)</span>
+                                <span style="font-size: 22px; color: #2B6CB0;">而這整疊大方塊有 1000 個中方塊！</span>
+                            `;
+                            hasConfettiTriggered = false;
+                            break;
+                        case 5:
+                            labelPhase.textContent = '步驟 6 / 6：百萬倍二階段分裂圓滿成功！';
+                            labelPhase.style.color = '#38A169';
+                            cardTitle.textContent = '第五步：終極百萬倍率換算公式';
+                            formulaContainer.innerHTML = `
+                                <span style="font-size: 24px; color: #4A5568;">1000 × 1000 (每個切1000格) =</span>
+                                <br>
+                                <span style="color: #48BB78; font-size: 42px; font-weight: 900;">1,000,000 cm<sup>3</sup></span>
                             `;
                             break;
                     }
-                } else {
+                } 
+                else if (activeMainTab === 'LV4') {
                     switch(currentStepIndex) {
                         case 0:
-                            labelPhase.textContent = '步驟 1 / 3：高鐵時速 90 公里 (km/hr) 高速行駛中';
+                            labelPhase.textContent = '步驟 1 / 3：變形蟲本體 (大小約為 1 毫米 mm)';
                             labelPhase.style.color = '#3182CE';
-                            cardTitle.textContent = '時速概念拆解';
+                            cardTitle.textContent = '初探微觀世界（毫米級）';
                             formulaContainer.innerHTML = `
-                                <span>列車每小時前進 90 公里</span>
+                                <span>肉眼極限：變形蟲</span>
                                 <br>
-                                <span style="font-size: 24px; color: #3182CE;">距離 = 90,000 公尺 (m)</span>
+                                <span style="font-size: 24px; color: #3182CE;">大小 ≈ 1 mm (公厘)</span>
                             `;
                             hasConfettiTriggered = false;
                             break;
                         case 1:
-                            labelPhase.textContent = '步驟 2 / 3：啟動慢動作！車頭畫下一條起點紅色對準線';
+                            labelPhase.textContent = '步驟 2 / 3：放大 1000 倍，聚焦細胞核 (微米 μm)';
                             labelPhase.style.color = '#ED64A6';
-                            cardTitle.textContent = '慢動作模式開啟';
+                            cardTitle.textContent = '進入細胞內部（微米級）';
                             formulaContainer.innerHTML = `
-                                <span>1 小時 = 3600 秒 (s)</span>
+                                <span>1 毫米 (mm) 切割為 1000 份：</span>
                                 <br>
-                                <span style="font-size: 24px; color: #ED64A6;">準備觀察：高鐵在「1 秒」內能跑多遠？</span>
+                                <span style="color: #ED64A6; font-size: 32px;">1 mm = 1000 μm (微米)</span>
                             `;
                             hasConfettiTriggered = false;
                             break;
                         case 2:
-                            labelPhase.textContent = '步驟 3 / 3：倒數 1 秒！列車在慢動作中前進了 25 公尺';
+                            labelPhase.textContent = '步驟 3 / 3：再放大 1000 倍，看見分子 DNA (奈米 nm)';
                             labelPhase.style.color = '#38A169';
-                            cardTitle.textContent = '複合速度終極換算';
+                            cardTitle.textContent = '極限分子尺度（奈米級）';
                             formulaContainer.innerHTML = `
-                                <span>90,000 m ÷ 3600 s =</span>
+                                <span>1 微米 (μm) 切割為 1000 份：</span>
                                 <br>
-                                <span style="color: #38A169; font-size: 34px;">25 m/s (秒速)</span>
+                                <span style="color: #38A169; font-size: 32px;">1 μm = 1000 nm (奈米)</span>
                                 <br>
-                                <span style="font-size: 18px; color: #4A5568;">時速 90 公里，相當於每秒飛奔五間教室！</span>
+                                <span style="font-size: 20px; color: #4A5568;">總計放大 1,000,000 倍！</span>
                             `;
                             break;
+                    }
+                } 
+                else if (activeMainTab === 'LV5') {
+                    if (activeLv5Sub === 'density') {
+                        switch(currentStepIndex) {
+                            case 0:
+                                labelPhase.textContent = '步驟 1 / 3：水的基礎密度為 1 g/cm³';
+                                labelPhase.style.color = '#3182CE';
+                                cardTitle.textContent = '微觀密度概念';
+                                formulaContainer.innerHTML = `
+                                    <span>1 cm<sup>3</sup> 的水重 1 公克</span>
+                                    <br>
+                                    <span style="font-size: 24px; color: #3182CE;">水的密度 = 1 g/cm<sup>3</sup></span>
+                                `;
+                                hasConfettiTriggered = false;
+                                break;
+                            case 1:
+                                labelPhase.textContent = '步驟 2 / 3：想像 1 立方公尺 (1 m³) 的大水箱';
+                                labelPhase.style.color = '#ED64A6';
+                                cardTitle.textContent = '宏觀體積大變身';
+                                formulaContainer.innerHTML = `
+                                    <span>1 m<sup>3</sup> 包含 1,000,000 cm<sup>3</sup></span>
+                                    <br>
+                                    <span style="font-size: 24px; color: #ED64A6;">這代表水箱裡裝滿 100 萬滴水！</span>
+                                `;
+                                hasConfettiTriggered = false;
+                                break;
+                            case 2:
+                                labelPhase.textContent = '步驟 3 / 3：計算總重量：水的複合單位換算成功！';
+                                labelPhase.style.color = '#38A169';
+                                cardTitle.textContent = '複合密度終極換算';
+                                formulaContainer.innerHTML = `
+                                    <span>1,000,000 公克 (g)</span>
+                                    <span>=</span>
+                                    <span style="color: #38A169; font-size: 32px;">1000 公斤 (kg)</span>
+                                    <br>
+                                    <span style="font-size: 22px; color: #2D3748;">1 g/cm<sup>3</sup> = 1000 kg/m<sup>3</sup> (1公噸)</span>
+                                `;
+                                break;
+                        }
+                    } else {
+                        switch(currentStepIndex) {
+                            case 0:
+                                labelPhase.textContent = '步驟 1 / 3：高鐵時速 90 公里 (km/hr) 高速行駛中';
+                                labelPhase.style.color = '#3182CE';
+                                cardTitle.textContent = '時速概念拆解';
+                                formulaContainer.innerHTML = `
+                                    <span>列車每小時前進 90 公里</span>
+                                    <br>
+                                    <span style="font-size: 24px; color: #3182CE;">距離 = 90,000 公尺 (m)</span>
+                                `;
+                                hasConfettiTriggered = false;
+                                break;
+                            case 1:
+                                labelPhase.textContent = '步驟 2 / 3：啟動慢動作！車頭畫下一條起點紅色對準線';
+                                labelPhase.style.color = '#ED64A6';
+                                cardTitle.textContent = '慢動作模式開啟';
+                                formulaContainer.innerHTML = `
+                                    <span>1 小時 = 3600 秒 (s)</span>
+                                    <br>
+                                    <span style="font-size: 24px; color: #ED64A6;">準備觀察：高鐵在「1 秒」內能跑多遠？</span>
+                                `;
+                                hasConfettiTriggered = false;
+                                break;
+                            case 2:
+                                labelPhase.textContent = '步驟 3 / 3：倒數 1 秒！列車在慢動作中前進了 25 公尺';
+                                labelPhase.style.color = '#38A169';
+                                cardTitle.textContent = '複合速度終極換算';
+                                formulaContainer.innerHTML = `
+                                    <span>90,000 m ÷ 3600 s =</span>
+                                    <br>
+                                    <span style="color: #38A169; font-size: 34px;">25 m/s (秒速)</span>
+                                    <br>
+                                    <span style="font-size: 18px; color: #4A5568;">時速 90 公里，相當於每秒飛奔五間教室！</span>
+                                `;
+                                break;
+                        }
                     }
                 }
             }
 
-            const btnPrev = document.getElementById('btn-prev');
-            const btnNext = document.getElementById('btn-next');
-            if (btnPrev && btnNext) {
-                btnPrev.disabled = (currentStepIndex === 0);
-                btnNext.textContent = (currentStepIndex === config.count - 1) ? '挑戰完成 🎉' : '下一步 ▶';
+            if (prevBtn && nextBtn) {
+                prevBtn.disabled = (currentStepIndex === 0);
+                nextBtn.textContent = (currentStepIndex === config.count - 1) ? '挑戰完成 🎉' : '下一步 ▶';
             }
         }
 
-        // --- STREAMING_CHUNK: Binding event listeners and resolving window load race condition... ---
-        const prevBtn = document.getElementById('btn-prev');
-        const nextBtn = document.getElementById('btn-next');
-
         const goNext = (e) => {
-            e.preventDefault();
+            if (e) {
+                if (e.type === 'touchstart') {
+                    e.preventDefault(); // 杜絕行動端 ghost 雙重跳格
+                }
+            }
             const config = getStepConfig();
-            if (config && currentStepIndex < config.count - 1) {
+            if (currentStepIndex < config.count - 1) {
                 currentStepIndex++;
                 updateDOMUIByStep();
             } else {
-                const originalScreenPos = getIsoPoint(9 * (20 + 7.5), 9 * (20 + 7.5), 9 * (20 + 7.5), 420, 480);
-                triggerConfetti(originalScreenPos.x, originalScreenPos.y - 50);
+                // 步驟走完時自動撒花
+                if (activeMainTab === 'LV2') {
+                    const gridOriginX = 420;
+                    const gridOriginY = 480;
+                    const cubeSize = 20;
+                    const maxGap = 7.5;
+                    const originalScreenPos = getIsoPoint(9 * (cubeSize + maxGap), 9 * (cubeSize + maxGap), 9 * (cubeSize + maxGap), gridOriginX, gridOriginY);
+                    triggerConfetti(originalScreenPos.x, originalScreenPos.y - 100);
+                } else if (activeMainTab === 'LV4') {
+                    triggerConfetti(340, 300);
+                } else {
+                    triggerConfetti(420, 300);
+                }
             }
         };
 
         const goPrev = (e) => {
-            e.preventDefault();
+            if (e) {
+                if (e.type === 'touchstart') {
+                    e.preventDefault();
+                }
+            }
             if (currentStepIndex > 0) {
                 currentStepIndex--;
                 updateDOMUIByStep();
             }
         };
-
-        if (nextBtn && prevBtn) {
-            nextBtn.addEventListener('touchstart', goNext);
-            nextBtn.addEventListener('click', goNext);
-            prevBtn.addEventListener('touchstart', goPrev);
-            prevBtn.addEventListener('click', goPrev);
-        }
 
         function selectMainTab(tab) {
             activeMainTab = tab;
@@ -1556,29 +1555,31 @@
             confettiList.length = 0;
             hasConfettiTriggered = false;
 
-            document.getElementById('btn-tab-lv2').className = `tab-btn ${tab === 'LV2' ? 'active' : ''}`;
-            document.getElementById('btn-tab-lv4').className = `tab-btn ${tab === 'LV4' ? 'active' : ''}`;
-            document.getElementById('btn-tab-lv5').className = `tab-btn ${tab === 'LV5' ? 'active' : ''}`;
+            const btnLv2 = document.getElementById('btn-tab-lv2');
+            const btnLv4 = document.getElementById('btn-tab-lv4');
+            const btnLv5 = document.getElementById('btn-tab-lv5');
+            if (btnLv2) btnLv2.className = `tab-btn ${tab === 'LV2' ? 'active' : ''}`;
+            if (btnLv4) btnLv4.className = `tab-btn ${tab === 'LV4' ? 'active' : ''}`;
+            if (btnLv5) btnLv5.className = `tab-btn ${tab === 'LV5' ? 'active' : ''}`;
 
             const lv5SubSelector = document.getElementById('lv5-sub-selector');
-            if (tab === 'LV5') {
-                lv5SubSelector.style.display = 'flex';
-                document.getElementById('status-header').textContent = 'LV.5 終極複合單位：跨界科學換算';
-            } else {
-                lv5SubSelector.style.display = 'none';
-                if (tab === 'LV2') {
-                    document.getElementById('status-header').textContent = 'LV.2 三維體積：「百萬大分裂」引導式探索';
+            const statusHeader = document.getElementById('status-header');
+            if (lv5SubSelector && statusHeader) {
+                if (tab === 'LV5') {
+                    lv5SubSelector.style.display = 'flex';
+                    statusHeader.textContent = 'LV.5 終極複合單位：跨界科學換算';
                 } else {
-                    document.getElementById('status-header').textContent = 'LV.4 微觀尺度：從毫米到奈米的極限放大';
+                    lv5SubSelector.style.display = 'none';
+                    if (tab === 'LV2') {
+                        statusHeader.textContent = 'LV.2 三維體積：「百萬大分裂」引導式探索';
+                    } else {
+                        statusHeader.textContent = 'LV.4 微觀尺度：從毫米到奈米的極限放大';
+                    }
                 }
             }
 
             updateDOMUIByStep();
         }
-
-        document.getElementById('btn-tab-lv2').addEventListener('click', () => selectMainTab('LV2'));
-        document.getElementById('btn-tab-lv4').addEventListener('click', () => selectMainTab('LV4'));
-        document.getElementById('btn-tab-lv5').addEventListener('click', () => selectMainTab('LV5'));
 
         function selectLv5Sub(sub) {
             activeLv5Sub = sub;
@@ -1587,28 +1588,61 @@
             confettiList.length = 0;
             hasConfettiTriggered = false;
 
-            document.getElementById('btn-sub-density').className = `sub-tab-btn ${sub === 'density' ? 'active' : ''}`;
-            document.getElementById('btn-sub-speed').className = `sub-tab-btn ${sub === 'speed' ? 'active' : ''}`;
+            const btnSubDensity = document.getElementById('btn-sub-density');
+            const btnSubSpeed = document.getElementById('btn-sub-speed');
+            if (btnSubDensity) btnSubDensity.className = `sub-tab-btn ${sub === 'density' ? 'active' : ''}`;
+            if (btnSubSpeed) btnSubSpeed.className = `sub-tab-btn ${sub === 'speed' ? 'active' : ''}`;
 
             updateDOMUIByStep();
         }
 
-        document.getElementById('btn-sub-density').addEventListener('click', () => selectLv5Sub('density'));
-        document.getElementById('btn-sub-speed').addEventListener('click', () => selectLv5Sub('speed'));
-
-        window.addEventListener('resize', updateLayout);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(updateLayout, 200);
-        });
-
-        // --- STREAMING_CHUNK: Initializing canvas state immediately on page load... ---
+        // 【核心解耦】：全套 DOM 初始化與事件監聽綁定 100% 收攏於 initApp 安全作用域內
         function initApp() {
+            // 延遲獲取 DOM，避免執行期早於網頁繪製
+            viewport = document.getElementById('app-viewport');
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas ? canvas.getContext('2d') : null;
+            
+            if (!canvas || !ctx) {
+                console.warn("Canvas 載入異常，將重試。");
+                return;
+            }
+
             canvas.width = BASE_WIDTH;
             canvas.height = BASE_HEIGHT;
-            updateLayout();
-            selectMainTab('LV2'); 
             
-            // 啟動 60FPS 渲染循環
+            labelPhase = document.getElementById('txt-animation-phase');
+            cardTitle = document.getElementById('math-card-title');
+            formulaContainer = document.getElementById('math-formula');
+            prevBtn = document.getElementById('btn-prev');
+            nextBtn = document.getElementById('btn-next');
+            
+            const tabLv2 = document.getElementById('btn-tab-lv2');
+            const tabLv4 = document.getElementById('btn-tab-lv4');
+            const tabLv5 = document.getElementById('btn-tab-lv5');
+            const subDensity = document.getElementById('btn-sub-density');
+            const subSpeed = document.getElementById('btn-sub-speed');
+
+            // 安全綁定主頁籤與子頁籤事件
+            if (tabLv2) tabLv2.addEventListener('click', () => selectMainTab('LV2'));
+            if (tabLv4) tabLv4.addEventListener('click', () => selectMainTab('LV4'));
+            if (tabLv5) tabLv5.addEventListener('click', () => selectMainTab('LV5'));
+            if (subDensity) subDensity.addEventListener('click', () => selectLv5Sub('density'));
+            if (subSpeed) subSpeed.addEventListener('click', () => selectLv5Sub('speed'));
+
+            // 安全綁定「上一步、下一步」按鈕的點擊與觸控
+            if (nextBtn) {
+                nextBtn.addEventListener('touchstart', goNext, { passive: false });
+                nextBtn.addEventListener('click', goNext);
+            }
+            if (prevBtn) {
+                prevBtn.addEventListener('touchstart', goPrev, { passive: false });
+                prevBtn.addEventListener('click', goPrev);
+            }
+
+            updateLayout();
+            selectMainTab('LV2'); // 初始化預設載入 LV2 體積大分裂
+            
             function animationFrameLoop() {
                 mainLoop();
                 requestAnimationFrame(animationFrameLoop);
@@ -1616,7 +1650,7 @@
             requestAnimationFrame(animationFrameLoop);
         }
 
-        // 【終極解決 Race Condition 的黃金架構】：直接偵測 readyState，繞過 iframe onload 黑洞！
+        // 雙重自適應就緒啟動機制：保證在任何 iframe / LINE / Facebook / Vercel 異步容器內 100% 安定初始化
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
             initApp();
         } else {
@@ -1624,6 +1658,7 @@
         }
 
         function mainLoop() {
+            if (!ctx) return;
             ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
 
             ctx.strokeStyle = 'rgba(190, 227, 248, 0.35)';
