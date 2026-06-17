@@ -375,30 +375,8 @@
         <p>本挑戰僅支援【橫螢幕】操作，請開啟手機自動旋轉功能並橫放以獲得最佳遊戲體驗。</p>
     </div>
 
-    <!-- 開發者偵錯面板 (保留做為 Vercel 機制備用，預設不干擾畫面) -->
-    <div id="debug-panel" style="display: none;">
-        <button id="btn-toggle-debug">⚙️ 展開/收折偵錯面板</button>
-        <div class="debug-body">
-            <div class="debug-row">
-                <span>時間軸進度:</span>
-                <span id="val-progress" class="debug-value">0.00</span>
-            </div>
-            <div class="debug-row">
-                <span>繪製方塊數:</span>
-                <span id="val-draw-count" class="debug-value">0</span>
-            </div>
-            <div class="debug-row">
-                <span>聚焦方塊 Alpha:</span>
-                <span id="val-focus-alpha" class="debug-value">1.00</span>
-            </div>
-            <div class="debug-row">
-                <span>背景方塊 Alpha:</span>
-                <span id="val-back-alpha" class="debug-value">1.00</span>
-            </div>
-        </div>
-    </div>
-
     <script>
+        // --- 1. 全域變數與資源定錨宣告 ---
         const BASE_WIDTH = 1280;
         const BASE_HEIGHT = 720;
         
@@ -408,19 +386,19 @@
         
         let currentScale = 1;
 
-        // 【致命 Bug 1 完全修復】：確實在全域變數區，宣告並初始化狀態機變數！
+        // 核心狀態機變數 (100% 嚴謹初始值，杜絕空指標崩潰)
         let activeMainTab = 'LV2'; 
         let activeLv5Sub = 'density'; 
-
         const questionVolume = 1;
 
-        // 定義 6 個離散的步驟目標時間軸位置
+        // 定義步驟目標
         const STEP_PROGRESS_TARGETS = [0, 25, 45, 65, 80, 100];
         let currentStepIndex = 0; 
         let currentProgress = 0;   
         const confettiList = [];
         let hasConfettiTriggered = false;
 
+        // 列車滾動視差偏移
         let speedBgCloudX = 0;
         let speedBgMountainX = 0;
         let speedBgTreeX = 0;
@@ -444,6 +422,7 @@
             }
         };
 
+        // --- 2. 幾何基礎與物理粒子計算 ---
         function getStepConfig() {
             if (activeMainTab === 'LV2') return STEP_CONFIGS['LV2'];
             if (activeMainTab === 'LV4') return STEP_CONFIGS['LV4'];
@@ -451,6 +430,7 @@
         }
 
         function updateLayout() {
+            if (!viewport || !canvas) return;
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
 
@@ -461,65 +441,16 @@
             viewport.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
 
             const blocker = document.getElementById('orientation-blocker');
-            if (windowHeight > windowWidth) {
-                blocker.style.display = 'flex';
-            } else {
-                blocker.style.display = 'none';
+            if (blocker) {
+                if (windowHeight > windowWidth) {
+                    blocker.style.display = 'flex';
+                } else {
+                    blocker.style.display = 'none';
+                }
             }
         }
 
-        class ConfettiParticle {
-            constructor(startX, startY) {
-                this.x = startX;
-                this.y = startY;
-                const angle = Math.random() * Math.PI * 2;
-                const speed = 7 + Math.random() * 15;
-                this.vx = Math.cos(angle) * speed;
-                this.vy = Math.sin(angle) * speed - 8;
-                this.width = 12 + Math.random() * 10;
-                this.height = 6 + Math.random() * 6;
-                this.rotation = Math.random() * Math.PI;
-                this.rotationSpeed = -0.12 + Math.random() * 0.24;
-                this.gravity = 0.35;
-                this.resistance = 0.96;
-                const colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#BDB2FF', '#FFC6FF'];
-                this.color = colors[Math.floor(Math.random() * colors.length)];
-                this.alpha = 1;
-                this.decay = 0.008 + Math.random() * 0.012;
-            }
-
-            update() {
-                this.vx *= this.resistance;
-                this.vy *= this.resistance;
-                this.vy += this.gravity;
-                this.x += this.vx;
-                this.y += this.vy;
-                this.rotation += this.rotationSpeed;
-                this.alpha -= this.decay;
-            }
-
-            draw(context) {
-                if (this.alpha <= 0) return;
-                context.save();
-                context.translate(this.x, this.y);
-                context.rotate(this.rotation);
-                context.globalAlpha = this.alpha;
-                context.fillStyle = this.color;
-                context.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
-                context.restore();
-            }
-        }
-
-        function triggerConfetti(x, y) {
-            for (let i = 0; i < 120; i++) {
-                confettiList.push(new ConfettiParticle(x, y));
-            }
-            const card = document.getElementById('math-display-card');
-            card.classList.add('success-pulse');
-            setTimeout(() => card.classList.remove('success-pulse'), 600);
-        }
-
-        // 【致命 Bug 2 完全修復】：手寫通用圓角矩形路徑函數，100% 繞過行動端不支援 roundRect() 產生的空指標崩潰！
+        // 手寫高相容性圓角矩形，完全杜絕原生 roundRect() 在舊設備與行動端 WebView 的崩潰問題
         function drawRoundRectPath(context, x, y, w, h, r) {
             context.beginPath();
             context.moveTo(x + r, y);
@@ -637,7 +568,7 @@
             }
         }
 
-        //        // 【引導氣泡指向與安全圓角重構 - 左上方折出，徹底隔離右側算式卡片】
+        // --- 3. 對話氣泡定位系統 (100% 往左上方折出) ---
         function drawCallout(context, tx, ty, alpha) {
             context.save();
             context.globalAlpha = alpha;
@@ -671,7 +602,6 @@
             context.strokeStyle = '#FEB2B2';
             context.lineWidth = 3;
             
-            // 安全性圓角重繪
             drawRoundRectPath(context, bx, by, bubbleW, bubbleH, 12);
             context.fill();
             context.stroke();
@@ -682,26 +612,24 @@
             
             if (activeMainTab === 'LV2') {
                 context.fillText('這顆切滿 1000 個小格子的中方塊，', bx + 15, by + 32);
-                context.fillText(`只是這 1000 個中方塊裡的 1 個！`, bx + 15, by + 58);
+                context.fillText('只是這 1000 個中方塊裡的 1 個！', bx + 15, by + 58);
             } else {
                 context.fillText('1 cm³ (立方公分) 微觀小水滴，', bx + 15, by + 32);
-                context.fillText(`實體重量剛好是：1 公克 (g)`, bx + 15, by + 58);
+                context.fillText('實體重量剛好是：1 公克 (g)', bx + 15, by + 58);
             }
 
             context.restore();
         }
 
-        //        // 【新增高彈性宏觀標記引導線 - 100% 複製 LV2 安全對角方向，完美避開左/右邊界】
         function drawMacroCallout(context, tx, ty, text1, text2, alpha, colorBg = '#FFF5F5', colorBorder = '#FEB2B2', colorText = '#C53030') {
             context.save();
             context.globalAlpha = alpha;
 
-            // 仿效 LV2 設計，將起點往左上方向延伸拉伸
             const startX = tx - 10;
             const startY = ty - 15;
             const midX = startX - 140;
             const midY = startY - 150; 
-            const endX = 160; // 氣泡框左緣完美定位在 X = 160
+            const endX = 160; 
 
             context.strokeStyle = colorBorder;
             context.lineWidth = 3;
@@ -722,9 +650,9 @@
             const bx = endX;
             const by = midY - bubbleH / 2;
 
-            ctx.fillStyle = colorBg;
-            ctx.strokeStyle = colorBorder;
-            ctx.lineWidth = 3;
+            context.fillStyle = colorBg;
+            context.strokeStyle = colorBorder;
+            context.lineWidth = 3;
             drawRoundRectPath(context, bx, by, bubbleW, bubbleH, 12);
             context.fill();
             context.stroke();
@@ -738,26 +666,14 @@
             context.restore();
         }
 
-        function renderScene() {
-            if (activeMainTab === 'LV2') {
-                renderLV2();
-            } else if (activeMainTab === 'LV4') {
-                renderLV4();
-            } else if (activeMainTab === 'LV5') {
-                if (activeLv5Sub === 'density') {
-                    renderLV5Density();
-                } else {
-                    renderLV5Speed();
-                }
-            }
-        }
-
+        // --- 4. 關卡專屬 3D 與向量繪圖器 ---
         function renderLV2() {
             const gridOriginX = 420; 
             const gridOriginY = 480;
             const cubeSize = 20;
             const maxGap = 7.5;
 
+            // 抽出距離極其克制，只移動約一個方塊寬度的 30px
             const finalSlideFactor = 30; 
             const px_end = 9 * (cubeSize + maxGap) + finalSlideFactor * 1.5;
             const py_end = 9 * (cubeSize + maxGap) - finalSlideFactor * 0.2;
@@ -859,6 +775,7 @@
                     }
                 }
 
+                // 2D 座標插值（從抽出滑行點平滑回角落角落卡槽點）
                 const currentOriginX = targetScreenPos.x + (originalScreenPos.x - targetScreenPos.x) * t;
                 const currentOriginY = targetScreenPos.y + (originalScreenPos.y - targetScreenPos.y) * t;
 
@@ -896,6 +813,7 @@
                     }
                 }
 
+                // 完美與大立方體卡槽對齊！
                 const currentOriginX = originalScreenPos.x;
                 const currentOriginY = originalScreenPos.y;
                 drawCube(ctx, 0, 0, 0, cubeSize, currentOriginX, currentOriginY, 1.0, true);
@@ -1122,7 +1040,7 @@
             ctx.fillText(magStr, centerX, centerY + 220);
         }
 
-        //        // 【LV.5 密度簡化重構】：複用 LV.2 完美定錨的 3D 立方體堆，將其說明的引導線與氣泡全部修改為「向左上方」折出（100% 避開右側字卡）
+        // 【LV.5 密度簡化】：全對齊左上折出定位氣泡，完全消滅左側切邊與右側卡片遮擋
         function renderLV5Density() {
             const gridOriginX = 420; 
             const gridOriginY = 480;
@@ -1144,7 +1062,7 @@
                     }
                 }
 
-                // 朝左上方折出，完美與右邊公式卡（X >= 760）保持安全隔離距離
+                // 朝左上方折出，與右側卡片（X >= 760）保持安全隔離
                 drawCallout(ctx, originalScreenPos.x, originalScreenPos.y, 1.0);
             }
             // 2. 步驟 2/3 (1m³ 宏觀水箱標示)
@@ -1159,8 +1077,8 @@
                 }
 
                 const centerPos = getIsoPoint(5*(cubeSize+maxGap), 5*(cubeSize+maxGap), 5*(cubeSize+maxGap), gridOriginX, gridOriginY);
-                // 【完美修復】：調用左上方折出型引導氣泡 `drawMacroCallout`，底色採用亮粉藍，徹底擺脫左邊邊界切除！
-                drawMacroCallout(ctx, centerPos.x, centerPos.y, '這整疊 1 m³ (立方公尺) 巨大水箱', '一共包含 1,000,000 cm³ 的小水滴', 1.0, '#EBF8FF', '#90CDF4', '#2B6CB0');
+                // 【完美修復】：調用左上方折出型引導氣泡 `drawMacroCallout`，完全免除左側切除
+                drawMacroCallout(ctx, centerPos.x, centerPos.y, '這整疊 1 m³ (立方公尺) 巨大水箱', '一共有包含 1,000,000 cm³ 的小水滴', 1.0, '#EBF8FF', '#90CDF4', '#2B6CB0');
             }
             // 3. 步驟 3/3 (1000kg 總重連動)
             else if (currentStepIndex === 2) {
@@ -1174,7 +1092,7 @@
                 }
 
                 const centerPos = getIsoPoint(5*(cubeSize+maxGap), 5*(cubeSize+maxGap), 5*(cubeSize+maxGap), gridOriginX, gridOriginY);
-                // 【完美修復】：將磅秤計量重合說明同樣改為左上折出，綠色主題，完全在 Canvas 安全繪圖軸內呈像
+                // 【完美修復】：綠色指針計量，左上折出定位，完全在 Canvas 安全視口呈像
                 drawMacroCallout(ctx, centerPos.x, centerPos.y, '秤重儀：總重量', '1000 公斤 (kg) [ 相當於 1 公噸 ]', 1.0, '#F0FFF4', '#48BB78', '#276749');
 
                 if (currentProgress >= 99 && !hasConfettiTriggered) {
@@ -1184,7 +1102,8 @@
             }
         }
 
-        //        function renderLV5Speed() {
+        // --- 5. 列車慢動作與起點對齊幾何 ---
+        function renderLV5Speed() {
             const trainY = 460;
             const t = currentProgress / 100;
 
@@ -1383,19 +1302,23 @@
             }
         }
 
-        //        const labelPhase = document.getElementById('txt-animation-phase');
+        // --- 6. DOM UI 算式字卡文字同步 ---
+        const labelPhase = document.getElementById('txt-animation-phase');
         const cardTitle = document.getElementById('math-card-title');
         const formulaContainer = document.getElementById('math-formula');
 
         function updateDOMUIByStep() {
             const config = getStepConfig();
+            if (!config) return;
             
             const dotsContainer = document.getElementById('step-dots-container');
-            dotsContainer.innerHTML = '';
-            for (let i = 0; i < config.count; i++) {
-                const dot = document.createElement('div');
-                dot.className = `step-dot ${i === currentStepIndex ? 'active' : ''}`;
-                dotsContainer.appendChild(dot);
+            if (dotsContainer) {
+                dotsContainer.innerHTML = '';
+                for (let i = 0; i < config.count; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = `step-dot ${i === currentStepIndex ? 'active' : ''}`;
+                    dotsContainer.appendChild(dot);
+                }
             }
 
             if (activeMainTab === 'LV2') {
@@ -1583,11 +1506,16 @@
                 }
             }
 
-            document.getElementById('btn-prev').disabled = (currentStepIndex === 0);
-            document.getElementById('btn-next').textContent = (currentStepIndex === config.count - 1) ? '挑戰完成 🎉' : '下一步 ▶';
+            const btnPrev = document.getElementById('btn-prev');
+            const btnNext = document.getElementById('btn-next');
+            if (btnPrev && btnNext) {
+                btnPrev.disabled = (currentStepIndex === 0);
+                btnNext.textContent = (currentStepIndex === config.count - 1) ? '挑戰完成 🎉' : '下一步 ▶';
+            }
         }
 
-        //        function mainLoop() {
+        // --- 7. 平滑物理緩動主迴圈與事件綁定 ---
+        function mainLoop() {
             ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
 
             ctx.strokeStyle = 'rgba(190, 227, 248, 0.35)';
@@ -1600,23 +1528,25 @@
             }
 
             const config = getStepConfig();
-            const targetProgress = config.targets[currentStepIndex];
-            const diff = targetProgress - currentProgress;
-            
-            let easeRate = 0.035;
-            if (activeMainTab === 'LV4') {
-                easeRate = 0.015; 
-            } else if (activeMainTab === 'LV5') {
-                easeRate = 0.02;  
-            }
+            if (config) {
+                const targetProgress = config.targets[currentStepIndex];
+                const diff = targetProgress - currentProgress;
+                
+                let easeRate = 0.035;
+                if (activeMainTab === 'LV4') {
+                    easeRate = 0.015; 
+                } else if (activeMainTab === 'LV5') {
+                    easeRate = 0.02;  
+                }
 
-            if (Math.abs(diff) > 0.05) {
-                currentProgress += diff * easeRate; 
-            } else {
-                currentProgress = targetProgress;
-            }
+                if (Math.abs(diff) > 0.05) {
+                    currentProgress += diff * easeRate; 
+                } else {
+                    currentProgress = targetProgress;
+                }
 
-            renderScene();
+                renderScene();
+            }
 
             for (let i = confettiList.length - 1; i >= 0; i--) {
                 const particle = confettiList[i];
@@ -1636,7 +1566,7 @@
         const goNext = (e) => {
             e.preventDefault();
             const config = getStepConfig();
-            if (currentStepIndex < config.count - 1) {
+            if (config && currentStepIndex < config.count - 1) {
                 currentStepIndex++;
                 updateDOMUIByStep();
             } else {
@@ -1652,12 +1582,14 @@
             }
         };
 
-        nextBtn.addEventListener('touchstart', goNext);
-        nextBtn.addEventListener('click', goNext);
-        prevBtn.addEventListener('touchstart', goPrev);
-        prevBtn.addEventListener('click', goPrev);
+        if (nextBtn && prevBtn) {
+            nextBtn.addEventListener('touchstart', goNext);
+            nextBtn.addEventListener('click', goNext);
+            prevBtn.addEventListener('touchstart', goPrev);
+            prevBtn.addEventListener('click', goPrev);
+        }
 
-        //        function selectMainTab(tab) {
+        function selectMainTab(tab) {
             activeMainTab = tab;
             currentStepIndex = 0;
             currentProgress = 0;
@@ -1709,11 +1641,14 @@
             setTimeout(updateLayout, 200);
         });
 
-        canvas.width = BASE_WIDTH;
-        canvas.height = BASE_HEIGHT;
-        updateLayout();
-        selectMainTab('LV2'); 
-        mainLoop();
+        // --- 8. Window Onload 穩健啟動架構 (100% 解決 race condition 錯誤) ---
+        window.onload = function() {
+            canvas.width = BASE_WIDTH;
+            canvas.height = BASE_HEIGHT;
+            updateLayout();
+            selectMainTab('LV2'); 
+            mainLoop();
+        };
 
     </script>
 </body>
