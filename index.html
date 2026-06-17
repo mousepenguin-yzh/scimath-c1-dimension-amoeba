@@ -1623,6 +1623,47 @@
             window.addEventListener('DOMContentLoaded', initApp);
         }
 
+        function mainLoop() {
+            ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
+
+            ctx.strokeStyle = 'rgba(190, 227, 248, 0.35)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < BASE_WIDTH; i += 40) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, BASE_HEIGHT); ctx.stroke();
+            }
+            for (let j = 0; j < BASE_HEIGHT; j += 40) {
+                ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(BASE_WIDTH, j); ctx.stroke();
+            }
+
+            const config = getStepConfig();
+            if (!config) return;
+            const targetProgress = config.targets[currentStepIndex];
+            const diff = targetProgress - currentProgress;
+            
+            let easeRate = 0.035;
+            if (activeMainTab === 'LV4') {
+                easeRate = 0.015; 
+            } else if (activeMainTab === 'LV5') {
+                easeRate = 0.02;  
+            }
+
+            if (Math.abs(diff) > 0.05) {
+                currentProgress += diff * easeRate; 
+            } else {
+                currentProgress = targetProgress;
+            }
+
+            renderScene();
+
+            for (let i = confettiList.length - 1; i >= 0; i--) {
+                const particle = confettiList[i];
+                particle.update();
+                particle.draw(ctx);
+                if (particle.alpha <= 0) {
+                    confettiList.splice(i, 1);
+                }
+            }
+        }
     </script>
 </body>
 </html>
