@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>國二數理挑戰 - 獨立遊戲模組 (步驟一)</title>
+    <title>國二數理挑戰 - 獨立遊戲模組 (步驟一修正版)</title>
     <!-- 引入日系可愛圓體與英文 Fredoka 圓體 -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -20,7 +20,7 @@
             -webkit-user-select: none;
         }
 
-        /* 外層絕對置中容器 */
+        /* 外層絕對置中容器：使用純 CSS Flexbox 進行絕對置中 */
         #game-container-wrapper {
             position: relative;
             width: 100%;
@@ -35,11 +35,11 @@
            【CSS 隔離】所有遊戲核心樣式均在 #game-viewport 命名空間下
            ========================================================================== */
         #game-viewport {
-            position: absolute;
+            /* 修正：不再使用 absolute 定位，完全由 Flexbox 決定位置 */
             width: 1280px;
             height: 720px;
             background-color: #FDFBF7; /* 馬卡龍舒壓奶油底色 */
-            transform-origin: center center;
+            transform-origin: center center; /* 縮放中心點點在字卡正中央 */
             overflow: hidden;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             border-radius: 24px;
@@ -49,7 +49,7 @@
             align-items: center;
             padding: 40px;
             box-sizing: border-box;
-            transition: background-color 0.4s ease;
+            transition: background-color 0.4s ease, transform 0.1s ease; /* 縮放也加入輕微過渡，更流暢 */
         }
 
         /* 頂部資訊區 */
@@ -374,7 +374,7 @@
             <button class="remote-btn" onclick="GameModule.simulatePostMessage(1)">模擬：開第1關</button>
             <button class="remote-btn" onclick="GameModule.simulatePostMessage(2)">模擬：開第2關</button>
             <button class="remote-btn" onclick="GameModule.simulatePostMessage(3)">模擬：開第3關</button>
-            <button class="remote-btn" onclick="GameModule.simulatePostMessage(4)">模擬：開第4關</button>
+            <button class="remote-btn" onclick="GameModule.simulatePostMessage(4)">模擬=開第4關</button>
             <button class="remote-btn" onclick="GameModule.simulatePostMessage(5)">模擬：開第5關</button>
         </div>
         <div class="log-box" id="remote-log">
@@ -383,8 +383,8 @@
     </div>
 
     <!-- ==========================================================================
-         【JS 隔離】所有遊戲變數與行為均在命名空間 GameModule 內
-         ========================================================================== -->
+                 【JS 隔離】所有遊戲變數與行為均在命名空間 GameModule 內
+                 ========================================================================== -->
     <script>
         const GameModule = {
             // 設計稿基準解析度 (16:9)
@@ -401,6 +401,7 @@
                 // 註冊 RWD 縮放監聽器
                 window.addEventListener('resize', () => this.setupRWD());
                 window.addEventListener('orientationchange', () => {
+                    // 稍微延遲以確保行動端轉向參數已就緒
                     setTimeout(() => this.setupRWD(), 100);
                 });
             },
@@ -411,17 +412,15 @@
                 const windowWidth = window.innerWidth;
                 const windowHeight = window.innerHeight;
 
-                // 計算當前寬高比是否小於基準 16:9 比例 (若是，則以寬度為主計算縮放率；反之以高度為主)
-                const scaleX = windowWidth / this.baseWidth;
-                const scaleY = windowHeight / this.baseHeight;
-                const scale = Math.min(scaleX, scaleY);
+                // 1. 計算縮放率 (選取視窗寬高與設計稿寬高之最小值，確保完全容納在螢幕內)
+                const scale = Math.min(windowWidth / this.baseWidth, windowHeight / this.baseHeight);
 
-                // 設定主視角變形與絕對置中
-                viewport.style.transform = `scale(${scale})`;
+                // 2. 設定主視角變形。
+                // *【關鍵修正】*：不再手動計算並設定 viewport.style.left 或 viewport.style.top！
+                // 完全將置中邏輯交給外層 #game-container-wrapper 的 Flexbox 處理。
+                // JavaScript 只負責處理 scale 的大小。
                 
-                // 動態調整 RWD 導致的微小偏移補正
-                viewport.style.left = `${(windowWidth - this.baseWidth * scale) / 2}px`;
-                viewport.style.top = `${(windowHeight - this.baseHeight * scale) / 2}px`;
+                viewport.style.transform = `scale(${scale})`;
             },
 
             // 通訊管道初始化
