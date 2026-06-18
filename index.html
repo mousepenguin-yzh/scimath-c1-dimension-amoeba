@@ -171,7 +171,7 @@
             background-color: #ffffff;
         }
 
-        /* 區塊式排版，徹底杜絕匿名 Flex 盒子導致的跳行 Bug */
+        /* 徹底防禦文字與匿名 Flex 佈局衝突 */
         .panel-desc {
             font-size: 19px;
             color: var(--text-muted);
@@ -198,7 +198,7 @@
         }
 
         /* ----------------------------------
-           步驟六全新：底部互動問答與自訂鍵盤面板
+           底部互動問答與自訂鍵盤面板
         ------------------------------------- */
         #qa-bar-container {
             height: 120px;
@@ -697,14 +697,14 @@
                 <div id="qa-bar-container">
                     <!-- 題目資訊 -->
                     <div class="quest-box">
-                        <div class="quest-prompt-label">當前換算題目</div>
-                        <div class="quest-text" id="quest-text-display">正在生成題目...</div>
+                        <div class="quest-prompt-label">當前換算挑戰題目</div>
+                        <div class="quest-text" id="quest-text-display">正在產生關卡題目...</div>
                     </div>
 
                     <!-- 答題與鍵盤操控區 -->
                     <div class="answer-control-group">
                         <div class="ans-input-wrapper" id="input-trigger-box">
-                            <span class="ans-placeholder" id="placeholder-text">請觸控輸入數值...</span>
+                            <span class="ans-placeholder" id="placeholder-text">請觸控輸入換算數值...</span>
                             <span class="ans-value-display" id="ans-digits-display"><span class="cursor-blink"></span></span>
                         </div>
                         <button class="btn-submit" id="submit-btn" onclick="GameModule.submitAnswer()">確定送出</button>
@@ -745,7 +745,7 @@
                 </div>
             </div>
 
-            <!-- 抽屜式控制台 -->
+            <!-- 抽屜式控制台：預設常開 -->
             <div id="sandbox-panel">
                 <button id="sandbox-toggle-btn" onclick="GameModule.toggleSandbox()">🛠️ 測試控制台</button>
                 <div class="sandbox-title">🛠️ 虛擬沙盒控制台</div>
@@ -759,6 +759,11 @@
                     <button class="sandbox-btn" onclick="GameModule.mockReceiveStartGame(5)">LV.5 分數拆解</button>
                 </div>
 
+                <div class="sandbox-section-title">排版引擎與渲染極限</div>
+                <div class="sandbox-btn-grid" style="grid-template-columns: 1fr;">
+                    <button class="sandbox-btn accent" onclick="GameModule.testMathTypography()">繪製複雜數學公式測試</button>
+                </div>
+
                 <div class="sandbox-section-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>通訊日誌</span>
                     <span style="font-size:11px; color:#95a5a6; cursor:pointer;" onclick="GameModule.clearLogs()">清除</span>
@@ -766,7 +771,7 @@
                 <div id="sandbox-logger"></div>
             </div>
 
-            <!-- 結算彈窗 Modal -->
+            <!-- 結算大成彈窗 Modal -->
             <div id="settlement-modal">
                 <div class="modal-card">
                     <div class="modal-title">🏆 挑戰完成！</div>
@@ -810,7 +815,7 @@
     </div>
 
     <script>
-        // 核心安全警報：若有任何未預期的異常發生，直接在螢幕最頂部以紅色大字標明錯誤，免開 F12 即可防禦排查
+        // 核心安全警報：若有任何未預期的異常發生，直接在螢幕最頂部以紅色大字標明錯誤，免開 F12
         window.onerror = function(message, source, lineno, colno, error) {
             const errDiv = document.createElement('div');
             errDiv.style.position = 'fixed';
@@ -898,35 +903,35 @@
             particles: [],
 
             init() {
-                this.canvas.left = document.getElementById('left-canvas');
-                this.canvas.right = document.getElementById('right-canvas');
-                this.canvas.effects = document.getElementById('effects-canvas');
+                GameModule.canvas.left = document.getElementById('left-canvas');
+                GameModule.canvas.right = document.getElementById('right-canvas');
+                GameModule.canvas.effects = document.getElementById('effects-canvas');
                 
-                this.canvas.ctxLeft = this.canvas.left.getContext('2d');
-                this.canvas.ctxRight = this.canvas.right.getContext('2d');
-                this.canvas.ctxEffects = this.canvas.effects.getContext('2d');
+                GameModule.canvas.ctxLeft = GameModule.canvas.left.getContext('2d');
+                GameModule.canvas.ctxRight = GameModule.canvas.right.getContext('2d');
+                GameModule.canvas.ctxEffects = GameModule.canvas.effects.getContext('2d');
 
-                this.bindEvents();
-                this.resizeGame();
-                this.detectSandboxMode();
+                GameModule.bindEvents();
+                GameModule.resizeGame();
+                GameModule.detectSandboxMode();
                 
                 // 啟動 Confetti 特效渲染迴圈
-                this.initEffectsCanvas();
-                this.animateParticles();
+                GameModule.initEffectsCanvas();
+                GameModule.animateParticles();
 
                 // 啟動關卡 1
-                this.transitionToLevel(1);
+                GameModule.transitionToLevel(1);
 
-                this.postToParent({
+                GameModule.postToParent({
                     type: 'GAME_READY',
-                    challengeId: this.config.challengeId
+                    challengeId: GameModule.config.challengeId
                 });
             },
 
             bindEvents() {
-                window.addEventListener('message', (e) => this.handleIncomingMessage(e));
-                window.addEventListener('resize', () => this.resizeGame());
-                window.addEventListener('orientationchange', () => this.resizeGame());
+                window.addEventListener('message', (e) => GameModule.handleIncomingMessage(e));
+                window.addEventListener('resize', () => GameModule.resizeGame());
+                window.addEventListener('orientationchange', () => GameModule.resizeGame());
 
                 // 點擊觸摸輸入框時喚醒專屬擬真虛擬小鍵盤
                 const inputTrigger = document.getElementById('input-trigger-box');
@@ -955,8 +960,8 @@
             },
 
             initAudio() {
-                if (!this.audioCtx) {
-                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (!GameModule.audioCtx) {
+                    GameModule.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 }
             },
 
@@ -964,10 +969,10 @@
              * Web Audio 合成音調：答對時根據 Combo 數堆疊音調，答錯時播放警示低音
              */
             playSynthSound(type) {
-                this.initAudio();
-                if (!this.audioCtx) return;
+                GameModule.initAudio();
+                if (!GameModule.audioCtx) return;
 
-                const ctx = this.audioCtx;
+                const ctx = GameModule.audioCtx;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain);
@@ -1077,12 +1082,16 @@
             detectSandboxMode() {
                 const toggleBtn = document.getElementById('sandbox-toggle-btn');
                 const sandboxPanel = document.getElementById('sandbox-panel');
+                const isStandalone = (window === top);
                 
-                // 強制在步驟驗收階段直接顯現，防止任何非預期 JS 錯誤導致按鈕消失
-                toggleBtn.style.display = 'flex';
-                sandboxPanel.style.display = 'flex';
-                
-                GameModule.log('系統偵測：獨立開發模式。已解鎖測試控制台。', 'system');
+                if (isStandalone) {
+                    toggleBtn.style.display = 'flex';
+                    sandboxPanel.style.display = 'flex';
+                    GameModule.log('系統偵測：獨立開發模式。已解鎖測試控制台。', 'system');
+                } else {
+                    toggleBtn.style.display = 'none';
+                    sandboxPanel.style.display = 'none';
+                }
             },
 
             toggleKeypad(show) {
@@ -1213,12 +1222,12 @@
                 const gridColor = options.gridColor || "rgba(45, 52, 54, 0.15)";
 
                 const p1 = GameModule.getIsoPoint(sizeX, 0, 0, cx, cy, scale);      
-                const p2 = this.getIsoPoint(sizeX, sizeY, 0, cx, cy, scale);  
-                const p3 = this.getIsoPoint(0, sizeY, 0, cx, cy, scale);      
-                const p4 = this.getIsoPoint(0, 0, sizeZ, cx, cy, scale);      
-                const p5 = this.getIsoPoint(sizeX, 0, sizeZ, cx, cy, scale);  
-                const p6 = this.getIsoPoint(sizeX, sizeY, sizeZ, cx, cy, scale); 
-                const p7 = this.getIsoPoint(0, sizeY, sizeZ, cx, cy, scale);  
+                const p2 = GameModule.getIsoPoint(sizeX, sizeY, 0, cx, cy, scale);  
+                const p3 = GameModule.getIsoPoint(0, sizeY, 0, cx, cy, scale);      
+                const p4 = GameModule.getIsoPoint(0, 0, sizeZ, cx, cy, scale);      
+                const p5 = GameModule.getIsoPoint(sizeX, 0, sizeZ, cx, cy, scale);  
+                const p6 = GameModule.getIsoPoint(sizeX, sizeY, sizeZ, cx, cy, scale); 
+                const p7 = GameModule.getIsoPoint(0, sizeY, sizeZ, cx, cy, scale);  
 
                 ctx.save();
                 ctx.lineJoin = "round";
@@ -1245,8 +1254,8 @@
                     }
                     for (let j = 1; j < gridSegments; j++) {
                         const z = sizeZ * (j / gridSegments);
-                        const start = this.getIsoPoint(0, sizeY, z, cx, cy, scale);
-                        const end = this.getIsoPoint(sizeX, sizeY, z, cx, cy, scale);
+                        const start = GameModule.getIsoPoint(0, sizeY, z, cx, cy, scale);
+                        const end = GameModule.getIsoPoint(sizeX, sizeY, z, cx, cy, scale);
                         ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
                     }
                 }
@@ -1276,8 +1285,9 @@
                         ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
                     }
                     for (let j = 1; j < gridSegments; j++) {
-                        const z = this.getIsoPoint(sizeX, 0, z, cx, cy, scale);
-                        const end = this.getIsoPoint(sizeX, sizeY, z, cx, cy, scale);
+                        const z = sizeZ * (j / gridSegments);
+                        const start = GameModule.getIsoPoint(sizeX, 0, z, cx, cy, scale);
+                        const end = GameModule.getIsoPoint(sizeX, sizeY, z, cx, cy, scale);
                         ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
                     }
                 }
@@ -1302,14 +1312,14 @@
                     ctx.lineWidth = 1;
                     for (let i = 1; i < gridSegments; i++) {
                         const x = sizeX * (i / gridSegments);
-                        const start = this.getIsoPoint(x, 0, sizeZ, cx, cy, scale);
-                        const end = this.getIsoPoint(x, sizeY, sizeZ, cx, cy, scale);
+                        const start = GameModule.getIsoPoint(x, 0, sizeZ, cx, cy, scale);
+                        const end = GameModule.getIsoPoint(x, sizeY, sizeZ, cx, cy, scale);
                         ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
                     }
                     for (let j = 1; j < gridSegments; j++) {
                         const y = sizeY * (j / gridSegments);
-                        const start = this.getIsoPoint(0, y, sizeZ, cx, cy, scale);
-                        const end = this.getIsoPoint(sizeX, y, sizeZ, cx, cy, scale);
+                        const start = GameModule.getIsoPoint(0, y, sizeZ, cx, cy, scale);
+                        const end = GameModule.getIsoPoint(sizeX, y, sizeZ, cx, cy, scale);
                         ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
                     }
                 }
@@ -1426,12 +1436,12 @@
             },
 
             transitionToLevel(level) {
-                this.state.currentLevel = level;
-                this.state.hintActive = false; 
-                this.state.attemptsLeft = 3;  
-                this.state.inputValue = "";   
+                GameModule.state.currentLevel = level;
+                GameModule.state.hintActive = false; 
+                GameModule.state.attemptsLeft = 3;  
+                GameModule.state.inputValue = "";   
                 
-                this.updateHeartsUI();
+                GameModule.updateHeartsUI();
 
                 const rightBtn = document.getElementById('action-btn-right');
                 if (rightBtn) {
@@ -1444,8 +1454,8 @@
                 document.getElementById('ans-digits-display').innerHTML = `<span class="cursor-blink"></span>`;
 
                 // 動態生成關卡題庫題目
-                this.state.currentQuest = this.generateLevelQuest(level);
-                document.getElementById('quest-text-display').textContent = this.state.currentQuest.text;
+                GameModule.state.currentQuest = GameModule.generateLevelQuest(level);
+                document.getElementById('quest-text-display').textContent = GameModule.state.currentQuest.text;
 
                 let badgeText = "";
                 switch (level) {
@@ -1465,13 +1475,13 @@
                 switch (level) {
                     case 1:
                         leftTitle.innerHTML = "📐 原始二維空間";
-                        leftDesc.innerHTML = `一幅邊長為 ${this.state.currentQuest.leftValue} m 的正方形畫作，<br>它的總表面積就是 <span class='math-inline'>${this.state.currentQuest.leftValue} m<sup>2</sup>。</span>`;
+                        leftDesc.innerHTML = `一幅邊長為 ${GameModule.state.currentQuest.leftValue} m 的正方形畫作，<br>它的總表面積就是 <span class='math-inline'>${GameModule.state.currentQuest.leftValue} m<sup>2</sup>。</span>`;
                         rightTitle.innerHTML = "💡 二維切分對比";
                         rightDesc.innerHTML = "我們將它的長與寬各自切成 100 等分，<br>看一看會發生什麼事？";
                         break;
                     case 2:
                         leftTitle.innerHTML = "📦 三維等角立方體";
-                        leftDesc.innerHTML = `一個體積為 ${this.state.currentQuest.leftValue} m³ 的巨大貨櫃，<br>它的體積為 <span class='math-inline'>${this.state.currentQuest.leftValue} m<sup>3</sup>。</span>`;
+                        leftDesc.innerHTML = `一個體積為 ${GameModule.state.currentQuest.leftValue} m³ 的巨大貨櫃，<br>它的體積為 <span class='math-inline'>${GameModule.state.currentQuest.leftValue} m<sup>3</sup>。</span>`;
                         rightTitle.innerHTML = "💡 三維嵌套拆解";
                         rightDesc.innerHTML = "在立方公分的視角下，<br>這個貨櫃到底塞得下多少個 <span class='math-inline'>1 cm<sup>3</sup>？</span>";
                         break;
@@ -1489,14 +1499,14 @@
                         break;
                     case 5:
                         leftTitle.innerHTML = "⚡ 分數拆解防禦線";
-                        leftDesc.innerHTML = `速度換算：<span class='math-inline'>${this.state.currentQuest.leftValue} km/hr = ? m/s</span>，<br>將分子與分母完全拆開，帶入單位同步計算。`;
+                        leftDesc.innerHTML = `速度換算：<span class='math-inline'>${GameModule.state.currentQuest.leftValue} km/hr = ? m/s</span>，<br>將分子與分母完全拆開，帶入單位同步計算。`;
                         rightTitle.innerHTML = "💡 分數單位協同計算"; 
-                        rightDesc.innerHTML = `將複合單位拆解：分子 <span class='math-inline'>${this.state.currentQuest.leftValue} km ➔ ${(this.state.currentQuest.leftValue * 1000).toLocaleString()} m</span>，分母 <span class='math-inline'>1 hr ➔ 3,600 s</span>，帶著單位一起相除。`; 
+                        rightDesc.innerHTML = `將複合單位拆解：分子 <span class='math-inline'>${GameModule.state.currentQuest.leftValue} km ➔ ${(GameModule.state.currentQuest.leftValue * 1000).toLocaleString()} m</span>，分母 <span class='math-inline'>1 hr ➔ 3,600 s</span>，帶著單位一起相除。`; 
                         break;
                 }
 
-                this.renderLeftGraphics();
-                this.renderRightGraphics();
+                GameModule.renderLeftGraphics();
+                GameModule.renderRightGraphics();
             },
 
             updateHeartsUI() {
@@ -1504,11 +1514,11 @@
                 const h2 = document.getElementById('heart-2');
                 const h3 = document.getElementById('heart-3');
 
-                if (this.state.attemptsLeft === 3) {
+                if (GameModule.state.attemptsLeft === 3) {
                     h1.classList.remove('lost'); h2.classList.remove('lost'); h3.classList.remove('lost');
-                } else if (this.state.attemptsLeft === 2) {
+                } else if (GameModule.state.attemptsLeft === 2) {
                     h3.classList.add('lost');
-                } else if (this.state.attemptsLeft === 1) {
+                } else if (GameModule.state.attemptsLeft === 1) {
                     h2.classList.add('lost'); h3.classList.add('lost');
                 } else {
                     h1.classList.add('lost'); h2.classList.add('lost'); h3.classList.add('lost');
@@ -1516,65 +1526,64 @@
             },
 
             submitAnswer() {
-                if (this.state.isDebouncing) return;
-                this.state.isDebouncing = true;
-                setTimeout(() => this.state.isDebouncing = false, 400);
+                if (GameModule.state.isDebouncing) return;
+                GameModule.state.isDebouncing = true;
+                setTimeout(() => GameModule.state.isDebouncing = false, 400);
 
-                if (this.state.inputValue === "") {
-                    this.triggerInputShake();
+                if (GameModule.state.inputValue === "") {
+                    GameModule.triggerInputShake();
                     return;
                 }
 
-                const processedInput = this.state.inputValue.replace(/,/g, '').trim();
-                const processedAnswer = this.state.currentQuest.answer.replace(/,/g, '').trim();
+                const processedInput = GameModule.state.inputValue.replace(/,/g, '').trim();
+                const processedAnswer = GameModule.state.currentQuest.answer.replace(/,/g, '').trim();
 
-                this.state.totalAnswers++;
+                GameModule.state.totalAnswers++;
 
                 if (processedInput === processedAnswer) {
-                    this.state.correctAnswers++;
-                    this.state.combo++;
-                    if (this.state.combo > this.state.maxCombo) {
-                        this.state.maxCombo = this.state.combo;
+                    GameModule.state.correctAnswers++;
+                    GameModule.state.combo++;
+                    if (GameModule.state.combo > GameModule.state.maxCombo) {
+                        GameModule.state.maxCombo = GameModule.state.combo;
                     }
-                    this.state.score += 20;
+                    GameModule.state.score += 20;
 
-                    this.playSynthSound('correct');
-                    this.spawnConfetti();
+                    GameModule.playSynthSound('correct');
+                    GameModule.spawnConfetti();
 
-                    document.getElementById('score-display').textContent = this.state.score.toString().padStart(3, '0');
+                    document.getElementById('score-display').textContent = GameModule.state.score.toString().padStart(3, '0');
 
-                    this.state.hintActive = true;
-                    this.renderRightGraphics();
+                    GameModule.state.hintActive = true;
+                    GameModule.renderRightGraphics();
 
-                    this.log(`作答正確！Combo數：${this.state.combo}。跳轉下一關。`, 'system');
+                    GameModule.log(`作答正確！Combo數：${GameModule.state.combo}。跳轉下一關。`, 'system');
 
                     setTimeout(() => {
-                        let nextLevel = this.state.currentLevel + 1;
+                        let nextLevel = GameModule.state.currentLevel + 1;
                         if (nextLevel > 5) {
-                            this.triggerChallengeOver();
+                            GameModule.triggerChallengeOver();
                         } else {
-                            this.transitionToLevel(nextLevel);
+                            GameModule.transitionToLevel(nextLevel);
                         }
                     }, 1800);
 
                 } else {
-                    this.state.combo = 0; 
-                    this.state.attemptsLeft--;
-                    this.state.isPerfect = false; 
+                    GameModule.state.combo = 0; 
+                    GameModule.state.attemptsLeft--;
+                    GameModule.state.isPerfect = false; 
 
-                    this.playSynthSound('wrong');
-                    this.triggerInputShake();
-                    this.updateHeartsUI();
+                    GameModule.playSynthSound('wrong');
+                    GameModule.triggerInputShake();
+                    GameModule.updateHeartsUI();
 
-                    // 答錯立刻自動解鎖右側提示畫布，落實「概念提示與 Retry」機制！
-                    this.state.hintActive = true;
-                    this.renderRightGraphics();
+                    GameModule.state.hintActive = true;
+                    GameModule.renderRightGraphics();
 
-                    this.log(`作答錯誤。剩餘機會：${this.state.attemptsLeft}`, 'system');
+                    GameModule.log(`作答錯誤。剩餘機會：${GameModule.state.attemptsLeft}`, 'system');
 
-                    if (this.state.attemptsLeft <= 0) {
+                    if (GameModule.state.attemptsLeft <= 0) {
                         setTimeout(() => {
-                            this.triggerChallengeOver();
+                            GameModule.triggerChallengeOver();
                         }, 1000);
                     }
                 }
@@ -1589,18 +1598,18 @@
             },
 
             triggerChallengeOver() {
-                this.toggleKeypad(false);
+                GameModule.toggleKeypad(false);
 
-                const accuracy = this.state.totalAnswers > 0 
-                    ? Math.round((this.state.correctAnswers / this.state.totalAnswers) * 100) 
+                const accuracy = GameModule.state.totalAnswers > 0 
+                    ? Math.round((GameModule.state.correctAnswers / GameModule.state.totalAnswers) * 100) 
                     : 0;
 
-                document.getElementById('settle-score').textContent = this.state.score;
-                document.getElementById('settle-combo').textContent = this.state.maxCombo;
+                document.getElementById('settle-score').textContent = GameModule.state.score;
+                document.getElementById('settle-combo').textContent = GameModule.state.maxCombo;
                 document.getElementById('settle-accuracy').textContent = `${accuracy}%`;
 
                 const perfectLabel = document.getElementById('settle-perfect');
-                if (this.state.isPerfect) {
+                if (GameModule.state.isPerfect) {
                     perfectLabel.textContent = "是，一次都沒錯！";
                     perfectLabel.style.color = "var(--macaron-green)";
                 } else {
@@ -1608,48 +1617,47 @@
                     perfectLabel.style.color = "var(--macaron-pink)";
                 }
 
-                // 封裝雙向通訊 GAME_OVER payload
                 const overPayload = {
                     type: 'GAME_OVER',
-                    challengeId: this.config.challengeId,
-                    currentLevel: this.state.currentLevel,
-                    isPerfect: this.state.isPerfect,
-                    score: this.state.score,
-                    comboMax: this.state.maxCombo,
+                    challengeId: GameModule.config.challengeId,
+                    currentLevel: GameModule.state.currentLevel,
+                    isPerfect: GameModule.state.isPerfect,
+                    score: GameModule.state.score,
+                    comboMax: GameModule.state.maxCombo,
                     accuracy: accuracy
                 };
 
                 document.getElementById('settle-json-log').textContent = JSON.stringify(overPayload, null, 2);
                 document.getElementById('settlement-modal').style.display = 'flex';
 
-                this.postToParent(overPayload);
+                GameModule.postToParent(overPayload);
             },
 
             restartChallenge() {
                 document.getElementById('settlement-modal').style.display = 'none';
-                this.state.score = 0;
-                this.state.combo = 0;
-                this.state.maxCombo = 0;
-                this.state.totalAnswers = 0;
-                this.state.correctAnswers = 0;
-                this.state.isPerfect = true;
+                GameModule.state.score = 0;
+                GameModule.state.combo = 0;
+                GameModule.state.maxCombo = 0;
+                GameModule.state.totalAnswers = 0;
+                GameModule.state.correctAnswers = 0;
+                GameModule.state.isPerfect = true;
                 
                 document.getElementById('score-display').textContent = "000";
-                this.transitionToLevel(1);
+                GameModule.transitionToLevel(1);
             },
 
             renderLeftGraphics() {
-                const ctx = this.canvas.ctxLeft;
-                const width = this.canvas.left.width;
-                const height = this.canvas.left.height;
+                const ctx = GameModule.canvas.ctxLeft;
+                const width = GameModule.canvas.left.width;
+                const height = GameModule.canvas.left.height;
 
                 ctx.clearRect(0, 0, width, height);
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(0, 0, width, height);
 
-                const questValue = this.state.currentQuest ? this.state.currentQuest.leftValue : 1;
+                const questValue = GameModule.state.currentQuest ? GameModule.state.currentQuest.leftValue : 1;
 
-                if (this.state.currentLevel === 1) {
+                if (GameModule.state.currentLevel === 1) {
                     ctx.save();
                     ctx.strokeStyle = "#ff7675";
                     ctx.lineWidth = 4;
@@ -1659,27 +1667,27 @@
                     ctx.fill();
                     ctx.stroke();
 
-                    this.drawMathText(ctx, `${questValue} m`, 225, 40, 20, "#2d3436");
-                    this.drawMathText(ctx, "1 m", 100, 155, 20, "#2d3436");
-                    this.drawMathText(ctx, `面積 = ${questValue} m^2`, 175, 155, 24, "#ff7675");
+                    GameModule.drawMathText(ctx, `${questValue} m`, 225, 40, 20, "#2d3436");
+                    GameModule.drawMathText(ctx, "1 m", 100, 155, 20, "#2d3436");
+                    GameModule.drawMathText(ctx, `面積 = ${questValue} m^2`, 175, 155, 24, "#ff7675");
                     ctx.restore();
 
-                } else if (this.state.currentLevel === 2) {
+                } else if (GameModule.state.currentLevel === 2) {
                     ctx.save();
                     const cx = 240;
                     const cy = 160;
                     const scale = 105;
 
-                    this.drawIsoCube(ctx, cx, cy, scale, 1, 1, 1, {
+                    GameModule.drawIsoCube(ctx, cx, cy, scale, 1, 1, 1, {
                         topColor: "rgba(255, 184, 184, 0.3)",
                         leftColor: "rgba(129, 236, 236, 0.2)",
                         rightColor: "rgba(255, 234, 167, 0.3)"
                     });
 
-                    const p1 = this.getIsoPoint(1, 0, 0, cx, cy, scale); 
-                    const p2 = this.getIsoPoint(1, 1, 0, cx, cy, scale); 
-                    const p3 = this.getIsoPoint(0, 1, 0, cx, cy, scale); 
-                    const p7 = this.getIsoPoint(0, 1, 1, cx, cy, scale); 
+                    const p1 = GameModule.getIsoPoint(1, 0, 0, cx, cy, scale); 
+                    const p2 = GameModule.getIsoPoint(1, 1, 0, cx, cy, scale); 
+                    const p3 = GameModule.getIsoPoint(0, 1, 0, cx, cy, scale); 
+                    const p7 = GameModule.getIsoPoint(0, 1, 1, cx, cy, scale); 
 
                     ctx.strokeStyle = "#7f8c8d";
                     ctx.lineWidth = 1.5;
@@ -1687,35 +1695,35 @@
                     ctx.moveTo(p3.x - 15, p3.y); 
                     ctx.lineTo(p7.x - 15, p7.y); 
                     ctx.stroke();
-                    this.drawMathText(ctx, "高 1 m", p3.x - 65, (p3.y + p7.y)/2 + 5, 16, "#2d3436");
+                    GameModule.drawMathText(ctx, "高 1 m", p3.x - 65, (p3.y + p7.y)/2 + 5, 16, "#2d3436");
 
                     const midLeftX = (p3.x + p2.x) / 2 - 40;
                     const midLeftY = (p3.y + p2.y) / 2 + 25;
-                    this.drawMathText(ctx, `寬 ${questValue} m`, midLeftX, midLeftY, 16, "#2d3436");
+                    GameModule.drawMathText(ctx, `寬 ${questValue} m`, midLeftX, midLeftY, 16, "#2d3436");
 
                     const midRightX = (p1.x + p2.x) / 2 + 10;
                     const midRightY = (p1.y + p2.y) / 2 + 25;
-                    this.drawMathText(ctx, "深 1 m", midRightX, midRightY, 16, "#2d3436");
+                    GameModule.drawMathText(ctx, "深 1 m", midRightX, midRightY, 16, "#2d3436");
 
-                    this.drawMathText(ctx, `體積 = ${questValue} m^3`, 160, 45, 24, "#ff7675");
+                    GameModule.drawMathText(ctx, `體積 = ${questValue} m^3`, 160, 45, 24, "#ff7675");
                     ctx.restore();
 
-                } else if (this.state.currentLevel === 3) {
+                } else if (GameModule.state.currentLevel === 3) {
                     ctx.save();
                     const cx = 240;
                     const cy = 165;
                     const scale = 95;
 
-                    this.drawIsoCube(ctx, cx, cy, scale, 1, 1, 1, {
+                    GameModule.drawIsoCube(ctx, cx, cy, scale, 1, 1, 1, {
                         topColor: "#ff9f9f",
                         leftColor: "#ffeaa7",
                         rightColor: "#81ecec"
                     });
 
-                    const p1 = this.getIsoPoint(1, 0, 0, cx, cy, scale);
-                    const p2 = this.getIsoPoint(1, 1, 0, cx, cy, scale);
-                    const p3 = this.getIsoPoint(0, 1, 0, cx, cy, scale);
-                    const p7 = this.getIsoPoint(0, 1, 1, cx, cy, scale);
+                    const p1 = GameModule.getIsoPoint(1, 0, 0, cx, cy, scale);
+                    const p2 = GameModule.getIsoPoint(1, 1, 0, cx, cy, scale);
+                    const p3 = GameModule.getIsoPoint(0, 1, 0, cx, cy, scale);
+                    const p7 = GameModule.getIsoPoint(0, 1, 1, cx, cy, scale);
 
                     ctx.strokeStyle = "#7f8c8d";
                     ctx.lineWidth = 1.5;
@@ -1723,29 +1731,29 @@
                     ctx.moveTo(p3.x - 15, p3.y);
                     ctx.lineTo(p7.x - 15, p7.y);
                     ctx.stroke();
-                    this.drawMathText(ctx, "10 cm", p3.x - 65, (p3.y + p7.y)/2 + 5, 16, "#2d3436");
+                    GameModule.drawMathText(ctx, "10 cm", p3.x - 65, (p3.y + p7.y)/2 + 5, 16, "#2d3436");
 
                     const midLeftX = (p3.x + p2.x) / 2 - 45;
                     const midLeftY = (p3.y + p2.y) / 2 + 25;
-                    this.drawMathText(ctx, "10 cm", midLeftX, midLeftY, 16, "#2d3436");
+                    GameModule.drawMathText(ctx, "10 cm", midLeftX, midLeftY, 16, "#2d3436");
 
                     const midRightX = (p1.x + p2.x) / 2 + 10;
                     const midRightY = (p1.y + p2.y) / 2 + 25;
-                    this.drawMathText(ctx, "10 cm", midRightX, midRightY, 16, "#2d3436");
+                    GameModule.drawMathText(ctx, "10 cm", midRightX, midRightY, 16, "#2d3436");
 
-                    this.drawMathText(ctx, "體積 = 1000 cm^3", 145, 45, 24, "#2d3436");
+                    GameModule.drawMathText(ctx, "體積 = 1000 cm^3", 145, 45, 24, "#2d3436");
                     ctx.restore();
 
-                } else if (this.state.currentLevel === 4) {
+                } else if (GameModule.state.currentLevel === 4) {
                     ctx.save();
-                    this.drawStairBlock(ctx, 60, 80, 95, 160, "#ffb8b8", "#ffa8a8", "#ff9898", `mm (毫米)`);
-                    this.drawStairBlock(ctx, 175, 125, 95, 115, "#ffeaa7", "#ffdca7", "#ffcc87", "μm (微米)");
-                    this.drawStairBlock(ctx, 290, 170, 95, 70, "#81ecec", "#71e2e2", "#51d2d2", "nm (奈米)");
+                    GameModule.drawStairBlock(ctx, 60, 80, 95, 160, "#ffb8b8", "#ffa8a8", "#ff9898", "mm (毫米)");
+                    GameModule.drawStairBlock(ctx, 175, 125, 95, 115, "#ffeaa7", "#ffdca7", "#ffcc87", "μm (微米)");
+                    GameModule.drawStairBlock(ctx, 290, 170, 95, 70, "#81ecec", "#71e2e2", "#51d2d2", "nm (奈米)");
 
-                    this.drawMathText(ctx, `${questValue} mm 階梯`, 140, 40, 24, "#2d3436");
+                    GameModule.drawMathText(ctx, `${questValue} mm 階梯`, 140, 40, 24, "#2d3436");
                     ctx.restore();
 
-                } else if (this.state.currentLevel === 5) {
+                } else if (GameModule.state.currentLevel === 5) {
                     ctx.save();
                     const cyX = 120;
                     ctx.strokeStyle = "#74b9ff";
@@ -1764,7 +1772,7 @@
                     ctx.moveTo(cyX + 15, 190); ctx.lineTo(cyX + 15, 90);
                     ctx.ellipse(cyX, 90, 15, 5, 0, 0, Math.PI * 2);
                     ctx.stroke();
-                    this.drawMathText(ctx, "密度 1 g/cm^3", 55, 225, 16, "#2d3436");
+                    GameModule.drawMathText(ctx, "密度 1 g/cm^3", 55, 225, 16, "#2d3436");
 
                     const carX = 260;
                     const carY = 145;
@@ -1796,8 +1804,8 @@
                     ctx.moveTo(carX - 25, carY + 20); ctx.lineTo(carX - 10, carY + 20);
                     ctx.stroke();
 
-                    this.drawMathText(ctx, `車速 ${questValue} km/hr`, 250, 225, 16, "#2d3436");
-                    this.drawMathText(ctx, "生活中的複合單位", 140, 45, 24, "#2d3436");
+                    GameModule.drawMathText(ctx, `車速 ${questValue} km/hr`, 250, 225, 16, "#2d3436");
+                    GameModule.drawMathText(ctx, "生活中的複合單位", 140, 45, 24, "#2d3436");
                     ctx.restore();
                 }
             },
@@ -1811,7 +1819,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(0, 0, width, height);
 
-                const questValue = this.state.currentQuest ? this.state.currentQuest.leftValue : 1;
+                const questValue = GameModule.state.currentQuest ? GameModule.state.currentQuest.leftValue : 1;
 
                 const drawPillBadge = (ctx, bx, by, text) => {
                     ctx.save();
@@ -1870,7 +1878,7 @@
 
                     ctx.fillStyle = "#4a5568"; 
                     ctx.font = "bold 20px 'Kosugi Maru'";
-                    ctx.fillText("如果答錯，這裡將自動開啟提示喔！", width/2, height/2 + 95);
+                    ctx.fillText("如果答錯，這裡將自動開啟提示與解析喔！", width/2, height/2 + 95);
                     ctx.restore();
                     return;
                 }
@@ -1904,7 +1912,7 @@
                     GameModule.drawMathText(ctx, "100 cm", 205, 40, 20, "#2d3436");
                     GameModule.drawMathText(ctx, "100 cm", 65, 155, 20, "#2d3436");
                     
-                    GameModule.drawMathText(ctx, `${questValue} * 10,000 = ${this.state.currentQuest.answer} cm^2`, 100, 280, 21, "#2d3436");
+                    GameModule.drawMathText(ctx, `${questValue} * 10,000 = ${GameModule.state.currentQuest.answer} cm^2`, 100, 280, 21, "#2d3436");
                     ctx.restore();
 
                 } else if (GameModule.state.currentLevel === 2) {
@@ -1949,7 +1957,7 @@
                     GameModule.drawMathText(ctx, "10 cm", 395, 175, 14, "#2d3436");
                     GameModule.drawMathText(ctx, "10 cm", 295, 105, 14, "#2d3436");
 
-                    GameModule.drawMathText(ctx, `${questValue} * 1,000,000 = ${this.state.currentQuest.answer} cm^3`, 70, 280, 20, "#2d3436");
+                    GameModule.drawMathText(ctx, `${questValue} * 1,000,000 = ${GameModule.state.currentQuest.answer} cm^3`, 70, 280, 20, "#2d3436");
                     ctx.restore();
 
                 } else if (GameModule.state.currentLevel === 3) {
@@ -2037,7 +2045,7 @@
                     ctx.beginPath(); ctx.moveTo(cyX - 18, 85); ctx.lineTo(cyX + 5, 85); ctx.stroke();
                     GameModule.drawMathText(ctx, `${questValue * 1000} mL`, 412, 90, 13, "#d63031");
 
-                    GameModule.drawMathText(ctx, `${questValue * 1000} cm^3`, 45, 218, 15, "#2d3436");
+                    GameModule.drawMathText(ctx, `${questValue * 1000} cm^3`, 32, 218, 15, "#2d3436");
                     GameModule.drawMathText(ctx, `牛奶盒：${questValue} L`, 190, 218, 15, "#d63031");
                     GameModule.drawMathText(ctx, `量筒：${questValue * 1000} mL`, 335, 218, 15, "#0984e3");
 
@@ -2130,11 +2138,11 @@
                     ctx.font = "bold 13px 'Kosugi Maru', sans-serif";
                     ctx.fillText("每下一步，就乘以 1000！", 300, 46);
 
-                    GameModule.drawMathText(ctx, `${questValue} mm = ${this.state.currentQuest.answer} μm`, 110, 275, 18, "#2d3436");
+                    GameModule.drawMathText(ctx, `${questValue} mm = ${GameModule.state.currentQuest.answer} μm`, 110, 275, 18, "#2d3436");
                     ctx.restore();
 
                 } else if (GameModule.state.currentLevel === 5) {
-                    // LV.5 右側
+                    // LV.5 右側 (等號已徹底移除，整體分數與除線實施 100% 完美的水平與垂直對稱置中)
                     ctx.save();
                     
                     const boxX = 25;
@@ -2146,7 +2154,7 @@
                     
                     ctx.fillStyle = "#2d3436";
                     ctx.font = "bold 16px 'Kosugi Maru'";
-                    ctx.fillText("分子：90 km", boxX + 18, boxY + 33);
+                    ctx.fillText(`分子：${questValue} km`, boxX + 18, boxY + 33);
                     ctx.font = "bold 20px 'Kosugi Maru'";
                     ctx.fillText("➔", boxX + 118, boxY + 36);
                     GameModule.drawMathText(ctx, `${(questValue * 1000).toLocaleString()} m`, boxX + 145, boxY + 38, 16, "#d63031");
@@ -2185,11 +2193,11 @@
                     const resX = 325, resY = boxY + 10, resW = 140, resH = 110;
                     GameModule.drawRoundRect(ctx, resX, resY, resW, resH, 15, "#ffeaa7", "#fdcb6e", 3);
 
-                    // 分子水平對稱置中
+                    // 關鍵修正：等號徹底移除。分子、分母及除數橫線實施完美的物理水平置中
                     const numText = `${(questValue * 1000).toLocaleString()} m`;
                     ctx.font = "bold 14px 'Kosugi Maru', sans-serif";
                     const numWidth = ctx.measureText(numText).width;
-                    const numX = resX + (resW - numWidth) / 2; 
+                    const numX = resX + (resW - numWidth) / 2; // 計算完美的分子居中 X 坐標
                     GameModule.drawMathText(ctx, numText, numX, resY + 38, 14, "#d63031");
                     
                     // 分數線 (水平置中)
@@ -2200,15 +2208,14 @@
                     ctx.lineTo(resX + resW - 15, resY + 55); 
                     ctx.stroke();
                     
-                    // 分母水平對稱置中
                     const denText = "3,600 s";
                     ctx.font = "bold 14px 'Kosugi Maru', sans-serif";
                     const denWidth = ctx.measureText(denText).width;
-                    const denX = resX + (resW - denWidth) / 2; 
+                    const denX = resX + (resW - denWidth) / 2; // 計算完美的分母居中 X 坐標
                     GameModule.drawMathText(ctx, denText, denX, resY + 77, 14, "#0984e3");
                     ctx.restore();
 
-                    // 5. 💡 教學提示小膠囊 (垂直調整至 Y = 196, 完美防重疊)
+                    // 5. 💡 教學提示小膠囊 (關鍵修正：往下調整至 Y = 196)
                     GameModule.drawRoundRect(ctx, boxX, 196, 430, 28, 6, "#55efc4");
                     ctx.fillStyle = "#2d3436";
                     ctx.font = "bold 13px 'Kosugi Maru'";
@@ -2216,13 +2223,16 @@
                     ctx.textBaseline = "middle";
                     ctx.fillText("💡 數字與單位一起除，就自然導出 m/s 囉！", boxX + 40, 196 + 14); 
 
-                    // 6. 最終換算導出大牌匾 (垂直調整至 Y = 236)
+                    // 6. 最終換算導出大牌匾 (關鍵修正：往下調整至 Y = 236)
                     GameModule.drawRoundRect(ctx, 65, 236, 350, 42, 10, "#55efc4", "#2db385", 3);
-                    GameModule.drawMathText(ctx, `換算導出：${this.state.currentQuest.answer} m/s`, 140, 267, 19, "#2d3436");
+                    GameModule.drawMathText(ctx, `換算導出：${GameModule.state.currentQuest.answer} m/s`, 140, 267, 19, "#2d3436");
                     ctx.restore();
                 }
             },
 
+            /**
+             * 測試排版引擎極限
+             */
             testMathTypography() {
                 const ctx = GameModule.canvas.ctxLeft;
                 ctx.clearRect(0, 0, GameModule.canvas.left.width, GameModule.canvas.left.height);
@@ -2310,7 +2320,12 @@
 
                 const scaleX = windowWidth / GameModule.config.baseWidth;
                 const scaleY = windowHeight / GameModule.config.baseHeight;
-                const scale = Math.min(scaleX, scaleY);
+                let scale = Math.min(scaleX, scaleY);
+
+                // 核心硬化：防禦 NaN 與極端 0 值縮放
+                if (isNaN(scale) || scale <= 0 || !isFinite(scale)) {
+                    scale = 1;
+                }
 
                 viewport.style.transform = `translate(-50%, -50%) scale(${scale})`;
 
