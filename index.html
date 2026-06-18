@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>空間維度與單位變形蟲 - 步驟三</title>
+    <title>空間維度與單位變形蟲 - 步驟四</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
@@ -30,7 +30,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 關鍵修正：行動端解鎖按鈕與畫布的觸控權限，消除 tap delay */
         button, .macaron-btn, .sandbox-btn, canvas {
             user-select: auto !important;
             -webkit-user-select: auto !important;
@@ -207,7 +206,7 @@
         }
 
         /* ----------------------------------
-           抽屜式測試沙盒面板 (絕對定位，解決擠壓問題)
+           抽屜式測試沙盒面板 (絕對定位)
         ------------------------------------- */
         #sandbox-panel {
             position: absolute;
@@ -222,13 +221,13 @@
             padding: 25px;
             color: #f5f6fa;
             z-index: 1000;
-            transform: translateX(100%); /* 預設完全收合在螢幕右側外 */
+            transform: translateX(100%); 
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: -10px 0 30px rgba(0,0,0,0.3);
         }
 
         #sandbox-panel.open {
-            transform: translateX(0); /* 展開狀態 */
+            transform: translateX(0); 
         }
 
         /* 抽屜切換按鈕 */
@@ -248,7 +247,7 @@
             font-family: inherit;
             box-shadow: -4px 4px 10px rgba(0,0,0,0.2);
             z-index: 1001;
-            display: none; /* 由 JS 依開發階段控制顯示 */
+            display: none; 
             align-items: center;
             gap: 6px;
         }
@@ -396,10 +395,8 @@
                             <canvas id="left-canvas" width="480" height="300"></canvas>
                         </div>
 
-                        <div class="panel-desc" id="left-panel-desc">
-                            <!-- 由 JS 動態注入帶有 sup 的標準數學文字 -->
-                        </div>
-                        <button class="macaron-btn" id="action-btn-left">⚙️ 重繪左畫布</button>
+                        <div class="panel-desc" id="left-panel-desc"></div>
+                        <button class="macaron-btn" id="action-btn-left">⚙️ 重繪觀察圖</button>
                     </div>
 
                     <!-- 右欄：切分提示 Canvas -->
@@ -412,15 +409,13 @@
                             <canvas id="right-canvas" width="480" height="300"></canvas>
                         </div>
 
-                        <div class="panel-desc" id="right-panel-desc">
-                            <!-- 由 JS 動態注入帶有 sup 的標準數學文字 -->
-                        </div>
-                        <button class="macaron-btn" id="action-btn-right" style="background-color: var(--macaron-pink); box-shadow: 0 6px 0 #e84118; color: white;">🔍 開啟切分網格</button>
+                        <div class="panel-desc" id="right-panel-desc"></div>
+                        <button class="macaron-btn" id="action-btn-right" style="background-color: var(--macaron-pink); box-shadow: 0 6px 0 #e84118; color: white;">🔍 開啟對比提示</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 抽屜式控制台：預設收合在右側 -->
+            <!-- 抽屜式控制台 -->
             <div id="sandbox-panel">
                 <button id="sandbox-toggle-btn" onclick="GameModule.toggleSandbox()">🛠️ 測試控制台</button>
                 <div class="sandbox-title">🛠️ 虛擬沙盒控制台</div>
@@ -434,7 +429,7 @@
                     <button class="sandbox-btn" onclick="GameModule.mockReceiveStartGame(5)">LV.5 分數拆解</button>
                 </div>
 
-                <div class="sandbox-section-title">排版引擎極限測試</div>
+                <div class="sandbox-section-title">排版引擎與渲染極限</div>
                 <div class="sandbox-btn-grid" style="grid-template-columns: 1fr;">
                     <button class="sandbox-btn accent" onclick="GameModule.testMathTypography()">繪製複雜數學公式測試</button>
                 </div>
@@ -460,7 +455,7 @@
 
     <script>
         /**
-         * 遊戲與渲染主模組
+         * 遊戲與幾何渲染主模組
          */
         const GameModule = {
             config: {
@@ -515,11 +510,11 @@
                     const btn = document.getElementById('action-btn-right');
                     if (this.state.hintActive) {
                         btn.textContent = "🔄 重設對比提示";
-                        btn.style.backgroundColor = "#81ecec"; // 修正：直接使用色碼，防禦 CSS 變數在部分行動端失效
+                        btn.style.backgroundColor = "#81ecec"; 
                         btn.style.boxShadow = "0 6px 0 #00ced1";
                     } else {
-                        btn.textContent = "🔍 開啟切分網格";
-                        btn.style.backgroundColor = "#ffb8b8"; // 修正：直接使用色碼
+                        btn.textContent = "🔍 開啟對比提示";
+                        btn.style.backgroundColor = "#ffb8b8"; 
                         btn.style.boxShadow = "0 6px 0 #e84118";
                     }
                     this.renderRightGraphics();
@@ -536,16 +531,10 @@
                 }
             },
 
-            /**
-             * 修正：開發期強健性優化
-             * 為了確保在主站 iframe、Vercel 預覽、手機網頁中皆能完全調用驗證，
-             * 移除嚴格的 window === top 偵測，強制開啟測試控制台切換功能。
-             */
             detectSandboxMode() {
                 const toggleBtn = document.getElementById('sandbox-toggle-btn');
                 const sandboxPanel = document.getElementById('sandbox-panel');
                 
-                // 開發步驟階段：不論宿主環境，全面解鎖控制台
                 toggleBtn.style.display = 'flex';
                 sandboxPanel.style.display = 'flex';
                 
@@ -554,7 +543,7 @@
 
             /**
              * 第一性原理：標準數學排版渲染引擎 (Canvas text superscript parser)
-             * 修正：將所有 CSS 變數參數改為絕對 Hex 碼，防禦 Canvas 渲染器解讀失效。
+             * 將 "^" 作為上標切分符，在 2D 渲染層完美繪製符合教科書格式的上標字型。
              */
             drawMathText(ctx, text, x, y, fontSize, color = "#2d3436") {
                 ctx.save();
@@ -588,12 +577,153 @@
                 ctx.restore();
             },
 
+            /**
+             * 數學三維等角投影座標變換公式
+             * 將三維空間坐標 (x, y, z) 轉換為二維平面投影點 (X, Y)
+             */
+            getIsoPoint(x, y, z, cx, cy, scale) {
+                const cos30 = 0.866025; // Math.cos(Math.PI / 6)
+                const sin30 = 0.5;      // Math.sin(Math.PI / 6)
+                return {
+                    x: cx + (x - y) * scale * cos30,
+                    y: cy + (x + y) * scale * sin30 - z * scale
+                };
+            },
+
+            /**
+             * 高級等角投影立方體渲染模組
+             * 可設定尺寸、三軸網格、以及對應色彩，為 LV.2 與 LV.3 提供核心物理繪圖支持。
+             */
+            drawIsoCube(ctx, cx, cy, scale, sizeX, sizeY, sizeZ, options = {}) {
+                const topColor = options.topColor || "#ffeaa7";
+                const leftColor = options.leftColor || "#ffb8b8";
+                const rightColor = options.rightColor || "#81ecec";
+                const strokeColor = options.strokeColor || "#2d3436";
+                const strokeWidth = options.strokeWidth || 2;
+                const drawGrid = options.drawGrid || false;
+                const gridSegments = options.gridSegments || 10;
+                const gridColor = options.gridColor || "rgba(45, 52, 54, 0.15)";
+
+                const p1 = this.getIsoPoint(sizeX, 0, 0, cx, cy, scale);      
+                const p2 = this.getIsoPoint(sizeX, sizeY, 0, cx, cy, scale);  
+                const p3 = this.getIsoPoint(0, sizeY, 0, cx, cy, scale);      
+                const p4 = this.getIsoPoint(0, 0, sizeZ, cx, cy, scale);      
+                const p5 = this.getIsoPoint(sizeX, 0, sizeZ, cx, cy, scale);  
+                const p6 = this.getIsoPoint(sizeX, sizeY, sizeZ, cx, cy, scale); 
+                const p7 = this.getIsoPoint(0, sizeY, sizeZ, cx, cy, scale);  
+
+                ctx.save();
+                ctx.lineJoin = "round";
+                ctx.lineCap = "round";
+
+                // 1. 繪製左側面 (X 為變數, Z 為變數, Y 鎖定在 sizeY)
+                ctx.fillStyle = leftColor;
+                ctx.beginPath();
+                ctx.moveTo(p3.x, p3.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.lineTo(p6.x, p6.y);
+                ctx.lineTo(p7.x, p7.y);
+                ctx.closePath();
+                ctx.fill();
+                
+                if (drawGrid) {
+                    ctx.strokeStyle = gridColor;
+                    ctx.lineWidth = 1;
+                    for (let i = 1; i < gridSegments; i++) {
+                        const x = sizeX * (i / gridSegments);
+                        const start = this.getIsoPoint(x, sizeY, 0, cx, cy, scale);
+                        const end = this.getIsoPoint(x, sizeY, sizeZ, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                    for (let j = 1; j < gridSegments; j++) {
+                        const z = sizeZ * (j / gridSegments);
+                        const start = this.getIsoPoint(0, sizeY, z, cx, cy, scale);
+                        const end = this.getIsoPoint(sizeX, sizeY, z, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                }
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = strokeWidth;
+                ctx.beginPath();
+                ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p6.x, p6.y); ctx.lineTo(p7.x, p7.y); ctx.closePath();
+                ctx.stroke();
+
+                // 2. 繪製右側面 (Y 為變數, Z 為變數, X 鎖定在 sizeX)
+                ctx.fillStyle = rightColor;
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.lineTo(p6.x, p6.y);
+                ctx.lineTo(p5.x, p5.y);
+                ctx.closePath();
+                ctx.fill();
+
+                if (drawGrid) {
+                    ctx.strokeStyle = gridColor;
+                    ctx.lineWidth = 1;
+                    for (let i = 1; i < gridSegments; i++) {
+                        const y = sizeY * (i / gridSegments);
+                        const start = this.getIsoPoint(sizeX, y, 0, cx, cy, scale);
+                        const end = this.getIsoPoint(sizeX, y, sizeZ, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                    for (let j = 1; j < gridSegments; j++) {
+                        const z = sizeZ * (j / gridSegments);
+                        const start = this.getIsoPoint(sizeX, 0, z, cx, cy, scale);
+                        const end = this.getIsoPoint(sizeX, sizeY, z, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                }
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = strokeWidth;
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p6.x, p6.y); ctx.lineTo(p5.x, p5.y); ctx.closePath();
+                ctx.stroke();
+
+                // 3. 繪製頂面 (X 為變數, Y 為變數, Z 鎖定在 sizeZ)
+                ctx.fillStyle = topColor;
+                ctx.beginPath();
+                ctx.moveTo(p4.x, p4.y);
+                ctx.lineTo(p5.x, p5.y);
+                ctx.lineTo(p6.x, p6.y);
+                ctx.lineTo(p7.x, p7.y);
+                ctx.closePath();
+                ctx.fill();
+
+                if (drawGrid) {
+                    ctx.strokeStyle = gridColor;
+                    ctx.lineWidth = 1;
+                    for (let i = 1; i < gridSegments; i++) {
+                        const x = sizeX * (i / gridSegments);
+                        const start = this.getIsoPoint(x, 0, sizeZ, cx, cy, scale);
+                        const end = this.getIsoPoint(x, sizeY, sizeZ, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                    for (let j = 1; j < gridSegments; j++) {
+                        const y = sizeY * (j / gridSegments);
+                        const start = this.getIsoPoint(0, y, sizeZ, cx, cy, scale);
+                        const end = this.getIsoPoint(sizeX, y, sizeZ, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                }
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = strokeWidth;
+                ctx.beginPath();
+                ctx.moveTo(p4.x, p4.y); ctx.lineTo(p5.x, p5.y); ctx.lineTo(p6.x, p6.y); ctx.lineTo(p7.x, p7.y); ctx.closePath();
+                ctx.stroke();
+
+                ctx.restore();
+            },
+
+            /**
+             * 實作關卡切換邏輯與標準數學 DOM 注入
+             */
             transitionToLevel(level) {
                 this.state.currentLevel = level;
                 this.state.hintActive = false; 
                 
                 const rightBtn = document.getElementById('action-btn-right');
-                rightBtn.textContent = "🔍 開啟切分網格";
+                rightBtn.textContent = "🔍 開啟對比提示";
                 rightBtn.style.backgroundColor = "#ffb8b8";
                 rightBtn.style.boxShadow = "0 6px 0 #e84118";
 
@@ -666,10 +796,8 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(0, 0, width, height);
 
-                ctx.strokeStyle = "rgba(45, 52, 54, 0.1)";
-                ctx.lineWidth = 1;
-                
                 if (this.state.currentLevel === 1) {
+                    // LV.1 原始 1m x 1m 正方形
                     ctx.save();
                     ctx.strokeStyle = "#ff7675";
                     ctx.lineWidth = 4;
@@ -679,16 +807,63 @@
                     ctx.fill();
                     ctx.stroke();
 
-                    // 修正：代入絕對 hex 碼
                     this.drawMathText(ctx, "1 m", 225, 40, 20, "#2d3436");
                     this.drawMathText(ctx, "1 m", 100, 155, 20, "#2d3436");
-                    this.drawMathText(ctx, "1 m^2", 215, 155, 26, "#ff7675");
+                    this.drawMathText(ctx, "面積 = 1 m^2", 175, 155, 24, "#ff7675");
                     ctx.restore();
+
+                } else if (this.state.currentLevel === 2) {
+                    // LV.2 原始 1m^3 貨櫃 (等角投影)
+                    ctx.save();
+                    // 在中心繪製 1m x 1m x 1m 乾淨立方體
+                    this.drawIsoCube(ctx, 240, 195, 130, 1, 1, 1, {
+                        topColor: "rgba(255, 184, 184, 0.3)",
+                        leftColor: "rgba(129, 236, 236, 0.2)",
+                        rightColor: "rgba(255, 234, 167, 0.3)"
+                    });
+
+                    // 繪製維度標註拉線
+                    ctx.strokeStyle = "#7f8c8d";
+                    ctx.lineWidth = 2;
+                    ctx.font = "bold 16px 'Kosugi Maru'";
+                    ctx.fillStyle = "#2d3436";
+
+                    // 高度標註線
+                    const hStart = this.getIsoPoint(0, 1, 0, 240, 195, 130);
+                    const hEnd = this.getIsoPoint(0, 1, 1, 240, 195, 130);
+                    ctx.beginPath(); ctx.moveTo(hStart.x - 15, hStart.y); ctx.lineTo(hEnd.x - 15, hEnd.y); ctx.stroke();
+                    ctx.fillText("高 1 m", hEnd.x - 65, (hStart.y + hEnd.y)/2 + 5);
+
+                    // 寬與深標註
+                    this.drawMathText(ctx, "寬 1 m", 100, 230, 16, "#2d3436");
+                    this.drawMathText(ctx, "深 1 m", 310, 230, 16, "#2d3436");
+
+                    // 頂部核心體積
+                    this.drawMathText(ctx, "體積 = 1 m^3", 160, 60, 24, "#ff7675");
+                    ctx.restore();
+
+                } else if (this.state.currentLevel === 3) {
+                    // LV.3 原始 10cm 立方體
+                    ctx.save();
+                    this.drawIsoCube(ctx, 240, 200, 120, 1, 1, 1, {
+                        topColor: "#ff9f9f",
+                        leftColor: "#ffeaa7",
+                        rightColor: "#81ecec"
+                    });
+
+                    // 標註
+                    this.drawMathText(ctx, "10 cm", 110, 220, 16, "#2d3436");
+                    this.drawMathText(ctx, "10 cm", 300, 220, 16, "#2d3436");
+                    this.drawMathText(ctx, "10 cm", 150, 140, 16, "#2d3436");
+
+                    this.drawMathText(ctx, "體積 = 1000 cm^3", 145, 60, 24, "#2d3436");
+                    ctx.restore();
+
                 } else {
                     ctx.fillStyle = "#dfe6e9";
                     ctx.font = "bold 20px 'Kosugi Maru'";
-                    ctx.fillText(`[LV.${this.state.currentLevel} 基礎 Canvas 圖型預留區]`, 110, 140);
-                    this.drawMathText(ctx, "標準數學引擎：100 cm^2", 120, 180, 20, "#4a5568");
+                    ctx.fillText(`[LV.${this.state.currentLevel} 觀察 Canvas 圖型區]`, 110, 140);
+                    this.drawMathText(ctx, "標準排版正常運作中", 120, 180, 20, "#4a5568");
                 }
             },
 
@@ -704,6 +879,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(0, 0, width, height);
 
+                // 提示尚未開啟時的預防版面
                 if (!this.state.hintActive) {
                     ctx.save();
                     ctx.fillStyle = "rgba(129, 236, 236, 0.1)";
@@ -711,20 +887,22 @@
                     ctx.arc(width/2, height/2, 60, 0, Math.PI * 2);
                     ctx.fill();
 
-                    ctx.fillStyle = "#81ecec"; // 修正：使用絕對 hex
+                    ctx.fillStyle = "#81ecec"; 
                     ctx.font = "bold 72px 'Kosugi Maru'";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
                     ctx.fillText("?", width/2, height/2 + 5);
 
-                    ctx.fillStyle = "#4a5568"; // 修正：使用絕對 hex
+                    ctx.fillStyle = "#4a5568"; 
                     ctx.font = "bold 20px 'Kosugi Maru'";
                     ctx.fillText("點擊下方按鈕，開啟概念切分網格", width/2, height/2 + 95);
                     ctx.restore();
                     return;
                 }
 
+                // 根據關卡繪製精準的邏輯對比與解構
                 if (this.state.currentLevel === 1) {
+                    // LV.1 對比圖：細密 100x100 二維網格
                     ctx.save();
                     const startX = 140;
                     const startY = 50;
@@ -733,37 +911,202 @@
                     ctx.fillStyle = "rgba(129, 236, 236, 0.1)";
                     ctx.fillRect(startX, startY, size, size);
 
+                    // 繪製細密代表線 (模擬 100 x 100)
                     ctx.strokeStyle = "rgba(129, 236, 236, 0.4)";
                     ctx.lineWidth = 1;
                     for (let i = 20; i < size; i += 20) {
-                        ctx.beginPath();
-                        ctx.moveTo(startX + i, startY);
-                        ctx.lineTo(startX + i, startY + size);
-                        ctx.stroke();
-
-                        ctx.beginPath();
-                        ctx.moveTo(startX, startY + i);
-                        ctx.lineTo(startX + size, startY + i);
-                        ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(startX + i, startY); ctx.lineTo(startX + i, startY + size); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(startX, startY + i); ctx.lineTo(startX + size, startY + i); ctx.stroke();
                     }
 
-                    ctx.strokeStyle = "#81ecec"; // 修正：使用絕對 hex
+                    ctx.strokeStyle = "#81ecec"; 
                     ctx.lineWidth = 4;
-                    ctx.beginPath();
-                    ctx.rect(startX, startY, size, size);
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.rect(startX, startY, size, size); ctx.stroke();
 
                     this.drawMathText(ctx, "100 cm", 205, 40, 20, "#2d3436");
                     this.drawMathText(ctx, "100 cm", 65, 155, 20, "#2d3436");
                     
-                    // 修正：算式 $Y$ 軸坐標提昇至 265，確保在任何高寬比切邊中均不被裁切
-                    this.drawMathText(ctx, "100 * 100 = 10,000 cm^2", 120, 265, 20, "#2d3436");
+                    this.drawMathText(ctx, "100 * 100 = 10,000 cm^2", 120, 280, 21, "#2d3436");
                     ctx.restore();
+
+                } else if (this.state.currentLevel === 2) {
+                    // LV.2 微觀嵌套放大圖：左為 10x10x10 切分大立方體，右為放大的 10cm 核心
+                    ctx.save();
+                    
+                    // A. 左側切分容器 (Center: 135, scale: 75)
+                    this.drawIsoCube(ctx, 135, 185, 75, 1, 1, 1, {
+                        drawGrid: true,
+                        gridSegments: 10,
+                        topColor: "rgba(255, 184, 184, 0.3)",
+                        leftColor: "rgba(129, 236, 236, 0.2)",
+                        rightColor: "rgba(255, 234, 167, 0.3)"
+                    });
+                    ctx.fillStyle = "#2d3436";
+                    ctx.font = "bold 13px 'Kosugi Maru'";
+                    ctx.fillText("10 x 10 x 10 = 1000 個", 65, 250);
+
+                    // 繪製放大引導圓框 (Mag Circle)
+                    ctx.strokeStyle = "rgba(235, 94, 85, 0.6)";
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.arc(160, 140, 18, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // 引導線連向右邊放大圖
+                    ctx.strokeStyle = "rgba(235, 94, 85, 0.3)";
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(178, 140);
+                    ctx.lineTo(290, 80);
+                    ctx.moveTo(160, 158);
+                    ctx.lineTo(290, 230);
+                    ctx.stroke();
+
+                    // B. 右側二階段嵌套放大：10cm 等角投影立方體，並繪製其內部厘米網格 (Center: 350, scale: 95)
+                    this.drawIsoCube(ctx, 350, 180, 95, 1, 1, 1, {
+                        drawGrid: true,
+                        gridSegments: 10,
+                        topColor: "#ffeaa7",
+                        leftColor: "#ffb8b8",
+                        rightColor: "#81ecec"
+                    });
+
+                    // 右側立方體細部標註
+                    this.drawMathText(ctx, "10 cm", 275, 205, 14, "#2d3436");
+                    this.drawMathText(ctx, "10 cm", 395, 205, 14, "#2d3436");
+                    this.drawMathText(ctx, "10 cm", 295, 135, 14, "#2d3436");
+
+                    // 底部嵌套導出算式
+                    this.drawMathText(ctx, "1,000 * 1,000 = 1,000,000 cm^3", 110, 280, 20, "#2d3436");
+                    ctx.restore();
+
+                } else if (this.state.currentLevel === 3) {
+                    // LV.3 鐵律並排：1000 cm³ 立方體 ＝ 1 L 牛奶盒 ＝ 1000 mL 量筒
+                    ctx.save();
+                    
+                    // 1. 左側小立方體 (Center X: 90)
+                    this.drawIsoCube(ctx, 90, 175, 50, 1, 1, 1, {
+                        topColor: "#ff9f9f",
+                        leftColor: "#ffeaa7",
+                        rightColor: "#81ecec"
+                    });
+                    this.drawMathText(ctx, "1000 cm^3", 45, 225, 15, "#2d3436");
+
+                    // 金色等號 1
+                    ctx.fillStyle = "#fdcb6e";
+                    ctx.shadowColor = "rgba(253, 203, 110, 0.4)";
+                    ctx.shadowBlur = 8;
+                    ctx.fillRect(150, 140, 20, 5);
+                    ctx.fillRect(150, 150, 20, 5);
+                    ctx.shadowBlur = 0; // 重置陰影
+
+                    // 2. 中間牛奶盒 1 L (Center X: 240, Base Y: 195, scale: 80)
+                    // 牛奶盒幾何模型：底部長方體 + 頂部三角形斜屋頂
+                    const cx = 240;
+                    const cy = 195;
+                    const sc = 80;
+                    // 頂點轉換
+                    const mb0 = this.getIsoPoint(0.4, 0, 0, cx, cy, sc);     // 底右
+                    const mb1 = this.getIsoPoint(0.4, 0.4, 0, cx, cy, sc);   // 底前
+                    const mb2 = this.getIsoPoint(0, 0.4, 0, cx, cy, sc);     // 底左
+                    const mt0 = this.getIsoPoint(0.4, 0, 0.7, cx, cy, sc);   // 牆頂右
+                    const mt1 = this.getIsoPoint(0.4, 0.4, 0.7, cx, cy, sc); // 牆頂前
+                    const mt2 = this.getIsoPoint(0, 0.4, 0.7, cx, cy, sc);   // 牆頂左
+                    // 屋頂脊
+                    const mr0 = this.getIsoPoint(0.2, 0, 0.95, cx, cy, sc);  // 脊右
+                    const mr1 = this.getIsoPoint(0.2, 0.4, 0.95, cx, cy, sc); // 脊前
+
+                    // 繪製前左牆
+                    ctx.fillStyle = "#f1f2f6";
+                    ctx.beginPath(); ctx.moveTo(mb2.x, mb2.y); ctx.lineTo(mb1.x, mb1.y); ctx.lineTo(mt1.x, mt1.y); ctx.lineTo(mt2.x, mt2.y); ctx.closePath(); ctx.fill();
+                    ctx.strokeStyle = "#2d3436"; ctx.lineWidth = 2; ctx.stroke();
+
+                    // 繪製前右牆
+                    ctx.fillStyle = "#dfe4ea";
+                    ctx.beginPath(); ctx.moveTo(mb0.x, mb0.y); ctx.lineTo(mb1.x, mb1.y); ctx.lineTo(mt1.x, mt1.y); ctx.lineTo(mt0.x, mt0.y); ctx.closePath(); ctx.fill();
+                    ctx.stroke();
+
+                    // 繪製屋頂斜板-左
+                    ctx.fillStyle = "#ff7675";
+                    ctx.beginPath(); ctx.moveTo(mt2.x, mt2.y); ctx.lineTo(mt1.x, mt1.y); ctx.lineTo(mr1.x, mr1.y); ctx.lineTo(mr0.x, mr0.y); ctx.closePath(); ctx.fill();
+                    ctx.stroke();
+
+                    // 繪製屋頂斜板-右(側三角面)
+                    ctx.fillStyle = "#d63031";
+                    ctx.beginPath(); ctx.moveTo(mt0.x, mt0.y); ctx.lineTo(mt1.x, mt1.y); ctx.lineTo(mr1.x, mr1.y); ctx.closePath(); ctx.fill();
+                    ctx.stroke();
+
+                    this.drawMathText(ctx, "牛奶盒：1 L", 200, 225, 15, "#d63031");
+
+                    // 金色等號 2
+                    ctx.fillStyle = "#fdcb6e";
+                    ctx.shadowColor = "rgba(253, 203, 110, 0.4)";
+                    ctx.shadowBlur = 8;
+                    ctx.fillRect(310, 140, 20, 5);
+                    ctx.fillRect(310, 150, 20, 5);
+                    ctx.shadowBlur = 0;
+
+                    // 3. 右側 1000 mL 量筒 (Center X: 390)
+                    const cyX = 390;
+                    // 量筒玻璃外框
+                    ctx.strokeStyle = "#74b9ff";
+                    ctx.lineWidth = 3;
+                    ctx.fillStyle = "rgba(116, 185, 255, 0.1)";
+                    ctx.beginPath();
+                    ctx.ellipse(cyX, 205, 18, 6, 0, 0, Math.PI * 2);
+                    ctx.fill(); ctx.stroke();
+
+                    // 水位高度 (半透明湖水綠)
+                    ctx.fillStyle = "rgba(129, 236, 236, 0.6)";
+                    ctx.beginPath();
+                    ctx.rect(cyX - 18, 120, 36, 85);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.ellipse(cyX, 120, 18, 6, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // 量筒頂與兩側直邊
+                    ctx.beginPath();
+                    ctx.moveTo(cyX - 18, 205); ctx.lineTo(cyX - 18, 95);
+                    ctx.moveTo(cyX + 18, 205); ctx.lineTo(cyX + 18, 95);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.ellipse(cyX, 95, 18, 6, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // 刻度線
+                    ctx.strokeStyle = "#2d3436";
+                    ctx.lineWidth = 1.5;
+                    for (let h = 130; h < 200; h += 15) {
+                        ctx.beginPath(); ctx.moveTo(cyX - 18, h); ctx.lineTo(cyX - 6, h); ctx.stroke();
+                    }
+                    // 水位標記刻度與文字
+                    ctx.strokeStyle = "#ff7675";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(cyX - 18, 120); ctx.lineTo(cyX + 5, 120); ctx.stroke();
+                    this.drawMathText(ctx, "1000 mL", 412, 125, 13, "#d63031");
+
+                    this.drawMathText(ctx, "量筒：1000 mL", 345, 225, 15, "#0984e3");
+
+                    // 底部金色核心牌匾
+                    ctx.fillStyle = "#ffeaa7";
+                    ctx.strokeStyle = "#fdcb6e";
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.roundRect(110, 245, 260, 40, 10);
+                    ctx.fill(); ctx.stroke();
+                    this.drawMathText(ctx, "核心金律：1 mL = 1 cm^3", 130, 271, 17, "#2d3436");
+                    
+                    ctx.restore();
+
                 } else {
                     ctx.fillStyle = "#dfe6e9";
                     ctx.font = "bold 20px 'Kosugi Maru'";
-                    ctx.fillText(`[LV.${this.state.currentLevel} 提示對比 Canvas 預留區]`, 110, 140);
-                    this.drawMathText(ctx, "提示數學引擎：1,000,000 cm^3", 100, 180, 20, "#ffb8b8");
+                    ctx.fillText(`[LV.${this.state.currentLevel} 提示對比 Canvas 區]`, 110, 140);
+                    this.drawMathText(ctx, "提示排版正常運作中", 120, 180, 20, "#ffb8b8");
                 }
             },
 
