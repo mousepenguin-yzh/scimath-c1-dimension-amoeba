@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>空間維度與單位變形蟲 - 步驟六完工版</title>
+    <title>空間維度與單位變形蟲 - 步驟五極致版</title>
     <!-- 引入 Google Fonts 親和力開源日系圓體 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,7 +31,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        button, .macaron-btn, .sandbox-btn, canvas, .keypad-key {
+        button, .macaron-btn, .sandbox-btn, canvas {
             user-select: auto !important;
             -webkit-user-select: auto !important;
             touch-action: manipulation !important;
@@ -88,8 +88,8 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 4px dashed #dcdde1;
-            padding-bottom: 15px;
-            margin-bottom: 15px;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         h1 {
@@ -114,14 +114,14 @@
             flex: 1;
             display: flex;
             gap: 30px;
-            height: calc(100% - 195px); 
+            height: calc(100% - 110px); 
         }
 
         .split-panel {
             flex: 1;
             background-color: var(--panel-white);
             border-radius: 28px;
-            padding: 20px 25px;
+            padding: 25px;
             border: 4px solid #ffffff;
             box-shadow: 0 8px 20px rgba(0,0,0,0.03);
             display: flex;
@@ -138,11 +138,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .panel-title {
-            font-size: 24px;
+            font-size: 26px;
             color: var(--text-main);
             font-weight: bold;
             display: flex;
@@ -155,7 +155,7 @@
         .canvas-container {
             width: 100%;
             flex: 1;
-            margin: 10px 0;
+            margin: 15px 0;
             background-color: #fafbfc;
             border-radius: 18px;
             border: 3px dashed #e2e8f0;
@@ -171,12 +171,12 @@
             background-color: #ffffff;
         }
 
-        /* 徹底防禦文字與匿名 Flex 佈局衝突 */
+        /* 區塊式排版，徹底杜絕匿名 Flex 盒子導致的跳行 Bug */
         .panel-desc {
             font-size: 19px;
             color: var(--text-muted);
             line-height: 1.5;
-            min-height: 50px;
+            min-height: 58px;
             display: block; 
             text-align: center;
             word-break: keep-all; 
@@ -197,332 +197,34 @@
             line-height: 0;
         }
 
-        /* ----------------------------------
-           底部互動問答與自訂鍵盤面板
-        ------------------------------------- */
-        #qa-bar-container {
-            height: 120px;
-            margin-top: 15px;
-            background-color: var(--panel-white);
-            border-radius: 24px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            border: 4px solid #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 30px;
-            gap: 20px;
-        }
-
-        /* 題目顯示大卡 */
-        .quest-box {
-            flex: 1.2;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .quest-prompt-label {
-            font-size: 16px;
-            color: #7f8c8d;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-
-        .quest-text {
-            font-size: 26px;
-            color: var(--text-main);
-            font-weight: bold;
-        }
-
-        /* 答題輸入與鍵盤操控區 */
-        .answer-control-group {
-            flex: 1.5;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            height: 100%;
-        }
-
-        /* 精美擬真輸入框 */
-        .ans-input-wrapper {
-            position: relative;
-            flex: 1;
-            height: 64px;
-            background-color: #fafbfc;
-            border: 3.5px solid #dfe6e9;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            transition: all 0.15s ease;
-        }
-
-        .ans-input-wrapper.focus {
-            border-color: var(--macaron-blue);
-            background-color: #ffffff;
-            box-shadow: 0 0 15px rgba(129, 236, 236, 0.4);
-        }
-
-        /* 答錯抖動反饋動畫 */
-        .ans-input-wrapper.shake {
-            animation: shakeFeedback 0.4s ease-in-out;
-            border-color: #ff7675;
-            box-shadow: 0 0 15px rgba(255, 118, 117, 0.4);
-        }
-
-        @keyframes shakeFeedback {
-            0%, 100% { transform: translateX(0); }
-            15%, 45%, 75% { transform: translateX(-8px); }
-            30%, 60%, 90% { transform: translateX(8px); }
-        }
-
-        .ans-placeholder {
-            position: absolute;
-            left: 20px;
+        /* 馬卡龍控制按鈕 */
+        .macaron-btn {
+            width: 80%;
+            padding: 14px 25px;
             font-size: 20px;
-            color: #b2bec3;
-            pointer-events: none;
-            transition: opacity 0.15s;
-        }
-
-        .ans-value-display {
-            font-size: 28px;
+            font-family: 'Kosugi Maru', sans-serif;
             font-weight: bold;
             color: var(--text-main);
-            font-family: 'Kosugi Maru', monospace;
-            width: 100%;
-            letter-spacing: 1px;
-        }
-
-        /* 閃爍光標 */
-        .cursor-blink {
-            display: inline-block;
-            width: 3.5px;
-            height: 28px;
-            background-color: var(--text-main);
-            margin-left: 2px;
-            animation: blink 0.8s infinite;
-            vertical-align: middle;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        /* 答題確定按鈕 */
-        .btn-submit {
-            height: 64px;
-            width: 140px;
-            background-color: var(--macaron-green);
-            color: #2d3436;
-            font-weight: bold;
-            font-size: 22px;
-            border-radius: 18px;
+            background-color: var(--macaron-blue);
             border: none;
-            box-shadow: 0 6px 0 #2db385;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #00ced1;
             transition: all 0.05s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-        }
-
-        .btn-submit:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #2db385;
-        }
-
-        /* 狀態與生命生命值區 */
-        .status-badge-box {
-            flex: 0.8;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            justify-content: center;
-        }
-
-        .hearts-label {
-            font-size: 15px;
-            color: #7f8c8d;
-            font-weight: bold;
-            margin-bottom: 6px;
-        }
-
-        .hearts-container {
-            display: flex;
-            gap: 5px;
-            font-size: 26px;
-        }
-
-        .heart-icon {
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .heart-icon.lost {
-            transform: scale(0);
-            width: 0;
-            margin: 0 -2px;
-            visibility: hidden;
-        }
-
-        /* ----------------------------------
-           馬卡龍內置觸控鍵盤 (預防彈出 bug)
-        ------------------------------------- */
-        #virtual-keypad {
-            position: absolute;
-            bottom: 120px;
-            right: 215px;
-            background-color: #2d3436;
-            border-radius: 18px;
-            padding: 12px;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            border: 3px solid #4a5568;
-            z-index: 999;
-            width: 250px;
-            opacity: 0;
-            transform: translateY(15px) scale(0.95);
-            pointer-events: none;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        #virtual-keypad.show {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: auto;
-        }
-
-        .keypad-key {
-            background-color: #4a5568;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            height: 44px;
-            font-size: 18px;
-            font-family: inherit;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 3px 0 #1e272e;
-        }
-
-        .keypad-key:active {
-            transform: translateY(2px);
-            box-shadow: 0 1px 0 #1e272e;
-        }
-
-        .keypad-key.action {
-            background-color: var(--macaron-pink);
-            color: var(--text-main);
-            box-shadow: 0 3px 0 #e84118;
+        .macaron-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #00ced1;
         }
 
         /* ----------------------------------
-           特效與全螢幕覆蓋渲染 Canvas (碎紙屑粒子)
+           抽屜式測試沙盒面板 (絕對定位)
         ------------------------------------- */
-        #effects-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; 
-            z-index: 1500;
-        }
-
-        /* ----------------------------------
-           結算大成彈窗 Modal
-        ------------------------------------- */
-        #settlement-modal {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(30, 39, 46, 0.85);
-            z-index: 2000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-card {
-            width: 480px;
-            background-color: var(--panel-white);
-            border-radius: 28px;
-            border: 6px solid var(--macaron-blue);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            padding: 35px;
-            text-align: center;
-            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        @keyframes modalPop {
-            0% { transform: scale(0.85); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .modal-title {
-            font-size: 28px;
-            color: var(--text-main);
-            font-weight: bold;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .modal-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .modal-cell {
-            background-color: var(--bg-game);
-            border-radius: 16px;
-            padding: 15px;
-            border: 2px solid #ffffff;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
-        }
-
-        .cell-label {
-            font-size: 14px;
-            color: #7f8c8d;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .cell-val {
-            font-size: 24px;
-            color: var(--text-main);
-            font-weight: bold;
-        }
-
-        .sandbox-pack-box {
-            background-color: #2d3436;
-            color: var(--macaron-green);
-            border-radius: 12px;
-            padding: 12px;
-            font-family: monospace;
-            font-size: 11px;
-            text-align: left;
-            margin-bottom: 20px;
-            max-height: 100px;
-            overflow-y: auto;
-            border: 1px solid #4a5568;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-
-        /* 抽屜式測試沙盒面板 */
         #sandbox-panel {
             position: absolute;
             right: 0;
@@ -562,7 +264,7 @@
             font-family: inherit;
             box-shadow: -4px 4px 10px rgba(0,0,0,0.2);
             z-index: 1001;
-            display: flex; /* 核心防禦：預設直接顯示，不依賴 JS 成功初始化 */
+            display: flex; /* 核心硬化：一律預設常開，不依賴任何 JS 成功初始化 */
             align-items: center;
             gap: 6px;
         }
@@ -647,17 +349,51 @@
         .log-dir-out {
             color: var(--macaron-green);
         }
+
+        /* 直螢幕強制攔截層 */
+        #orientation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100dvh;
+            background-color: var(--macaron-yellow);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .phone-icon-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 35px;
+        }
+
+        .phone-icon {
+            font-size: 100px;
+            display: inline-block;
+            animation: rotatePhone 2.5s infinite ease-in-out;
+        }
+
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            35% { transform: rotate(-90deg); }
+            70% { transform: rotate(-90deg); }
+            100% { transform: rotate(0deg); }
+        }
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <!-- 16:9 核心畫布 (1280x720) -->
+        <!-- 核心遊戲 16:9 Viewport (1280x720) -->
         <div id="game-viewport">
             
-            <!-- 特效遮罩畫布 (Confetti 彩色碎紙物理引擎專用) -->
-            <canvas id="effects-canvas"></canvas>
-
             <!-- 遊戲主畫面 -->
             <div id="main-game-area">
                 <header>
@@ -677,6 +413,7 @@
                         </div>
 
                         <div class="panel-desc" id="left-panel-desc"></div>
+                        <button class="macaron-btn" id="action-btn-left">⚙️ 重繪觀察圖</button>
                     </div>
 
                     <!-- 右欄：切分提示 Canvas -->
@@ -690,62 +427,12 @@
                         </div>
 
                         <div class="panel-desc" id="right-panel-desc"></div>
+                        <button class="macaron-btn" id="action-btn-right" style="background-color: var(--macaron-pink); box-shadow: 0 6px 0 #e84118; color: white;">🔍 開啟對比提示</button>
                     </div>
-                </div>
-
-                <!-- 底部互動問答控制區 -->
-                <div id="qa-bar-container">
-                    <!-- 題目資訊 -->
-                    <div class="quest-box">
-                        <div class="quest-prompt-label">當前換算題目</div>
-                        <div class="quest-text" id="quest-text-display">正在生成題目...</div>
-                    </div>
-
-                    <!-- 答題與鍵盤觸發 -->
-                    <div class="answer-control-group">
-                        <div class="ans-input-wrapper" id="input-trigger-box">
-                            <span class="ans-placeholder" id="placeholder-text">請觸控輸入數值...</span>
-                            <span class="ans-value-display" id="ans-digits-display"><span class="cursor-blink"></span></span>
-                        </div>
-                        <button class="btn-submit" id="submit-btn" onclick="GameModule.submitAnswer()">確定送出</button>
-                    </div>
-
-                    <!-- 作答剩餘機會 (愛心指標) -->
-                    <div class="status-badge-box">
-                        <div class="hearts-label">剩餘作答生命值</div>
-                        <div class="hearts-container" id="hearts-indicator">
-                            <span class="heart-icon" id="heart-1">💖</span>
-                            <span class="heart-icon" id="heart-2">💖</span>
-                            <span class="heart-icon" id="heart-3">💖</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 行動端無痛防 popped 虛擬數字小鍵盤 -->
-                <div id="virtual-keypad">
-                    <button class="keypad-key" onclick="GameModule.keypadPress('7')">7</button>
-                    <button class="keypad-key" onclick="GameModule.keypadPress('8')">8</button>
-                    <button class="keypad-key" onclick="GameModule.keypadPress('9')">9</button>
-                    <button class="keypad-key action" onclick="GameModule.keypadPress('C')">重打</button>
-                    
-                    <button class="keypad-key" onclick="GameModule.keypadPress('4')">4</button>
-                    <button class="keypad-key" onclick="GameModule.keypadPress('5')">5</button>
-                    <button class="keypad-key" onclick="GameModule.keypadPress('6')">6</button>
-                    <button class="keypad-key action" onclick="GameModule.keypadPress('back')">刪除</button>
-                    
-                    <button class="keypad-key" onclick="GameModule.keypadPress('1')">1</button>
-                    <button class="keypad-key" onclick="GameModule.keypadPress('2')">2</button>
-                    <button class="keypad-key" onclick="GameModule.keypadPress('3')">3</button>
-                    <button class="keypad-key action" onclick="GameModule.toggleKeypad(false)" style="background-color: var(--macaron-blue);">關閉</button>
-                    
-                    <button class="keypad-key" onclick="GameModule.keypadPress('0')">0</button>
-                    <button class="keypad-key" onclick="GameModule.keypadPress('00')">00</button>
-                    <button class="keypad-key" onclick="GameModule.keypadPress('.')">.</button>
-                    <button class="keypad-key action" onclick="GameModule.keypadPress(',')">,</button>
                 </div>
             </div>
 
-            <!-- 抽屜式測試控制台 -->
+            <!-- 抽屜式控制台：預設常開 -->
             <div id="sandbox-panel">
                 <button id="sandbox-toggle-btn" onclick="GameModule.toggleSandbox()">🛠️ 測試控制台</button>
                 <div class="sandbox-title">🛠️ 虛擬沙盒控制台</div>
@@ -759,42 +446,16 @@
                     <button class="sandbox-btn" onclick="GameModule.mockReceiveStartGame(5)">LV.5 分數拆解</button>
                 </div>
 
+                <div class="sandbox-section-title">排版引擎與渲染極限</div>
+                <div class="sandbox-btn-grid" style="grid-template-columns: 1fr;">
+                    <button class="sandbox-btn accent" onclick="GameModule.testMathTypography()">繪製複雜數學公式測試</button>
+                </div>
+
                 <div class="sandbox-section-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>通訊日誌</span>
                     <span style="font-size:11px; color:#95a5a6; cursor:pointer;" onclick="GameModule.clearLogs()">清除</span>
                 </div>
                 <div id="sandbox-logger"></div>
-            </div>
-
-            <!-- 結算大成彈窗 Modal -->
-            <div id="settlement-modal">
-                <div class="modal-card">
-                    <div class="modal-title">🏆 挑戰完成！</div>
-                    
-                    <div class="modal-grid">
-                        <div class="modal-cell">
-                            <div class="cell-label">最終得分</div>
-                            <div class="cell-val" id="settle-score">100</div>
-                        </div>
-                        <div class="modal-cell">
-                            <div class="cell-label">最高 Combo</div>
-                            <div class="cell-val" id="settle-combo">0</div>
-                        </div>
-                        <div class="modal-cell">
-                            <div class="cell-label">答題勝率</div>
-                            <div class="cell-val" id="settle-accuracy">100%</div>
-                        </div>
-                        <div class="modal-cell">
-                            <div class="cell-label">完美通關</div>
-                            <div class="cell-val" id="settle-perfect" style="color: var(--macaron-pink);">一次都沒錯！</div>
-                        </div>
-                    </div>
-
-                    <div class="hearts-label" style="text-align:left; margin-bottom: 5px;">📤 發送給父層微前端的 JSON 報告</div>
-                    <div class="sandbox-pack-box" id="settle-json-log"></div>
-
-                    <button class="macaron-btn" style="width: 100%; margin-top: 10px;" onclick="GameModule.restartChallenge()">重新再應戰一次！</button>
-                </div>
             </div>
 
         </div>
@@ -810,7 +471,7 @@
     </div>
 
     <script>
-        // 核心安全警報：若有未預期異常發生，直接在螢幕最頂部以紅色條幅標明錯誤，免開 F12，安全可靠
+        // 核心安全警報：若有未預期異常發生，直接在螢幕最頂部以紅色條幅標明錯誤，免開 F12
         window.onerror = function(message, source, lineno, colno, error) {
             const errDiv = document.createElement('div');
             errDiv.style.position = 'fixed';
@@ -835,13 +496,6 @@
                 if (typeof r === 'undefined') r = 0;
                 if (typeof r === 'number') {
                     r = {tl: r, tr: r, br: r, bl: r};
-                } else if (Array.isArray(r)) {
-                    r = {
-                        tl: r[0] || 0,
-                        tr: r[1] || r[0] || 0,
-                        br: r[2] || r[0] || 0,
-                        bl: r[3] || r[1] || 0
-                    };
                 }
                 this.beginPath();
                 this.moveTo(x + r.tl, y);
@@ -859,7 +513,7 @@
         }
 
         /**
-         * 遊戲核心模組與問答狀態機
+         * 遊戲與幾何渲染主模組
          */
         const GameModule = {
             config: {
@@ -868,54 +522,30 @@
                 challengeId: 1
             },
             
-            // 遊戲進程與問答狀態機 (State Machine)
             state: {
                 currentLevel: 1,
                 score: 0,
-                combo: 0,
-                maxCombo: 0,
-                totalAnswers: 0,
-                correctAnswers: 0,
-                attemptsLeft: 3,       // 當前題目的生命值 (初始 3)
-                isPerfect: true,       // 紀錄學生是否一次都沒錯
-                currentQuest: null,    // 當前動態生成的題目物件
-                inputValue: "",        // 當前虛擬鍵盤輸入的字串
-                keypadOpen: false,
                 sandboxOpen: false,
-                hintActive: false,
-                isDebouncing: false    // 防連點閥
+                hintActive: false 
             },
 
             canvas: {
                 left: null,
                 right: null,
-                effects: null,
                 ctxLeft: null,
-                ctxRight: null,
-                ctxEffects: null
+                ctxRight: null
             },
-
-            audioCtx: null,
-            particles: [],
 
             init() {
                 this.canvas.left = document.getElementById('left-canvas');
                 this.canvas.right = document.getElementById('right-canvas');
-                this.canvas.effects = document.getElementById('effects-canvas');
-                
                 this.canvas.ctxLeft = this.canvas.left.getContext('2d');
                 this.canvas.ctxRight = this.canvas.right.getContext('2d');
-                this.canvas.ctxEffects = this.canvas.effects.getContext('2d');
 
                 this.bindEvents();
                 this.resizeGame();
                 this.detectSandboxMode();
                 
-                // 啟動特效渲染迴圈
-                this.initEffectsCanvas();
-                this.animateParticles();
-
-                // 啟動關卡 1
                 this.transitionToLevel(1);
 
                 this.postToParent({
@@ -929,132 +559,24 @@
                 window.addEventListener('resize', () => this.resizeGame());
                 window.addEventListener('orientationchange', () => this.resizeGame());
 
-                const inputTrigger = document.getElementById('input-trigger-box');
-                inputTrigger.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.toggleKeypad(true);
+                document.getElementById('action-btn-left').addEventListener('click', () => {
+                    this.renderLeftGraphics();
                 });
 
-                document.getElementById('main-game-area').addEventListener('click', () => {
-                    this.toggleKeypad(false);
-                });
-                document.getElementById('virtual-keypad').addEventListener('click', (e) => {
-                    e.stopPropagation(); 
-                });
-
-                window.addEventListener('keydown', (e) => {
-                    if (this.state.keypadOpen) {
-                        if (e.key >= '0' && e.key <= '9') this.keypadPress(e.key);
-                        else if (e.key === '.') this.keypadPress('.');
-                        else if (e.key === ',') this.keypadPress(',');
-                        else if (e.key === 'Backspace') this.keypadPress('back');
-                        else if (e.key === 'Escape') this.toggleKeypad(false);
-                        else if (e.key === 'Enter') this.submitAnswer();
+                document.getElementById('action-btn-right').addEventListener('click', () => {
+                    this.state.hintActive = !this.state.hintActive;
+                    const btn = document.getElementById('action-btn-right');
+                    if (this.state.hintActive) {
+                        btn.textContent = "🔄 重設對比提示";
+                        btn.style.backgroundColor = "#81ecec"; 
+                        btn.style.boxShadow = "0 6px 0 #00ced1";
+                    } else {
+                        btn.textContent = "🔍 開啟對比提示";
+                        btn.style.backgroundColor = "#ffb8b8"; 
+                        btn.style.boxShadow = "0 6px 0 #e84118";
                     }
+                    this.renderRightGraphics();
                 });
-            },
-
-            initAudio() {
-                if (!this.audioCtx) {
-                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-            },
-
-            playSynthSound(type) {
-                this.initAudio();
-                if (!this.audioCtx) return;
-
-                const ctx = this.audioCtx;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
-                const now = ctx.currentTime;
-
-                if (type === 'correct') {
-                    const baseFreq = 523.25 + (this.state.combo * 45); 
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(baseFreq, now);
-                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, now + 0.12);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0.001, now + 0.4);
-                    osc.start(now);
-                    osc.stop(now + 0.45);
-                } else if (type === 'wrong') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(146.83, now); 
-                    osc.frequency.linearRampToValueAtTime(110.00, now + 0.25);
-                    gain.gain.setValueAtTime(0.3, now);
-                    gain.gain.linearRampToValueAtTime(0.001, now + 0.3);
-                    osc.start(now);
-                    osc.stop(now + 0.32);
-                }
-            },
-
-            initEffectsCanvas() {
-                const resizeEffects = () => {
-                    this.canvas.effects.width = this.canvas.effects.parentElement.clientWidth;
-                    this.canvas.effects.height = this.canvas.effects.parentElement.clientHeight;
-                };
-                resizeEffects();
-                window.addEventListener('resize', resizeEffects);
-            },
-
-            spawnConfetti() {
-                const startX = this.canvas.effects.width / 2;
-                const startY = this.canvas.effects.height - 80;
-                const colors = ['#ffb8b8', '#81ecec', '#ffeaa7', '#55efc4', '#ff7675', '#a29bfe'];
-                for (let i = 0; i < 110; i++) {
-                    this.particles.push({
-                        x: startX,
-                        y: startY,
-                        vx: (Math.random() - 0.5) * 22,
-                        vy: -Math.random() * 16 - 8,
-                        rotation: Math.random() * 360,
-                        rSpeed: (Math.random() - 0.5) * 15,
-                        color: colors[Math.floor(Math.random() * colors.length)],
-                        w: Math.random() * 8 + 6,
-                        h: Math.random() * 12 + 8,
-                        opacity: 1
-                    });
-                }
-            },
-
-            animateParticles() {
-                const ctx = this.canvas.ctxEffects;
-                if (!ctx) return;
-
-                ctx.clearRect(0, 0, this.canvas.effects.width, this.canvas.effects.height);
-
-                for (let i = 0; i < this.particles.length; i++) {
-                    const p = this.particles[i];
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.vy += 0.45; 
-                    p.vx *= 0.98; 
-                    p.rotation += p.rSpeed;
-
-                    if (p.vy > 2) {
-                        p.opacity -= 0.015;
-                    }
-
-                    if (p.opacity <= 0 || p.y > this.canvas.effects.height) {
-                        this.particles.splice(i, 1);
-                        i--;
-                        continue;
-                    }
-
-                    ctx.save();
-                    ctx.translate(p.x, p.y);
-                    ctx.rotate((p.rotation * Math.PI) / 180);
-                    ctx.globalAlpha = p.opacity;
-                    ctx.fillStyle = p.color;
-                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-                    ctx.restore();
-                }
-
-                requestAnimationFrame(() => this.animateParticles());
             },
 
             toggleSandbox() {
@@ -1067,130 +589,251 @@
                 }
             },
 
-            // 關鍵修正：補上先前被意外抹除的 detectSandboxMode 方法，避免拋出 TypeError 崩潰
             detectSandboxMode() {
                 const toggleBtn = document.getElementById('sandbox-toggle-btn');
                 const sandboxPanel = document.getElementById('sandbox-panel');
-                const isStandalone = (window === top);
                 
-                if (isStandalone) {
-                    toggleBtn.style.display = 'flex';
-                    sandboxPanel.style.display = 'flex';
-                    this.log('系統偵測：獨立開發模式。已解鎖測試控制台，點擊左側 🛠️ 即可展開測試。', 'system');
-                } else {
-                    toggleBtn.style.display = 'none';
-                    sandboxPanel.style.display = 'none';
-                }
-            },
-
-            // 關鍵修正：補上先前被意外抹除的 toggleKeypad 方法，避免點擊輸入框時崩潰
-            toggleKeypad(show) {
-                this.state.keypadOpen = show;
-                const keypad = document.getElementById('virtual-keypad');
-                const inputWrap = document.getElementById('input-trigger-box');
+                // 強制在步驟驗收階段直接顯現，防止任何非預期 JS 錯誤導致按鈕消失
+                toggleBtn.style.display = 'flex';
+                sandboxPanel.style.display = 'flex';
                 
-                if (show) {
-                    keypad.classList.add('show');
-                    inputWrap.classList.add('focus');
-                } else {
-                    keypad.classList.remove('show');
-                    inputWrap.classList.remove('focus');
-                }
+                this.log('系統偵測：獨立開發模式。已解鎖測試控制台。', 'system');
             },
 
-            keypadPress(key) {
-                const display = document.getElementById('ans-digits-display');
-                const placeholder = document.getElementById('placeholder-text');
+            /**
+             * 第一性原理：標準數學排版渲染引擎 (Canvas text superscript parser)
+             * 將 "^" 作為上標切分符，在 2D 渲染層完美繪製符合教科書格式的上標字型。
+             */
+            drawMathText(ctx, text, x, y, fontSize, color = "#2d3436") {
+                ctx.save();
+                ctx.fillStyle = color;
+                ctx.font = `bold ${fontSize}px 'Kosugi Maru', sans-serif`;
+                ctx.textBaseline = 'alphabetic';
 
-                if (key === 'C') {
-                    this.state.inputValue = "";
-                } else if (key === 'back') {
-                    this.state.inputValue = this.state.inputValue.slice(0, -1);
-                } else {
-                    if (this.state.inputValue.length >= 12) return;
-                    if (key === '.' && this.state.inputValue.includes('.')) return;
-                    this.state.inputValue += key;
-                }
+                const parts = text.split('^');
+                let currentX = x;
 
-                if (this.state.inputValue === "") {
-                    placeholder.style.opacity = "1";
-                    display.innerHTML = `<span class="cursor-blink"></span>`;
-                } else {
-                    placeholder.style.opacity = "0";
-                    display.innerHTML = `${this.state.inputValue}<span class="cursor-blink"></span>`;
-                }
+                parts.forEach((part, index) => {
+                    if (index === 0) {
+                        ctx.fillText(part, currentX, y);
+                        currentX += ctx.measureText(part).width;
+                    } else {
+                        const superDigit = part.charAt(0);
+                        const remainingText = part.slice(1);
+
+                        ctx.font = `bold ${fontSize * 0.6}px 'Kosugi Maru', sans-serif`;
+                        const superY = y - fontSize * 0.45;
+                        ctx.fillText(superDigit, currentX, superY);
+                        currentX += ctx.measureText(superDigit).width + 2;
+
+                        ctx.font = `bold ${fontSize}px 'Kosugi Maru', sans-serif`;
+                        if (remainingText) {
+                            ctx.fillText(remainingText, currentX, y);
+                            currentX += ctx.measureText(remainingText).width;
+                        }
+                    }
+                });
+                ctx.restore();
             },
 
-            generateLevelQuest(level) {
-                let text = "";
-                let leftRenderValue = 1;
-                let answer = "";
-
-                switch (level) {
-                    case 1:
-                        const m2Vals = [1.5, 2, 2.5, 3.5];
-                        const val1 = m2Vals[Math.floor(Math.random() * m2Vals.length)];
-                        text = `請將 ${val1} m² 換算為 cm²`;
-                        leftRenderValue = val1;
-                        answer = (val1 * 10000).toLocaleString(); 
-                        break;
-                    case 2:
-                        const m3Vals = [1.2, 2.0, 1.5, 3.0];
-                        const val2 = m3Vals[Math.floor(Math.random() * m3Vals.length)];
-                        text = `請將 ${val2} m³ 換算為 cm³`;
-                        leftRenderValue = val2;
-                        answer = (val2 * 1000000).toLocaleString(); 
-                        break;
-                    case 3:
-                        const lVals = [1.5, 2.5, 3.0, 5.0];
-                        const val3 = lVals[Math.floor(Math.random() * lVals.length)];
-                        text = `請將水量 ${val3} L 換算為 cm³`;
-                        leftRenderValue = val3;
-                        answer = (val3 * 1000).toLocaleString(); 
-                        break;
-                    case 4:
-                        const mmVals = [1.5, 2.0, 3.2, 5.0];
-                        const val4 = mmVals[Math.floor(Math.random() * mmVals.length)];
-                        text = `請將 ${val4} mm 換算為 μm`;
-                        leftRenderValue = val4;
-                        answer = (val4 * 1000).toLocaleString(); 
-                        break;
-                    case 5:
-                        const speedVals = [36, 72, 90, 108];
-                        const val5 = speedVals[Math.floor(Math.random() * speedVals.length)];
-                        text = `請將速度 ${val5} km/hr 換算為 m/s`;
-                        leftRenderValue = val5;
-                        answer = (val5 / 3.6).toString(); 
-                        break;
-                }
-
+            /**
+             * 數學三維等角投影座標變換公式
+             * 將三維空間坐標 (x, y, z) 轉換為二維平面投影點 (X, Y)
+             */
+            getIsoPoint(x, y, z, cx, cy, scale) {
+                const cos30 = 0.866025; 
+                const sin30 = 0.5;      
                 return {
-                    text: text,
-                    leftValue: leftRenderValue,
-                    answer: answer
+                    x: cx + (x - y) * scale * cos30,
+                    y: cy + (x + y) * scale * sin30 - z * scale
                 };
             },
 
+            /**
+             * 高級等角投影立方體渲染模組
+             */
+            drawIsoCube(ctx, cx, cy, scale, sizeX, sizeY, sizeZ, options = {}) {
+                const topColor = options.topColor || "#ffeaa7";
+                const leftColor = options.leftColor || "#ffb8b8";
+                const rightColor = options.rightColor || "#81ecec";
+                const strokeColor = options.strokeColor || "#2d3436";
+                const strokeWidth = options.strokeWidth || 2;
+                const drawGrid = options.drawGrid || false;
+                const gridSegments = options.gridSegments || 10;
+                const gridColor = options.gridColor || "rgba(45, 52, 54, 0.15)";
+
+                const p1 = this.getIsoPoint(sizeX, 0, 0, cx, cy, scale);      
+                const p2 = this.getIsoPoint(sizeX, sizeY, 0, cx, cy, scale);  
+                const p3 = this.getIsoPoint(0, sizeY, 0, cx, cy, scale);      
+                const p4 = this.getIsoPoint(0, 0, sizeZ, cx, cy, scale);      
+                const p5 = this.getIsoPoint(sizeX, 0, sizeZ, cx, cy, scale);  
+                const p6 = this.getIsoPoint(sizeX, sizeY, sizeZ, cx, cy, scale); 
+                const p7 = this.getIsoPoint(0, sizeY, sizeZ, cx, cy, scale);  
+
+                ctx.save();
+                ctx.lineJoin = "round";
+                ctx.lineCap = "round";
+
+                // 1. 繪製左側面
+                ctx.fillStyle = leftColor;
+                ctx.beginPath();
+                ctx.moveTo(p3.x, p3.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.lineTo(p6.x, p6.y);
+                ctx.lineTo(p7.x, p7.y);
+                ctx.closePath();
+                ctx.fill();
+                
+                if (drawGrid) {
+                    ctx.strokeStyle = gridColor;
+                    ctx.lineWidth = 1;
+                    for (let i = 1; i < gridSegments; i++) {
+                        const x = sizeX * (i / gridSegments);
+                        const start = this.getIsoPoint(x, sizeY, 0, cx, cy, scale);
+                        const end = this.getIsoPoint(x, sizeY, sizeZ, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                    for (let j = 1; j < gridSegments; j++) {
+                        const z = sizeZ * (j / gridSegments);
+                        const start = this.getIsoPoint(0, sizeY, z, cx, cy, scale);
+                        const end = this.getIsoPoint(sizeX, sizeY, z, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                }
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = strokeWidth;
+                ctx.beginPath();
+                ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p6.x, p6.y); ctx.lineTo(p7.x, p7.y); ctx.closePath();
+                ctx.stroke();
+
+                // 2. 繪製右側面
+                ctx.fillStyle = rightColor;
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.lineTo(p6.x, p6.y);
+                ctx.lineTo(p5.x, p5.y);
+                ctx.closePath();
+                ctx.fill();
+
+                if (drawGrid) {
+                    ctx.strokeStyle = gridColor;
+                    ctx.lineWidth = 1;
+                    for (let i = 1; i < gridSegments; i++) {
+                        const y = sizeY * (i / gridSegments);
+                        const start = this.getIsoPoint(sizeX, y, 0, cx, cy, scale);
+                        const end = this.getIsoPoint(sizeX, y, sizeZ, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                    for (let j = 1; j < gridSegments; j++) {
+                        const z = sizeZ * (j / gridSegments);
+                        const start = this.getIsoPoint(sizeX, 0, z, cx, cy, scale);
+                        const end = this.getIsoPoint(sizeX, sizeY, z, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                }
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = strokeWidth;
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p6.x, p6.y); ctx.lineTo(p5.x, p5.y); ctx.closePath();
+                ctx.stroke();
+
+                // 3. 繪製頂面
+                ctx.fillStyle = topColor;
+                ctx.beginPath();
+                ctx.moveTo(p4.x, p4.y);
+                ctx.lineTo(p5.x, p5.y);
+                ctx.lineTo(p6.x, p6.y);
+                ctx.lineTo(p7.x, p7.y);
+                ctx.closePath();
+                ctx.fill();
+
+                if (drawGrid) {
+                    ctx.strokeStyle = gridColor;
+                    ctx.lineWidth = 1;
+                    for (let i = 1; i < gridSegments; i++) {
+                        const x = sizeX * (i / gridSegments);
+                        const start = this.getIsoPoint(x, 0, sizeZ, cx, cy, scale);
+                        const end = this.getIsoPoint(x, sizeY, sizeZ, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                    for (let j = 1; j < gridSegments; j++) {
+                        const y = sizeY * (j / gridSegments);
+                        const start = this.getIsoPoint(0, y, sizeZ, cx, cy, scale);
+                        const end = this.getIsoPoint(sizeX, y, sizeZ, cx, cy, scale);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+                    }
+                }
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = strokeWidth;
+                ctx.beginPath();
+                ctx.moveTo(p4.x, p4.y); ctx.lineTo(p5.x, p5.y); ctx.lineTo(p6.x, p6.y); ctx.lineTo(p7.x, p7.y); ctx.closePath();
+                ctx.stroke();
+
+                ctx.restore();
+            },
+
+            /**
+             * 步驟五：繪製立體馬卡龍階梯方塊輔助函數
+             */
+            drawStairBlock(ctx, x, y, w, h, topColor, frontColor, sideColor, unitText) {
+                const shift = 15;
+                ctx.save();
+                ctx.lineJoin = "round";
+                ctx.lineCap = "round";
+                ctx.strokeStyle = "#2d3436";
+                ctx.lineWidth = 3;
+
+                // 1. 繪製前側面 (Front)
+                ctx.fillStyle = frontColor;
+                ctx.beginPath();
+                ctx.rect(x, y + shift, w - shift, h - shift);
+                ctx.fill();
+                ctx.stroke();
+
+                // 2. 繪製頂面 (Top)
+                ctx.fillStyle = topColor;
+                ctx.beginPath();
+                ctx.moveTo(x, y + shift);
+                ctx.lineTo(x + shift, y);
+                ctx.lineTo(x + w, y); // 完美修正：補齊 Y 軸參數，消除 runtime 崩潰
+                ctx.lineTo(x + w - shift, y + shift);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // 3. 繪製右側面 (Side)
+                ctx.fillStyle = sideColor;
+                ctx.beginPath();
+                ctx.moveTo(x + w - shift, y + shift);
+                ctx.lineTo(x + w, y);
+                ctx.lineTo(x + w, y + h - shift);
+                ctx.lineTo(x + w - shift, y + h);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // 4. 文字標註在方塊正面中央
+                ctx.fillStyle = "#2d3436";
+                ctx.font = "bold 18px 'Kosugi Maru', sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(unitText, x + (w - shift)/2, y + shift + (h - shift)/2);
+
+                ctx.restore();
+            },
+
+            /**
+             * 實作關卡切換邏輯與標準數學 DOM 注入
+             */
             transitionToLevel(level) {
                 this.state.currentLevel = level;
                 this.state.hintActive = false; 
-                this.state.attemptsLeft = 3;  
-                this.state.inputValue = "";   
                 
-                this.updateHeartsUI();
-
                 const rightBtn = document.getElementById('action-btn-right');
-                if (rightBtn) {
-                    rightBtn.textContent = "🔍 開啟對比提示";
-                    rightBtn.style.backgroundColor = "#ffb8b8";
-                    rightBtn.style.boxShadow = "0 6px 0 #e84118";
-                }
-
-                document.getElementById('placeholder-text').style.opacity = "1";
-                document.getElementById('ans-digits-display').innerHTML = `<span class="cursor-blink"></span>`;
-
-                this.state.currentQuest = this.generateLevelQuest(level);
-                document.getElementById('quest-text-display').textContent = this.state.currentQuest.text;
+                rightBtn.textContent = "🔍 開啟對比提示";
+                rightBtn.style.backgroundColor = "#ffb8b8";
+                rightBtn.style.boxShadow = "0 6px 0 #e84118";
 
                 let badgeText = "";
                 switch (level) {
@@ -1210,19 +853,19 @@
                 switch (level) {
                     case 1:
                         leftTitle.innerHTML = "📐 原始二維空間";
-                        leftDesc.innerHTML = `一幅邊長為 ${this.state.currentQuest.leftValue} m 的正方形畫作，<br>它的總表面積就是 <span class='math-inline'>${this.state.currentQuest.leftValue} m<sup>2</sup>。</span>`;
+                        leftDesc.innerHTML = "一幅邊長為 1 m 的正方形畫作，<br>它的總表面積就是 <span class='math-inline'>1 m<sup>2</sup>。</span>";
                         rightTitle.innerHTML = "💡 二維切分對比";
                         rightDesc.innerHTML = "我們將它的長與寬各自切成 100 等分，<br>看一看會發生什麼事？";
                         break;
                     case 2:
                         leftTitle.innerHTML = "📦 三維等角立方體";
-                        leftDesc.innerHTML = `一個體積為 ${this.state.currentQuest.leftValue} m³ 的巨大貨櫃，<br>它的體積為 <span class='math-inline'>${this.state.currentQuest.leftValue} m<sup>3</sup>。</span>`;
+                        leftDesc.innerHTML = "一個長、寬、高皆為 1 m 的巨大貨櫃，<br>它的體積為 <span class='math-inline'>1 m<sup>3</sup>。</span>";
                         rightTitle.innerHTML = "💡 三維嵌套拆解";
                         rightDesc.innerHTML = "在立方公分的視角下，<br>這個貨櫃到底塞得下多少個 <span class='math-inline'>1 cm<sup>3</sup>？</span>";
                         break;
                     case 3:
                         leftTitle.innerHTML = "🧪 <span class='math-inline'>1000 cm<sup>3</sup></span> 正方體";
-                        leftDesc.innerHTML = `邊長為 10 cm 的小正立方體，<br>其真實體積就是 <span class='math-inline'>1000 cm<sup>3</sup>。</span>`;
+                        leftDesc.innerHTML = "邊長為 10 cm 的小正立方體，<br>其真實體積就是 <span class='math-inline'>1000 cm<sup>3</sup>。</span>";
                         rightTitle.innerHTML = "💡 體積與容積的鐵律";
                         rightDesc.innerHTML = "並排比較：1 L 的牛奶盒、1000 mL 的量筒，<br>找出 <span class='math-inline'>「1 mL = 1 cm<sup>3</sup>」</span> 的絕對法則。";
                         break;
@@ -1234,9 +877,9 @@
                         break;
                     case 5:
                         leftTitle.innerHTML = "⚡ 分數拆解防禦線";
-                        leftDesc.innerHTML = `速度換算：<span class='math-inline'>${this.state.currentQuest.leftValue} km/hr = ? m/s</span>，<br>將分子與分母完全拆開，帶入單位同步計算。`;
+                        leftDesc.innerHTML = "速度換算：<span class='math-inline'>90 km/hr = ? m/s</span>，<br>將分子與分母完全拆開，帶入單位同步計算。";
                         rightTitle.innerHTML = "💡 分數單位協同計算"; 
-                        rightDesc.innerHTML = `將複合單位拆解：分子 <span class='math-inline'>${this.state.currentQuest.leftValue} km ➔ ${(this.state.currentQuest.leftValue * 1000).toLocaleString()} m</span>，分母 <span class='math-inline'>1 hr ➔ 3,600 s</span>，帶著單位一起相除。`; 
+                        rightDesc.innerHTML = "將複合單位拆解：分子 <span class='math-inline'>90 km ➔ 90,000 m</span>，分母 <span class='math-inline'>1 hr ➔ 3,600 s</span>，帶著單位一起相除。"; 
                         break;
                 }
 
@@ -1244,143 +887,9 @@
                 this.renderRightGraphics();
             },
 
-            updateHeartsUI() {
-                const h1 = document.getElementById('heart-1');
-                const h2 = document.getElementById('heart-2');
-                const h3 = document.getElementById('heart-3');
-
-                if (this.state.attemptsLeft === 3) {
-                    h1.classList.remove('lost'); h2.classList.remove('lost'); h3.classList.remove('lost');
-                } else if (this.state.attemptsLeft === 2) {
-                    h3.classList.add('lost');
-                } else if (this.state.attemptsLeft === 1) {
-                    h2.classList.add('lost'); h3.classList.add('lost');
-                } else {
-                    h1.classList.add('lost'); h2.classList.add('lost'); h3.classList.add('lost');
-                }
-            },
-
-            submitAnswer() {
-                if (this.state.isDebouncing) return;
-                this.state.isDebouncing = true;
-                setTimeout(() => this.state.isDebouncing = false, 400);
-
-                if (this.state.inputValue === "") {
-                    this.triggerInputShake();
-                    return;
-                }
-
-                const processedInput = this.state.inputValue.replace(/,/g, '').trim();
-                const processedAnswer = this.state.currentQuest.answer.replace(/,/g, '').trim();
-
-                this.state.totalAnswers++;
-
-                if (processedInput === processedAnswer) {
-                    this.state.correctAnswers++;
-                    this.state.combo++;
-                    if (this.state.combo > this.state.maxCombo) {
-                        this.state.maxCombo = this.state.combo;
-                    }
-                    this.state.score += 20;
-
-                    this.playSynthSound('correct');
-                    this.spawnConfetti();
-
-                    document.getElementById('score-display').textContent = this.state.score.toString().padStart(3, '0');
-
-                    this.state.hintActive = true;
-                    this.renderRightGraphics();
-
-                    this.log(`作答正確！Combo數：${this.state.combo}。跳轉下一關。`, 'system');
-
-                    setTimeout(() => {
-                        let nextLevel = this.state.currentLevel + 1;
-                        if (nextLevel > 5) {
-                            this.triggerChallengeOver();
-                        } else {
-                            this.transitionToLevel(nextLevel);
-                        }
-                    }, 1800);
-
-                } else {
-                    this.state.combo = 0; 
-                    this.state.attemptsLeft--;
-                    this.state.isPerfect = false; 
-
-                    this.playSynthSound('wrong');
-                    this.triggerInputShake();
-                    this.updateHeartsUI();
-
-                    this.state.hintActive = true;
-                    this.renderRightGraphics();
-
-                    this.log(`作答錯誤。剩餘機會：${this.state.attemptsLeft}`, 'system');
-
-                    if (this.state.attemptsLeft <= 0) {
-                        setTimeout(() => {
-                            this.triggerChallengeOver();
-                        }, 1000);
-                    }
-                }
-            },
-
-            triggerInputShake() {
-                const inputWrap = document.getElementById('input-trigger-box');
-                inputWrap.classList.add('shake');
-                setTimeout(() => {
-                    inputWrap.classList.remove('shake');
-                }, 400);
-            },
-
-            triggerChallengeOver() {
-                this.toggleKeypad(false);
-
-                const accuracy = this.state.totalAnswers > 0 
-                    ? Math.round((this.state.correctAnswers / this.state.totalAnswers) * 100) 
-                    : 0;
-
-                document.getElementById('settle-score').textContent = this.state.score;
-                document.getElementById('settle-combo').textContent = this.state.maxCombo;
-                document.getElementById('settle-accuracy').textContent = `${accuracy}%`;
-
-                const perfectLabel = document.getElementById('settle-perfect');
-                if (this.state.isPerfect) {
-                    perfectLabel.textContent = "是，一次都沒錯！";
-                    perfectLabel.style.color = "var(--macaron-green)";
-                } else {
-                    perfectLabel.textContent = "否，再接再厲！";
-                    perfectLabel.style.color = "var(--macaron-pink)";
-                }
-
-                const overPayload = {
-                    type: 'GAME_OVER',
-                    challengeId: this.config.challengeId,
-                    currentLevel: this.state.currentLevel,
-                    isPerfect: this.state.isPerfect,
-                    score: this.state.score,
-                    comboMax: this.state.maxCombo,
-                    accuracy: accuracy
-                };
-
-                document.getElementById('settle-json-log').textContent = JSON.stringify(overPayload, null, 2);
-                document.getElementById('settlement-modal').style.display = 'flex';
-
-                this.postToParent(overPayload);
-            },
-
-            restartChallenge() {
-                document.getElementById('settlement-modal').style.display = 'none';
-                this.state.score = 0;
-                this.state.combo = 0;
-                this.state.maxCombo = 0;
-                this.state.totalAnswers = 0;
-                this.state.correctAnswers = 0;
-                this.state.isPerfect = true;
-                
-                document.getElementById('score-display').textContent = "000";
-                this.transitionToLevel(1);
-            },
-
+            /**
+             * 渲染左側 Canvas
+             */
             renderLeftGraphics() {
                 const ctx = this.canvas.ctxLeft;
                 const width = this.canvas.left.width;
@@ -1389,8 +898,6 @@
                 ctx.clearRect(0, 0, width, height);
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(0, 0, width, height);
-
-                const questValue = this.state.currentQuest ? this.state.currentQuest.leftValue : 1;
 
                 if (this.state.currentLevel === 1) {
                     ctx.save();
@@ -1402,9 +909,9 @@
                     ctx.fill();
                     ctx.stroke();
 
-                    this.drawMathText(ctx, `${questValue} m`, 225, 40, 20, "#2d3436");
+                    this.drawMathText(ctx, "1 m", 225, 40, 20, "#2d3436");
                     this.drawMathText(ctx, "1 m", 100, 155, 20, "#2d3436");
-                    this.drawMathText(ctx, `面積 = ${questValue} m^2`, 175, 155, 24, "#ff7675");
+                    this.drawMathText(ctx, "面積 = 1 m^2", 175, 155, 24, "#ff7675");
                     ctx.restore();
 
                 } else if (this.state.currentLevel === 2) {
@@ -1434,13 +941,13 @@
 
                     const midLeftX = (p3.x + p2.x) / 2 - 40;
                     const midLeftY = (p3.y + p2.y) / 2 + 25;
-                    this.drawMathText(ctx, `寬 ${questValue} m`, midLeftX, midLeftY, 16, "#2d3436");
+                    this.drawMathText(ctx, "寬 1 m", midLeftX, midLeftY, 16, "#2d3436");
 
                     const midRightX = (p1.x + p2.x) / 2 + 10;
                     const midRightY = (p1.y + p2.y) / 2 + 25;
                     this.drawMathText(ctx, "深 1 m", midRightX, midRightY, 16, "#2d3436");
 
-                    this.drawMathText(ctx, `體積 = ${questValue} m^3`, 160, 45, 24, "#ff7675");
+                    this.drawMathText(ctx, "體積 = 1 m^3", 160, 45, 24, "#ff7675");
                     ctx.restore();
 
                 } else if (this.state.currentLevel === 3) {
@@ -1485,7 +992,7 @@
                     this.drawStairBlock(ctx, 175, 125, 95, 115, "#ffeaa7", "#ffdca7", "#ffcc87", "μm (微米)");
                     this.drawStairBlock(ctx, 290, 170, 95, 70, "#81ecec", "#71e2e2", "#51d2d2", "nm (奈米)");
 
-                    this.drawMathText(ctx, `${questValue} mm 階梯`, 140, 40, 24, "#2d3436");
+                    this.drawMathText(ctx, "微觀世界階梯", 160, 40, 24, "#2d3436");
                     ctx.restore();
 
                 } else if (this.state.currentLevel === 5) {
@@ -1539,12 +1046,15 @@
                     ctx.moveTo(carX - 25, carY + 20); ctx.lineTo(carX - 10, carY + 20);
                     ctx.stroke();
 
-                    this.drawMathText(ctx, `車速 ${questValue} km/hr`, 250, 225, 16, "#2d3436");
+                    this.drawMathText(ctx, "車速 90 km/hr", 260, 225, 16, "#2d3436");
                     this.drawMathText(ctx, "生活中的複合單位", 140, 45, 24, "#2d3436");
                     ctx.restore();
                 }
             },
 
+            /**
+             * 渲染右側 Canvas
+             */
             renderRightGraphics() {
                 const ctx = this.canvas.ctxRight;
                 const width = this.canvas.right.width;
@@ -1554,9 +1064,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(0, 0, width, height);
 
-                const questValue = this.state.currentQuest ? this.state.currentQuest.leftValue : 1;
-
-                // 補齊與優化：將繪圖子方法寫在右 Canvas scope 最頂層，杜絕 ReferenceError
+                // 在此 scope 內安全定義 drawPillBadge, 徹底避免 ReferenceError
                 const drawPillBadge = (ctx, bx, by, text) => {
                     ctx.save();
                     ctx.fillStyle = "#ffffff";
@@ -1573,6 +1081,7 @@
                     ctx.restore();
                 };
 
+                // 高質量、數學正切對齊的 curved 飛躍弧線渲染器
                 const drawCurvedArrow = (ctx, sx, sy, ex, ey, h, arrowColor) => {
                     ctx.save();
                     ctx.strokeStyle = arrowColor;
@@ -1615,7 +1124,7 @@
 
                     ctx.fillStyle = "#4a5568"; 
                     ctx.font = "bold 20px 'Kosugi Maru'";
-                    ctx.fillText("如果答錯，這裡將自動解鎖提示與解析喔！", width/2, height/2 + 95);
+                    ctx.fillText("點擊下方按鈕，開啟概念切分網格", width/2, height/2 + 95);
                     ctx.restore();
                     return;
                 }
@@ -1632,7 +1141,7 @@
                     ctx.strokeStyle = "rgba(129, 236, 236, 0.4)";
                     ctx.lineWidth = 1;
                     for (let i = 20; i < size; i += 20) {
-                        ctx.beginPath(); ctx.moveTo(startX + i, startY); ctx.lineTo(startX + i, startY + size); ctx.stroke(); // 修正：原先漏掉 ctx. 前綴，現已完美捕回，解除崩潰
+                        ctx.beginPath(); ctx.moveTo(startX + i, startY); ctx.lineTo(startX + i, startY + size); ctx.stroke(); // 已完美修正：補齊 ctx. 呼叫
                         ctx.beginPath(); ctx.moveTo(startX, startY + i); ctx.lineTo(startX + size, startY + i); ctx.stroke();
                     }
 
@@ -1643,7 +1152,7 @@
                     this.drawMathText(ctx, "100 cm", 205, 40, 20, "#2d3436");
                     this.drawMathText(ctx, "100 cm", 65, 155, 20, "#2d3436");
                     
-                    this.drawMathText(ctx, `${questValue} * 10,000 = ${this.state.currentQuest.answer} cm^2`, 100, 280, 21, "#2d3436");
+                    this.drawMathText(ctx, "100 * 100 = 10,000 cm^2", 120, 280, 21, "#2d3436");
                     ctx.restore();
 
                 } else if (this.state.currentLevel === 2) {
@@ -1688,7 +1197,7 @@
                     this.drawMathText(ctx, "10 cm", 395, 175, 14, "#2d3436");
                     this.drawMathText(ctx, "10 cm", 295, 105, 14, "#2d3436");
 
-                    this.drawMathText(ctx, `${questValue} * 1,000,000 = ${this.state.currentQuest.answer} cm^3`, 70, 280, 20, "#2d3436");
+                    this.drawMathText(ctx, "1,000 * 1,000 = 1,000,000 cm^3", 110, 280, 20, "#2d3436");
                     ctx.restore();
 
                 } else if (this.state.currentLevel === 3) {
@@ -1774,11 +1283,11 @@
                     ctx.strokeStyle = "#ff7675";
                     ctx.lineWidth = 2;
                     ctx.beginPath(); ctx.moveTo(cyX - 18, 85); ctx.lineTo(cyX + 5, 85); ctx.stroke();
-                    this.drawMathText(ctx, `${questValue * 1000} mL`, 412, 90, 13, "#d63031");
+                    this.drawMathText(ctx, "1000 mL", 412, 90, 13, "#d63031");
 
-                    this.drawMathText(ctx, `${questValue * 1000} cm^3`, 32, 218, 15, "#2d3436");
-                    this.drawMathText(ctx, `牛奶盒：${questValue} L`, 190, 218, 15, "#d63031");
-                    this.drawMathText(ctx, `量筒：${questValue * 1000} mL`, 335, 218, 15, "#0984e3");
+                    this.drawMathText(ctx, "1000 cm^3", 45, 218, 15, "#2d3436");
+                    this.drawMathText(ctx, "牛奶盒：1 L", 200, 218, 15, "#d63031");
+                    this.drawMathText(ctx, "量筒：1000 mL", 345, 218, 15, "#0984e3");
 
                     ctx.fillStyle = "#ffeaa7";
                     ctx.strokeStyle = "#fdcb6e";
@@ -1791,19 +1300,26 @@
                     ctx.restore();
 
                 } else if (this.state.currentLevel === 4) {
+                    // LV.4 右側：立體階梯 + 發光虛線飛躍弧線 + 可愛Q萌千倍史萊姆魔王
                     ctx.save();
+                    
                     const ox = 40, oy = 95;
                     this.drawStairBlock(ctx, ox, oy, 85, 140, "#ffb8b8", "#ffa8a8", "#ff9898", "mm");
                     this.drawStairBlock(ctx, ox + 110, oy + 40, 85, 100, "#ffeaa7", "#ffdca7", "#ffcc87", "μm");
                     this.drawStairBlock(ctx, ox + 220, oy + 80, 85, 60, "#81ecec", "#71e2e2", "#51d2d2", "nm");
 
+                    // 1. 繪製精準正切對齊的飛躍曲線
                     drawCurvedArrow(ctx, 110, 115, 165, 155, 55, "#fd79a8");
                     drawCurvedArrow(ctx, 220, 160, 275, 195, 55, "#fd79a8");
 
+                    // 2. 在弧線的波峰精準貼合「× 1000」小藥丸發光徽章
                     drawPillBadge(ctx, 137, 65, "× 1000");
                     drawPillBadge(ctx, 247, 110, "× 1000");
 
+                    // 3. 全新重構：Q萌星形史萊姆「千倍魔王」（扁平向量風）
                     const mx = 390, my = 125;
+                    
+                    // 漸層柔軟身體
                     const gradient = ctx.createRadialGradient(mx - 8, my - 10, 5, mx, my, 35);
                     gradient.addColorStop(0, "#ffeaa7");
                     gradient.addColorStop(0.3, "#ff7675");
@@ -1812,6 +1328,7 @@
                     ctx.strokeStyle = "#2d3436";
                     ctx.lineWidth = 3.5;
 
+                    // 繪製柔軟 Q 彈的扁平水滴星形輪廓 (5個突起觸角)
                     ctx.beginPath();
                     for (let i = 0; i < 5; i++) {
                         let angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
@@ -1828,6 +1345,7 @@
                     ctx.closePath();
                     ctx.fill(); ctx.stroke();
 
+                    // 精緻金色小皇冠
                     ctx.fillStyle = "#ffd32a";
                     ctx.beginPath();
                     ctx.moveTo(mx - 10, my - 29);
@@ -1837,6 +1355,7 @@
                     ctx.lineTo(mx + 10, my - 29);
                     ctx.closePath(); ctx.fill(); ctx.stroke();
 
+                    // 超萌圓眼睛與動漫高光
                     ctx.fillStyle = "#ffffff";
                     ctx.beginPath(); ctx.arc(mx - 10, my, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
                     ctx.beginPath(); ctx.arc(mx + 10, my, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
@@ -1849,22 +1368,26 @@
                     ctx.beginPath(); ctx.arc(mx - 9, my - 2, 1.8, 0, Math.PI*2); ctx.fill();
                     ctx.beginPath(); ctx.arc(mx + 7, my - 2, 1.8, 0, Math.PI*2); ctx.fill();
 
+                    // 可愛腮紅
                     ctx.fillStyle = "rgba(255, 120, 120, 0.7)";
                     ctx.beginPath(); ctx.ellipse(mx - 14, my + 8, 5, 2.5, 0, 0, Math.PI*2); ctx.fill();
                     ctx.beginPath(); ctx.ellipse(mx + 14, my + 8, 5, 2.5, 0, 0, Math.PI*2); ctx.fill();
 
+                    // 可愛小嘴巴
                     ctx.strokeStyle = "#2d3436";
                     ctx.lineWidth = 2.5;
                     ctx.beginPath();
                     ctx.arc(mx, my + 5, 4, 0, Math.PI, false);
                     ctx.stroke();
 
+                    // 現代化圓角扁平對話框
                     ctx.fillStyle = "#ffeaa7";
                     ctx.strokeStyle = "#2d3436";
                     ctx.lineWidth = 3;
                     ctx.beginPath();
                     ctx.roundRect(290, 20, 180, 42, 12);
                     ctx.fill(); ctx.stroke();
+                    // 氣泡尾巴
                     ctx.beginPath();
                     ctx.moveTo(375, 62); ctx.lineTo(382, 77); ctx.lineTo(390, 62);
                     ctx.closePath(); ctx.fill(); ctx.stroke();
@@ -1872,7 +1395,7 @@
                     ctx.font = "bold 13px 'Kosugi Maru', sans-serif";
                     ctx.fillText("每下一步，就乘以 1000！", 300, 46);
 
-                    this.drawMathText(ctx, `${questValue} mm = ${this.state.currentQuest.answer} μm`, 110, 275, 18, "#2d3436");
+                    this.drawMathText(ctx, "mm = μm", 110, 275, 18, "#2d3436");
                     ctx.restore();
 
                 } else if (this.state.currentLevel === 5) {
@@ -1893,10 +1416,10 @@
                     
                     ctx.fillStyle = "#2d3436";
                     ctx.font = "bold 16px 'Kosugi Maru'";
-                    ctx.fillText(`分子：${questValue} km`, boxX + 18, boxY + 33);
+                    ctx.fillText("分子：90 km", boxX + 18, boxY + 33);
                     ctx.font = "bold 20px 'Kosugi Maru'";
                     ctx.fillText("➔", boxX + 118, boxY + 36);
-                    this.drawMathText(ctx, `${(questValue * 1000).toLocaleString()} m`, boxX + 145, boxY + 38, 16, "#d63031");
+                    this.drawMathText(ctx, "90,000 m", boxX + 145, boxY + 38, 16, "#d63031");
 
                     // 分數橫線
                     ctx.strokeStyle = "#2d3436";
@@ -1942,8 +1465,8 @@
                     ctx.roundRect(resX, resY, resW, resH, 15);
                     ctx.fill(); ctx.stroke();
 
-                    // 關鍵修正：等號徹底移除。分子、分母及除數橫線實施完美的物理水平置中
-                    const numText = `${(questValue * 1000).toLocaleString()} m`;
+                    // 等號徹底移除。分子、分母及除數橫線實施完美的物理水平置中
+                    const numText = "90,000 m";
                     ctx.font = "bold 14px 'Kosugi Maru', sans-serif";
                     const numWidth = ctx.measureText(numText).width;
                     const numX = resX + (resW - numWidth) / 2; // 計算完美的分子居中 X 坐標
@@ -1964,7 +1487,7 @@
                     this.drawMathText(ctx, denText, denX, resY + 77, 14, "#0984e3");
                     ctx.restore();
 
-                    // 5. 💡 教學提示小膠囊 (關鍵修正：往下調整至 Y = 196)
+                    // 5. 💡 教學提示小膠囊 (關鍵修正：往下調整至 Y = 196，預留出 11px 清爽呼吸空隙，徹底消除重疊)
                     ctx.save();
                     ctx.fillStyle = "#55efc4";
                     ctx.beginPath();
@@ -1978,7 +1501,7 @@
                     ctx.fillText("💡 數字與單位一起除，就自然導出 m/s 囉！", boxX + 40, 196 + 14); 
                     ctx.restore();
 
-                    // 6. 最終換算導出大牌匾 (關鍵修正：往下調整至 Y = 236)
+                    // 6. 最終換算導出大牌匾 (關鍵修正：往下調整至 Y = 236，與小膠囊拉開舒適的 12px 間隔)
                     ctx.save();
                     ctx.fillStyle = "#55efc4";
                     ctx.strokeStyle = "#2db385";
@@ -1986,7 +1509,7 @@
                     ctx.beginPath();
                     ctx.roundRect(65, 236, 350, 42, 10);
                     ctx.fill(); ctx.stroke();
-                    this.drawMathText(ctx, `換算導出：${this.state.currentQuest.answer} m/s`, 140, 263, 19, "#2d3436");
+                    this.drawMathText(ctx, "換算導出：25 m/s", 140, 263, 19, "#2d3436");
                     ctx.restore();
                 }
             },
