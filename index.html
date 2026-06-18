@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>國二數理挑戰 - 獨立遊戲模組 (步驟一修正版)</title>
+    <title>國二數理挑戰 - 獨立遊戲模組 (步驟二)</title>
     <!-- 引入日系可愛圓體與英文 Fredoka 圓體 -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -35,11 +35,10 @@
            【CSS 隔離】所有遊戲核心樣式均在 #game-viewport 命名空間下
            ========================================================================== */
         #game-viewport {
-            /* 修正：不再使用 absolute 定位，完全由 Flexbox 決定位置 */
             width: 1280px;
             height: 720px;
             background-color: #FDFBF7; /* 馬卡龍舒壓奶油底色 */
-            transform-origin: center center; /* 縮放中心點點在字卡正中央 */
+            transform-origin: center center; /* 縮放中心點在字卡正中央 */
             overflow: hidden;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             border-radius: 24px;
@@ -49,7 +48,7 @@
             align-items: center;
             padding: 40px;
             box-sizing: border-box;
-            transition: background-color 0.4s ease, transform 0.1s ease; /* 縮放也加入輕微過渡，更流暢 */
+            transition: background-color 0.4s ease, transform 0.1s ease;
         }
 
         /* 頂部資訊區 */
@@ -58,6 +57,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 10;
         }
 
         /* 馬卡龍粉紅主題徽章 */
@@ -87,65 +87,251 @@
             gap: 20px;
         }
 
-        /* 中央大字卡主視角 */
+        #game-viewport .status-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ==========================================================================
+           【步驟二核心】3D 雙面字卡流（Single Card Flow with 3D Flip）
+           ========================================================================== */
         #game-viewport .center-card-flow {
-            width: 80%;
-            flex-grow: 1;
-            margin: 30px 0;
-            background: #FFFFFF;
-            border: 4px solid #FFDAC1; /* 暖橘膚色邊框 */
+            width: 85%;
+            height: 460px; /* 固定高度，防止翻轉時元件擠壓變形 */
+            margin: 20px 0;
+            perspective: 1500px; /* 3D 景深距離，決定翻轉時的立體膨脹感 */
+            position: relative;
+        }
+
+        /* 3D 旋轉內膽 */
+        #game-viewport .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d; /* 保留子元素的 3D 空間關係 */
+        }
+
+        /* 當啟動 flipped 狀態時，整張卡片旋轉 180 度 */
+        #game-viewport .center-card-flow.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* 卡片正面與背面的共有基礎樣式 */
+        #game-viewport .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; /* 當面朝後時隱藏，這是 3D 翻牌的關鍵 */
             border-radius: 32px;
+            padding: 30px 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ------------------ 【狀態 A】正面：解題畫面 ------------------ */
+        #game-viewport .card-front {
+            background: #FFFFFF;
+            border: 4px solid #FFDAC1; /* 暖橘邊框 */
             box-shadow: 0 12px 0 #FCD1B4, 0 16px 30px rgba(0, 0, 0, 0.05);
+            transform: rotateY(0deg); /* 預設正面朝前 */
+        }
+
+        /* 答對時的綠色發光擴散特效 */
+        #game-viewport .card-front.correct-flash {
+            animation: correct-glow-pulse 0.5s ease-out;
+        }
+        @keyframes correct-glow-pulse {
+            0% { border-color: #FFDAC1; box-shadow: 0 0 0px #B5EAD7; }
+            50% { border-color: #69F0AE; box-shadow: 0 0 30px #69F0AE; }
+            100% { border-color: #FFDAC1; box-shadow: 0 12px 0 #FCD1B4; }
+        }
+
+        /* 答錯時的紅色震動警告特效 */
+        #game-viewport .card-front.error-shake {
+            animation: error-shake-move 0.5s ease-in-out;
+        }
+        @keyframes error-shake-move {
+            0%, 100% { transform: translateX(0); border-color: #FFDAC1; }
+            20%, 60% { transform: translateX(-10px); border-color: #FFB7B2; }
+            40%, 80% { transform: translateX(10px); border-color: #FFB7B2; }
+        }
+
+        #game-viewport .front-title {
+            color: #8D6E63;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        #game-viewport .question-box {
+            font-size: 48px;
+            font-weight: 700;
+            color: #5D4037;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        /* 答題互動控制區 */
+        #game-viewport .input-zone {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        #game-viewport .answer-input {
+            width: 280px;
+            height: 64px;
+            border: 4px solid #FFDAC1;
+            border-radius: 20px;
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            color: #5D4037;
+            outline: none;
+            transition: all 0.2s ease;
+            background-color: #FFFDFB;
+        }
+
+        #game-viewport .answer-input:focus {
+            border-color: #B5EAD7; /* 聚焦時轉為溫柔的薄荷綠 */
+            box-shadow: 0 0 15px rgba(181, 234, 215, 0.6);
+            background-color: #FFFFFF;
+        }
+
+        #game-viewport .btn-submit {
+            height: 64px;
+            padding: 0 35px;
+            background-color: #B5EAD7; /* 薄荷綠 */
+            border: none;
+            border-radius: 20px;
+            font-size: 22px;
+            font-weight: 700;
+            color: #2E5A44;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #92D3BC;
+            transition: all 0.1s ease;
+        }
+
+        #game-viewport .btn-submit:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #92D3BC;
+        }
+
+        #game-viewport .btn-hint {
+            height: 64px;
+            padding: 0 25px;
+            background-color: #FFDAC1; /* 暖橘膚色 */
+            border: none;
+            border-radius: 20px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #8D6E63;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #E2B695;
+            transition: all 0.1s ease;
+        }
+
+        #game-viewport .btn-hint:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #E2B695;
+        }
+
+        /* ------------------ 【狀態 B】背面：原理說明畫面 ------------------ */
+        #game-viewport .card-back {
+            background: #FFFFFF;
+            border: 4px solid #B5EAD7; /* 薄荷綠邊框 */
+            box-shadow: 0 12px 0 #92D3BC, 0 16px 30px rgba(0, 0, 0, 0.05);
+            transform: rotateY(180deg); /* 預設翻轉到背面隱藏 */
+        }
+
+        #game-viewport .back-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px dashed #E0F2F1;
+            padding-bottom: 10px;
+        }
+
+        #game-viewport .back-title {
+            color: #00796B;
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #game-viewport .back-explanation-content {
+            width: 100%;
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 40px;
-            box-sizing: border-box;
-            text-align: center;
+            margin: 15px 0;
         }
 
-        #game-viewport .center-card-flow h1 {
-            color: #5D4037;
-            font-size: 40px;
-            margin: 0 0 20px 0;
+        #game-viewport .back-highlight {
+            font-size: 26px;
             font-weight: 700;
+            color: #C62828; /* 馬卡龍警示紅 */
+            margin-bottom: 10px;
         }
 
-        #game-viewport .center-card-flow p {
-            color: #8D6E63;
-            font-size: 22px;
-            line-height: 1.6;
-            margin: 0;
-        }
-
-        /* 動態連線動態標示 */
-        #game-viewport .signal-pulse-box {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #E8D7FF; /* 薰衣草紫 */
-            padding: 12px 28px;
-            border-radius: 16px;
-            color: #5E35B1;
-            font-weight: 700;
+        #game-viewport .back-text {
             font-size: 18px;
-            margin-top: 30px;
-            box-shadow: 0 6px 0 #D1B3FF;
+            color: #5D4037;
+            line-height: 1.6;
+            margin: 0 0 15px 0;
+            font-weight: 600;
         }
 
-        #game-viewport .pulse-dot {
-            width: 12px;
-            height: 12px;
-            background-color: #9575CD;
-            border-radius: 50%;
-            animation: pulse-glow 1.5s infinite ease-in-out;
+        /* 比例圖 SVG 預留容器 */
+        #game-viewport .svg-illustration-placeholder {
+            width: 100%;
+            height: 140px;
+            background-color: #F5F5F5;
+            border-radius: 16px;
+            border: 2px dashed #BCAAA4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #8D6E63;
+            font-weight: 700;
+            font-size: 16px;
         }
 
-        @keyframes pulse-glow {
-            0% { transform: scale(0.9); opacity: 0.6; }
-            50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 12px #9575CD; }
-            100% { transform: scale(0.9); opacity: 0.6; }
+        #game-viewport .btn-retry {
+            width: 100%;
+            height: 56px;
+            background-color: #FFB7B2; /* 櫻花粉紅 */
+            border: none;
+            border-radius: 16px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #5D4037;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #FF9E96;
+            transition: all 0.1s ease;
+        }
+
+        #game-viewport .btn-retry:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #FF9E96;
         }
 
         /* 頁尾版權標記 */
@@ -154,6 +340,7 @@
             font-weight: 600;
             font-size: 16px;
             letter-spacing: 1px;
+            z-index: 10;
         }
 
         /* ==========================================================================
@@ -234,7 +421,7 @@
             box-sizing: border-box;
             z-index: 10000; /* 置頂於所有元素之上 */
             color: #FFFFFF;
-            display: none; /* 由 JS 依據條件啟用 */
+            display: none;
         }
 
         #test-remote-panel h3 {
@@ -263,14 +450,8 @@
             display: inline-block;
             width: 14px;
             height: 14px;
-            background-color: #FF5252; /* 預設紅燈 */
-            border-radius: 50%;
-            box-shadow: 0 0 8px #FF5252;
-            transition: all 0.3s ease;
-        }
-
-        #test-remote-panel .led-light.active {
             background-color: #69F0AE; /* 連線亮綠燈 */
+            border-radius: 50%;
             box-shadow: 0 0 12px #69F0AE;
         }
 
@@ -323,22 +504,62 @@
             <div class="header-bar">
                 <div class="level-badge">
                     <span>🏆</span>
-                    <span id="display-level">當前關卡：尚未初始化</span>
+                    <span id="display-level">挑戰關卡：LV.1</span>
                 </div>
                 <div class="status-info">
-                    <span>❤️ 生命值: 3/3</span>
-                    <span>⭐ Combo: 0</span>
+                    <span class="status-item">❤️ 生命值: <span id="display-hearts">3</span>/3</span>
+                    <span class="status-item">⭐ Combo: <span id="display-combo">0</span></span>
                 </div>
             </div>
 
-            <!-- 中央單一主要字卡 -->
-            <div class="center-card-flow">
-                <h1 id="card-title">等待主系統訊號...</h1>
-                <p id="card-desc">請使用右下角的「測試遙控器」點選【模擬啟動】。這會模擬主網站透過 iframe 發送關卡指定訊號給此遊戲模組。</p>
-                
-                <div class="signal-pulse-box">
-                    <div class="pulse-dot"></div>
-                    <span id="signal-text">已備妥 GAME_READY，等待外部指令...</span>
+            <!-- 【步驟二核心】單一主要字卡區 (3D 旋轉視角外層) -->
+            <div class="center-card-flow" id="main-card-flow">
+                <div class="flip-card-inner">
+                    
+                    <!-- 【狀態 A】卡片正面：解題畫面 -->
+                    <div class="card-face card-front" id="card-front-face">
+                        <div class="front-title">空間維度挑戰賽</div>
+                        
+                        <div class="question-box">
+                            <!-- 題目暫時以靜態模擬，步驟三將由演算法自動隨機產出 -->
+                            <span id="question-text">5 m<sup>2</sup> = ? cm<sup>2</sup></span>
+                        </div>
+                        
+                        <!-- 輸入與操作按鈕 -->
+                        <div class="input-zone">
+                            <input type="text" class="answer-input" id="player-input" placeholder="請輸入答案數字" autocomplete="off">
+                            <button class="btn-submit" onclick="GameModule.submitAnswer()">送出解答</button>
+                            <button class="btn-hint" onclick="GameModule.flipToB('hint')">查看提示</button>
+                        </div>
+                        <div style="font-size:14px; color:#A1887F; font-weight: 600;">提示：此題模擬正確答案為 "50000"</div>
+                    </div>
+                    
+                    <!-- 【狀態 B】卡片背面：原理說明畫面 -->
+                    <div class="card-face card-back">
+                        <div class="back-header">
+                            <div class="back-title">
+                                <span>💡</span>
+                                <span id="back-title-text">原理與維度解析</span>
+                            </div>
+                            <div style="font-weight:700; color:#00796B;" id="explanation-source">由提示點擊觸發</div>
+                        </div>
+                        
+                        <div class="back-explanation-content">
+                            <div class="back-highlight" id="explanation-highlight">長與寬各放大 100 倍！</div>
+                            <p class="back-text" id="explanation-body">
+                                二維面積（平方）換算時，長度和寬度都要進行單位換算。<br>
+                                1 公尺 = 100 公分，所以面積放大倍數為：100 × 100 = 10,000 倍！
+                            </p>
+                            <!-- 幾何圖形 placeholder，步驟四將在此繪製原生動態 SVG -->
+                            <div class="svg-illustration-placeholder" id="svg-container">
+                                🎨 [極簡 2D 矩形 SVG 比例圖 預留位置 - 步驟四實作]
+                            </div>
+                        </div>
+                        
+                        <!-- 返回大按鈕 -->
+                        <button class="btn-retry" onclick="GameModule.flipToA()">返回挑戰，我再想想！</button>
+                    </div>
+
                 </div>
             </div>
 
@@ -354,7 +575,6 @@
     <!-- 直螢幕防呆警告遮罩 -->
     <div id="orientation-overlay">
         <div class="phone-icon-wrapper">
-            <!-- 簡單俐落的旋轉手機 SVG 圖示 -->
             <svg class="phone-svg" viewBox="0 0 24 24">
                 <path d="M17,19H7V5H17M17,1H7C5.89,1 5,1.89 5,3V21C5,22.1 5.9,23 7,23H17C18.1,23 19,22.1 19,21V3C19,1.89 18.1,1 17,1Z"/>
             </svg>
@@ -364,33 +584,38 @@
     </div>
 
     <!-- 獨立開發專用：橘色測試遙控器 -->
-    <div id="test-remote-panel" id="panel">
-        <h3>測試遙控器 (獨立開發模式)</h3>
+    <div id="test-remote-panel">
+        <h3>測試遙控器 (步驟二翻轉驗證)</h3>
         <div class="status-row">
-            <span>外傳 Ready 訊號狀態：</span>
-            <div id="led-indicator" class="led-light"></div>
+            <span>連線狀態：已自動廣播</span>
+            <div class="led-light"></div>
         </div>
         <div class="btn-grid">
-            <button class="remote-btn" onclick="GameModule.simulatePostMessage(1)">模擬：開第1關</button>
-            <button class="remote-btn" onclick="GameModule.simulatePostMessage(2)">模擬：開第2關</button>
-            <button class="remote-btn" onclick="GameModule.simulatePostMessage(3)">模擬：開第3關</button>
-            <button class="remote-btn" onclick="GameModule.simulatePostMessage(4)">模擬=開第4關</button>
-            <button class="remote-btn" onclick="GameModule.simulatePostMessage(5)">模擬：開第5關</button>
+            <button class="remote-btn" onclick="GameModule.simulateCorrect()">模擬：玩家答對</button>
+            <button class="remote-btn" onclick="GameModule.simulateIncorrect()">模擬：玩家答錯</button>
+            <button class="remote-btn" onclick="GameModule.flipToB('manual')">手動：翻到背面</button>
+            <button class="remote-btn" onclick="GameModule.flipToA()">手動：翻回正面</button>
+            <button class="remote-btn" onclick="GameModule.simulateReset()">重置生命值</button>
         </div>
         <div class="log-box" id="remote-log">
-            系統就緒。已開啟單機測試面板。
+            步驟二載入完畢。
         </div>
     </div>
 
     <!-- ==========================================================================
-                 【JS 隔離】所有遊戲變數與行為均在命名空間 GameModule 內
-                 ========================================================================== -->
+         【JS 隔離】所有遊戲變數與行為均在命名空間 GameModule 內
+         ========================================================================== -->
     <script>
         const GameModule = {
             // 設計稿基準解析度 (16:9)
             baseWidth: 1280,
             baseHeight: 720,
-            currentLevel: 0,
+            
+            // 遊戲核心數據狀態
+            currentLevel: 1,
+            hearts: 3,
+            combo: 0,
+            isFlipped: false,
 
             // 初始化入口
             init() {
@@ -401,7 +626,6 @@
                 // 註冊 RWD 縮放監聽器
                 window.addEventListener('resize', () => this.setupRWD());
                 window.addEventListener('orientationchange', () => {
-                    // 稍微延遲以確保行動端轉向參數已就緒
                     setTimeout(() => this.setupRWD(), 100);
                 });
             },
@@ -411,96 +635,158 @@
                 const viewport = document.getElementById('game-viewport');
                 const windowWidth = window.innerWidth;
                 const windowHeight = window.innerHeight;
-
-                // 1. 計算縮放率 (選取視窗寬高與設計稿寬高之最小值，確保完全容納在螢幕內)
                 const scale = Math.min(windowWidth / this.baseWidth, windowHeight / this.baseHeight);
-
-                // 2. 設定主視角變形。
-                // *【關鍵修正】*：不再手動計算並設定 viewport.style.left 或 viewport.style.top！
-                // 完全將置中邏輯交給外層 #game-container-wrapper 的 Flexbox 處理。
-                // JavaScript 只負責處理 scale 的大小。
-                
                 viewport.style.transform = `scale(${scale})`;
             },
 
-            // 通訊管道初始化
+            // 雙向外發通訊
             setupCommunication() {
-                // 1. 發送 GAME_READY 訊號給父視窗 (向上發送)
-                this.sendPostMessage({ type: 'GAME_READY', challengeId: 1 });
-
-                // 2. 監聽父視窗傳遞的指令 (向下接收)
+                parent.postMessage({ type: 'GAME_READY', challengeId: 1 }, '*');
+                
                 window.addEventListener('message', (event) => {
                     const data = event.data;
                     if (data && data.type === 'START_GAME') {
-                        this.logToRemote(`收到外部指令: 啟動 LV.${data.config.level}`);
-                        this.startGame(data.config.level);
+                        this.logToRemote(`接收父視窗指令: 開啟 LV.${data.config.level}`);
+                        this.currentLevel = data.config.level;
+                        document.getElementById('display-level').innerText = `挑戰關卡：LV.${data.config.level}`;
                     }
                 });
             },
 
-            // 啟動關卡狀態更新 (此處為步驟一預留的狀態骨架，後續步驟在此擴充題庫與動畫)
-            startGame(level) {
-                this.currentLevel = level;
-                
-                // 更新畫面標籤與文字
-                document.getElementById('display-level').innerText = `當前關卡：LV.${level}`;
-                
-                const titleEl = document.getElementById('card-title');
-                const descEl = document.getElementById('card-desc');
-                const signalTextEl = document.getElementById('signal-text');
-
-                // 改變奶油底色以配合關卡提示，呈現漸進式色調反饋
-                const viewPort = document.getElementById('game-viewport');
-                const colors = {
-                    1: '#FFF0F0', // 櫻花淡粉紅
-                    2: '#FFF9E6', // 香蕉淡黃
-                    3: '#E6FFFA', // 薄荷淡藍綠
-                    4: '#F0E6FF', // 薰衣草淡紫
-                    5: '#FFF0E6'  // 甜橙淡粉
-                };
-                viewPort.style.backgroundColor = colors[level] || '#FDFBF7';
-
-                titleEl.innerText = `🎮 挑戰狀態：關卡 LV.${level} 載入成功！`;
-                descEl.innerHTML = `
-                    主網站成功下發指令！目前已成功切換至<b>第 ${level} 關</b>的互動賽局。<br><br>
-                    <span style="font-size:18px; color:#A1887F;">這證明了父子視窗 iframe 雙向通訊機制已完美接軌。<br>
-                    接下來在「步驟二」與「步驟三」中，我們將在此字卡核心注入 3D 翻轉動畫與隨機出題算式！</span>
-                `;
-                signalTextEl.innerText = `雙向通訊已建立 (當前關卡: LV.${level})`;
-            },
-
-            // 判斷是否為獨立開啟 (window === top) 並啟用虛擬測試面板
+            // 判斷是否為獨立開啟
             checkStandalone() {
                 if (window === top) {
-                    // 顯示右下角橘色模擬測試遙控器
-                    const panel = document.getElementById('test-remote-panel');
-                    panel.style.display = 'block';
-                    
-                    // 點亮連線狀態燈
-                    setTimeout(() => {
-                        document.getElementById('led-indicator').classList.add('active');
-                        this.logToRemote('通訊自檢：成功對外廣播 GAME_READY');
-                    }, 500);
+                    document.getElementById('test-remote-panel').style.display = 'block';
                 }
             },
 
-            // 輔助函式：發送訊息並記錄
-            sendPostMessage(msg) {
-                parent.postMessage(msg, '*');
-                this.logToRemote(`發送通訊: ${msg.type}`);
+            // ------------------ 【狀態 A <--> 狀態 B 翻轉邏輯】 ------------------
+            
+            // 翻轉到狀態 B（原理說明）
+            flipToB(triggerType = 'hint') {
+                if (this.isFlipped) return;
+                
+                this.isFlipped = true;
+                const cardFlow = document.getElementById('main-card-flow');
+                const sourceEl = document.getElementById('explanation-source');
+                const highlightEl = document.getElementById('explanation-highlight');
+                const bodyEl = document.getElementById('explanation-body');
+
+                // 依據觸發來源，動態變更卡片背面的文字內容與來源標示
+                if (triggerType === 'hint') {
+                    sourceEl.innerText = "💡 查看提示";
+                    highlightEl.innerText = "長與寬各放大 100 倍！";
+                    bodyEl.innerHTML = "二維面積（平方）換算時，長度與寬度都要進行單位換算。<br>1 公尺 = 100 公分，所以面積放大倍數為：100 × 100 = 10,000 倍！";
+                } else if (triggerType === 'incorrect') {
+                    sourceEl.innerText = "❌ 答錯了！別氣餒";
+                    highlightEl.innerText = "二維平方空間是雙倍的魔法！";
+                    bodyEl.innerHTML = "因為面積是由「長 × 寬」組成。<br>當你從 m<sup>2</sup> 換算成 cm<sup>2</sup> 時，可不能只乘以 100 喔，長寬各乘一次才是正確解！";
+                } else {
+                    sourceEl.innerText = "⚙️ 測試面板調試";
+                    highlightEl.innerText = "手動調試狀態 B 顯示";
+                    bodyEl.innerText = "目前為手動翻面測試，文字版型、間距、排版與 3D 旋轉均處於標準工作狀態。";
+                }
+
+                cardFlow.classList.add('flipped');
+                this.logToRemote(`卡片翻面：狀態 B (來源: ${triggerType})`);
             },
 
-            // 虛擬遙控器專用：模擬外部大網站發送 iframe 訊號
-            simulatePostMessage(level) {
-                const simulatedEvent = {
-                    type: 'START_GAME',
-                    config: { level: level }
-                };
-                // 模擬 message 事件直接觸發於當前視窗，完美還原 iframe 接收情境
-                window.postMessage(simulatedEvent, '*');
+            // 翻轉回狀態 A（解題畫面）
+            flipToA() {
+                if (!this.isFlipped) return;
+                
+                this.isFlipped = false;
+                const cardFlow = document.getElementById('main-card-flow');
+                cardFlow.classList.remove('flipped');
+                
+                // 自動聚焦輸入框，方便玩家直接重新作答
+                setTimeout(() => {
+                    document.getElementById('player-input').focus();
+                }, 400);
+
+                this.logToRemote('卡片翻面：狀態 A (返回解題)');
             },
 
-            // 遙控器 Log 記錄面板顯示
+            // ------------------ 【答題賽局邏輯驗證】 ------------------
+            
+            // 提交解答
+            submitAnswer() {
+                const inputEl = document.getElementById('player-input');
+                const answer = inputEl.value.trim();
+
+                if (answer === "") {
+                    this.logToRemote('警告：請輸入數值再送出');
+                    this.flashFrontEffect('error-shake');
+                    return;
+                }
+
+                // 步驟二模擬答案設為 "50000"
+                if (answer === "50000") {
+                    this.handleCorrect();
+                } else {
+                    this.handleIncorrect();
+                }
+
+                // 清空輸入框
+                inputEl.value = "";
+            },
+
+            // 處理答對狀況
+            handleCorrect() {
+                this.combo++;
+                document.getElementById('display-combo').innerText = this.combo;
+                this.flashFrontEffect('correct-flash');
+                this.logToRemote(`答對了！當前 Combo 累計：${this.combo}`);
+            },
+
+            // 處理答錯狀況
+            handleIncorrect() {
+                this.combo = 0; // Combo 中斷歸零
+                this.hearts = Math.max(0, this.hearts - 1);
+                
+                document.getElementById('display-combo').innerText = this.combo;
+                document.getElementById('display-hearts').innerText = this.hearts;
+                
+                this.flashFrontEffect('error-shake');
+                this.logToRemote(`答錯了！扣除 1 點生命值，剩餘：${this.hearts}`);
+
+                // 答錯後延遲 0.8 秒自動翻轉至狀態 B 解析圖卡，引導學生思考
+                setTimeout(() => {
+                    this.flipToB('incorrect');
+                }, 800);
+            },
+
+            // 輔助方法：在卡片正面觸發動態特效（發光或震動）
+            flashFrontEffect(effectClass) {
+                const frontFace = document.getElementById('card-front-face');
+                frontFace.classList.remove('correct-flash', 'error-shake');
+                
+                // 強制瀏覽器重繪 (Reflow) 以便再次觸發 CSS 動畫
+                void frontFace.offsetWidth; 
+                
+                frontFace.classList.add(effectClass);
+            },
+
+            // ------------------ 【測試遙控器專用模擬方法】 ------------------
+            
+            simulateCorrect() {
+                document.getElementById('player-input').value = "50000";
+                this.submitAnswer();
+            },
+
+            simulateIncorrect() {
+                document.getElementById('player-input').value = "999";
+                this.submitAnswer();
+            },
+
+            simulateReset() {
+                this.hearts = 3;
+                this.combo = 0;
+                document.getElementById('display-hearts').innerText = this.hearts;
+                document.getElementById('display-combo').innerText = this.combo;
+                this.logToRemote('重置狀態：生命值與 Combo 已恢復');
+            },
+
             logToRemote(message) {
                 const logBox = document.getElementById('remote-log');
                 if (logBox) {
