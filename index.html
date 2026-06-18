@@ -116,6 +116,7 @@
             height: calc(100% - 110px); 
         }
 
+        /* */
         .split-panel {
             flex: 1;
             background-color: var(--panel-white);
@@ -170,7 +171,7 @@
             background-color: #ffffff;
         }
 
-        /* 關鍵修正：取消 Flex 佈局，回歸標準區塊與文字排版，徹底杜絕匿名 Flex 導致的折行 Bug */
+        /* 徹底防禦文字與匿名 Flex 佈局衝突導致的斷折 Bug */
         .panel-desc {
             font-size: 19px;
             color: var(--text-muted);
@@ -273,6 +274,7 @@
             background-color: #4a5568;
         }
 
+        /* */
         .sandbox-title {
             font-size: 22px;
             color: var(--macaron-blue);
@@ -469,6 +471,7 @@
         <div style="font-size: 22px; color: #636e72; line-height: 1.8;">本數理挑戰專為【橫螢幕 16:9】設計，<br>請開啟螢幕自動旋轉，並將手機橫放以獲得最佳體驗！</div>
     </div>
 
+    <!-- -->
     <script>
         /**
          * 遊戲與幾何渲染主模組
@@ -557,6 +560,7 @@
                 this.log('系統偵測：獨立開發模式硬化。已解鎖測試控制台，點擊左側 🛠️ 即可展開測試。', 'system');
             },
 
+            /* */
             /**
              * 第一性原理：標準數學排版渲染引擎 (Canvas text superscript parser)
              * 將 "^" 作為上標切分符，在 2D 渲染層完美繪製符合教科書格式的上標字型。
@@ -729,7 +733,7 @@
                 ctx.restore();
             },
 
-            /**
+            //            /**
              * 步驟五：繪製立體馬卡龍階梯方塊輔助函數
              */
             drawStairBlock(ctx, x, y, w, h, topColor, frontColor, sideColor, unitText) {
@@ -752,7 +756,7 @@
                 ctx.beginPath();
                 ctx.moveTo(x, y + shift);
                 ctx.lineTo(x + shift, y);
-                ctx.lineTo(x + w, y); // 已完美修正：補齊 Y 軸參數，消除 runtime 崩潰
+                ctx.lineTo(x + w, y);
                 ctx.lineTo(x + w - shift, y + shift);
                 ctx.closePath();
                 ctx.fill();
@@ -847,7 +851,7 @@
                 this.renderRightGraphics();
             },
 
-            /**
+            //            /**
              * 渲染左側 Canvas
              */
             renderLeftGraphics() {
@@ -1013,7 +1017,7 @@
                 }
             },
 
-            /**
+            //            /**
              * 渲染右側 Canvas
              */
             renderRightGraphics() {
@@ -1025,7 +1029,6 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(0, 0, width, height);
 
-                // 統一在 scope 內安全定義 drawPillBadge, 徹底避免 ReferenceError
                 const drawPillBadge = (ctx, bx, by, text) => {
                     ctx.save();
                     ctx.fillStyle = "#ffffff";
@@ -1042,7 +1045,6 @@
                     ctx.restore();
                 };
 
-                // 高質量、數學正切對齊的 curved 飛躍弧線渲染器
                 const drawCurvedArrow = (ctx, sx, sy, ex, ey, h, arrowColor) => {
                     ctx.save();
                     ctx.strokeStyle = arrowColor;
@@ -1054,7 +1056,6 @@
                     ctx.quadraticCurveTo(cx, cy, ex, ey);
                     ctx.stroke();
 
-                    // 計算結尾處的數學切線，保證箭頭 100% 精準指向不歪斜
                     const dx = ex - cx;
                     const dy = ey - cy;
                     const angle = Math.atan2(dy, dx);
@@ -1262,7 +1263,6 @@
                     ctx.restore();
 
                 } else if (this.state.currentLevel === 4) {
-                    // LV.4 右側：立體階梯 + 發光虛線飛躍弧線 + 可愛Q萌千倍史萊姆魔王
                     ctx.save();
                     
                     const ox = 40, oy = 95;
@@ -1270,18 +1270,14 @@
                     this.drawStairBlock(ctx, ox + 110, oy + 40, 85, 100, "#ffeaa7", "#ffdca7", "#ffcc87", "μm");
                     this.drawStairBlock(ctx, ox + 220, oy + 80, 85, 60, "#81ecec", "#71e2e2", "#51d2d2", "nm");
 
-                    // 1. 繪製精準正切對齊的飛躍曲線
                     drawCurvedArrow(ctx, 110, 115, 165, 155, 55, "#fd79a8");
                     drawCurvedArrow(ctx, 220, 160, 275, 195, 55, "#fd79a8");
 
-                    // 2. 在弧線的波峰精準貼合「× 1000」小藥丸發光徽章
                     drawPillBadge(ctx, 137, 65, "× 1000");
                     drawPillBadge(ctx, 247, 110, "× 1000");
 
-                    // 3. 全新重構：Q萌星形史萊姆「千倍魔王」（扁平向量風）
                     const mx = 390, my = 125;
                     
-                    // 漸層柔軟身體
                     const gradient = ctx.createRadialGradient(mx - 8, my - 10, 5, mx, my, 35);
                     gradient.addColorStop(0, "#ffeaa7");
                     gradient.addColorStop(0.3, "#ff7675");
@@ -1290,14 +1286,11 @@
                     ctx.strokeStyle = "#2d3436";
                     ctx.lineWidth = 3.5;
 
-                    // 繪製柔軟 Q 彈的扁平水滴星形輪廓 (5個突起觸角)
                     ctx.beginPath();
                     for (let i = 0; i < 5; i++) {
                         let angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
-                        // 頂角
                         let tx = mx + Math.cos(angle) * 32;
                         let ty = my + Math.sin(angle) * 32;
-                        // 凹角
                         let nextAngle = angle + Math.PI / 5;
                         let bx = mx + Math.cos(nextAngle) * 23;
                         let by = my + Math.sin(nextAngle) * 23;
@@ -1309,7 +1302,6 @@
                     ctx.closePath();
                     ctx.fill(); ctx.stroke();
 
-                    // 精緻金色小皇冠
                     ctx.fillStyle = "#ffd32a";
                     ctx.beginPath();
                     ctx.moveTo(mx - 10, my - 29);
@@ -1319,7 +1311,6 @@
                     ctx.lineTo(mx + 10, my - 29);
                     ctx.closePath(); ctx.fill(); ctx.stroke();
 
-                    // 超萌圓眼睛與動漫高光
                     ctx.fillStyle = "#ffffff";
                     ctx.beginPath(); ctx.arc(mx - 10, my, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
                     ctx.beginPath(); ctx.arc(mx + 10, my, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
@@ -1332,26 +1323,22 @@
                     ctx.beginPath(); ctx.arc(mx - 9, my - 2, 1.8, 0, Math.PI*2); ctx.fill();
                     ctx.beginPath(); ctx.arc(mx + 7, my - 2, 1.8, 0, Math.PI*2); ctx.fill();
 
-                    // 可愛腮紅
                     ctx.fillStyle = "rgba(255, 120, 120, 0.7)";
                     ctx.beginPath(); ctx.ellipse(mx - 14, my + 8, 5, 2.5, 0, 0, Math.PI*2); ctx.fill();
                     ctx.beginPath(); ctx.ellipse(mx + 14, my + 8, 5, 2.5, 0, 0, Math.PI*2); ctx.fill();
 
-                    // 可愛小嘴巴
                     ctx.strokeStyle = "#2d3436";
                     ctx.lineWidth = 2.5;
                     ctx.beginPath();
                     ctx.arc(mx, my + 5, 4, 0, Math.PI, false);
                     ctx.stroke();
 
-                    // 現代化圓角扁平對話框
                     ctx.fillStyle = "#ffeaa7";
                     ctx.strokeStyle = "#2d3436";
                     ctx.lineWidth = 3;
                     ctx.beginPath();
                     ctx.roundRect(290, 20, 180, 42, 12);
                     ctx.fill(); ctx.stroke();
-                    // 氣泡尾巴
                     ctx.beginPath();
                     ctx.moveTo(375, 62); ctx.lineTo(382, 77); ctx.lineTo(390, 62);
                     ctx.closePath(); ctx.fill(); ctx.stroke();
@@ -1363,11 +1350,11 @@
                     ctx.restore();
 
                 } else if (this.state.currentLevel === 5) {
-                    // LV.5 右側：分數單位協同計算卡片
+                    // LV.5 右側：分數單位協同計算卡片 (等號移除，分子分母與分數線完美居中對齊)
                     ctx.save();
                     
                     const boxX = 25;
-                    const boxY = 25; // 修正：Y軸微移至25，為底下留出安全距離
+                    const boxY = 25; 
                     const boxW = 240;
 
                     // 1. 分子轉換卡
@@ -1420,7 +1407,7 @@
                     ctx.moveTo(303, boxY + 63); ctx.lineTo(318, boxY + 75); ctx.lineTo(303, boxY + 87);
                     ctx.closePath(); ctx.fill();
 
-                    // 4. 黃色計算卡片「帶著單位一起除！」
+                    // 4. 黃色計算卡片「帶著單位一起除！」(精確對稱居中，等號已徹底移除)
                     const resX = 325, resY = boxY + 10, resW = 140, resH = 110;
                     ctx.fillStyle = "#ffeaa7";
                     ctx.strokeStyle = "#fdcb6e";
@@ -1429,36 +1416,44 @@
                     ctx.roundRect(resX, resY, resW, resH, 15);
                     ctx.fill(); ctx.stroke();
 
-                    this.drawMathText(ctx, "90,000 m", resX + 15, resY + 32, 14, "#d63031");
+                    // 分子 (精準 X=35 居中)
+                    this.drawMathText(ctx, "90,000 m", resX + 35, resY + 38, 14, "#d63031");
                     
+                    // 分數線 (精準對稱)
                     ctx.strokeStyle = "#2d3436";
                     ctx.lineWidth = 2.5;
-                    ctx.beginPath(); ctx.moveTo(resX + 10, resY + 49); ctx.lineTo(resX + resW - 10, resY + 49); ctx.stroke();
+                    ctx.beginPath(); 
+                    ctx.moveTo(resX + 15, resY + 55); 
+                    ctx.lineTo(resX + resW - 15, resY + 55); 
+                    ctx.stroke();
                     
-                    this.drawMathText(ctx, "3,600 s", resX + 22, resY + 71, 14, "#0984e3");
-                    
-                    ctx.fillStyle = "#2d3436";
-                    ctx.font = "bold 22px 'Kosugi Maru'";
-                    ctx.fillText("＝", resX + 48, resY + 95);
+                    // 分母 (精準 X=41 居中)
+                    this.drawMathText(ctx, "3,600 s", resX + 41, resY + 77, 14, "#0984e3");
+                    ctx.restore();
 
-                    // 5. 💡 教學提示小膠囊 (關鍵修正：向下平移 16 像素，完全避免重疊)
+                    // 5. 💡 教學提示小膠囊 (關鍵修正：向下調整至 Y=192，並在 ctx.save/restore 中還原 textAlign 以免切邊！)
+                    ctx.save();
                     ctx.fillStyle = "#55efc4";
                     ctx.beginPath();
-                    ctx.roundRect(boxX, 188, 430, 28, 6);
+                    ctx.roundRect(boxX, 192, 430, 28, 6);
                     ctx.fill();
+
                     ctx.fillStyle = "#2d3436";
                     ctx.font = "bold 13px 'Kosugi Maru'";
-                    ctx.fillText("💡 數字與單位一起除，就自然導出 m/s 囉！", boxX + 40, 207);
+                    ctx.textAlign = "left"; // 強制重置對齊方式，100% 根除左側文字截斷 Bug
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("💡 數字與單位一起除，就自然導出 m/s 囉！", boxX + 40, 192 + 14); 
+                    ctx.restore();
 
-                    // 6. 最終換算導出綠牌匾 (關鍵修正：向下平移 16 像素，建立完美呼吸感)
+                    // 6. 最終換算導出綠牌匾 (關鍵修正：向下調整至 Y=230)
+                    ctx.save();
                     ctx.fillStyle = "#55efc4";
                     ctx.strokeStyle = "#2db385";
                     ctx.lineWidth = 3;
                     ctx.beginPath();
-                    ctx.roundRect(65, 238, 350, 42, 10);
+                    ctx.roundRect(65, 230, 350, 42, 10);
                     ctx.fill(); ctx.stroke();
-                    this.drawMathText(ctx, "換算導出：25 m/s", 160, 267, 19, "#2d3436");
-
+                    this.drawMathText(ctx, "換算導出：25 m/s", 160, 258, 19, "#2d3436");
                     ctx.restore();
                 }
             },
