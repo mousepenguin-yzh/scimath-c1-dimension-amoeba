@@ -151,7 +151,6 @@
             gap: 8px;
         }
 
-        /* 雙畫布渲染容器 */
         .canvas-container {
             width: 100%;
             flex: 1;
@@ -171,7 +170,6 @@
             background-color: #ffffff;
         }
 
-        /* 徹底防禦文字與匿名 Flex 佈局衝突 */
         .panel-desc {
             font-size: 19px;
             color: var(--text-muted);
@@ -197,9 +195,6 @@
             line-height: 0;
         }
 
-        /* ----------------------------------
-           底部互動問答與自訂鍵盤面板
-        ------------------------------------- */
         #qa-bar-container {
             height: 120px;
             margin-top: 15px;
@@ -367,9 +362,6 @@
             visibility: hidden;
         }
 
-        /* ----------------------------------
-           馬卡龍內置觸控鍵盤 (預防彈出 bug)
-        ------------------------------------- */
         #virtual-keypad {
             position: absolute;
             bottom: 120px;
@@ -422,9 +414,6 @@
             box-shadow: 0 3px 0 #e84118;
         }
 
-        /* ----------------------------------
-           特效與全螢幕覆蓋渲染 Canvas (碎紙屑粒子)
-        ------------------------------------- */
         #effects-canvas {
             position: absolute;
             top: 0;
@@ -435,9 +424,7 @@
             z-index: 1500;
         }
 
-        /* ----------------------------------
-           結算大成彈窗 Modal
-        ------------------------------------- */
+        /* 結算大成彈窗 Modal */
         #settlement-modal {
             position: absolute;
             top: 0;
@@ -545,7 +532,6 @@
             transform: translateX(0); 
         }
 
-        /* 抽屜切換按鈕 */
         #sandbox-toggle-btn {
             position: absolute;
             left: -140px;
@@ -562,7 +548,7 @@
             font-family: inherit;
             box-shadow: -4px 4px 10px rgba(0,0,0,0.2);
             z-index: 1001;
-            display: flex; /* 核心硬化：一律預設常開，不依賴任何 JS 成功初始化 */
+            display: flex; 
             align-items: center;
             gap: 6px;
         }
@@ -647,6 +633,42 @@
         .log-dir-out {
             color: var(--macaron-green);
         }
+
+        #orientation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100dvh;
+            background-color: var(--macaron-yellow);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .phone-icon-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 35px;
+        }
+
+        .phone-icon {
+            font-size: 100px;
+            display: inline-block;
+            animation: rotatePhone 2.5s infinite ease-in-out;
+        }
+
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            35% { transform: rotate(-90deg); }
+            70% { transform: rotate(-90deg); }
+            100% { transform: rotate(0deg); }
+        }
     </style>
 </head>
 <body>
@@ -693,7 +715,7 @@
                     </div>
                 </div>
 
-                <!-- 底部互動問答控制區 -->
+                <!-- 底部互動問答與自訂鍵盤面板 -->
                 <div id="qa-bar-container">
                     <!-- 題目資訊 -->
                     <div class="quest-box">
@@ -771,7 +793,7 @@
                 <div id="sandbox-logger"></div>
             </div>
 
-            <!-- 結算大成彈窗 Modal -->
+            <!-- 結算彈窗 Modal -->
             <div id="settlement-modal">
                 <div class="modal-card">
                     <div class="modal-title">🏆 挑戰完成！</div>
@@ -863,9 +885,6 @@
             };
         }
 
-        /**
-         * 遊戲核心與幾何渲染主模組
-         */
         const GameModule = {
             config: {
                 baseWidth: 1280,
@@ -1421,7 +1440,7 @@
                         break;
                     case 5:
                         const speedVals = [36, 72, 90, 108];
-                        const val5 = speedVals[Math.floor(Math.random() * speedVals.length)];
+                        const val5 = speedVals[Math.floor(GameModule.state.score + Math.random() * speedVals.length) % speedVals.length];
                         text = `請將速度 ${val5} km/hr 換算為 m/s`;
                         leftRenderValue = val5;
                         answer = (val5 / 3.6).toString(); 
@@ -1878,7 +1897,7 @@
 
                     ctx.fillStyle = "#4a5568"; 
                     ctx.font = "bold 20px 'Kosugi Maru'";
-                    ctx.fillText("如果答錯，這裡將自動開啟提示與解析喔！", width/2, height/2 + 95);
+                    ctx.fillText("如果答錯，這裡將自動解鎖提示與解析喔！", width/2, height/2 + 95);
                     ctx.restore();
                     return;
                 }
@@ -2142,7 +2161,6 @@
                     ctx.restore();
 
                 } else if (GameModule.state.currentLevel === 5) {
-                    // LV.5 右側 (等號已徹底移除，整體分數與除線實施 100% 完美的水平與垂直對稱置中)
                     ctx.save();
                     
                     const boxX = 25;
@@ -2193,14 +2211,14 @@
                     const resX = 325, resY = boxY + 10, resW = 140, resH = 110;
                     GameModule.drawRoundRect(ctx, resX, resY, resW, resH, 15, "#ffeaa7", "#fdcb6e", 3);
 
-                    // 關鍵修正：等號徹底移除。分子、分母及除數橫線實施完美的物理水平置中
+                    // 物理量水平置中
                     const numText = `${(questValue * 1000).toLocaleString()} m`;
                     ctx.font = "bold 14px 'Kosugi Maru', sans-serif";
                     const numWidth = ctx.measureText(numText).width;
-                    const numX = resX + (resW - numWidth) / 2; // 計算完美的分子居中 X 坐標
+                    const numX = resX + (resW - numWidth) / 2; 
                     GameModule.drawMathText(ctx, numText, numX, resY + 38, 14, "#d63031");
                     
-                    // 分數線 (水平置中)
+                    // 分數線
                     ctx.strokeStyle = "#2d3436";
                     ctx.lineWidth = 2.5;
                     ctx.beginPath(); 
@@ -2211,28 +2229,27 @@
                     const denText = "3,600 s";
                     ctx.font = "bold 14px 'Kosugi Maru', sans-serif";
                     const denWidth = ctx.measureText(denText).width;
-                    const denX = resX + (resW - denWidth) / 2; // 計算完美的分母居中 X 坐標
+                    const denX = resX + (resW - denWidth) / 2; 
                     GameModule.drawMathText(ctx, denText, denX, resY + 77, 14, "#0984e3");
                     ctx.restore();
 
-                    // 5. 💡 教學提示小膠囊 (關鍵修正：往下調整至 Y = 196)
+                    // 5. 💡 教學提示小膠囊 (垂直高度定位 Y = 196)
                     GameModule.drawRoundRect(ctx, boxX, 196, 430, 28, 6, "#55efc4");
+                    ctx.save();
                     ctx.fillStyle = "#2d3436";
                     ctx.font = "bold 13px 'Kosugi Maru'";
                     ctx.textAlign = "left"; 
                     ctx.textBaseline = "middle";
-                    ctx.fillText("💡 數字與單位一起除，就自然導出 m/s 囉！", boxX + 40, 196 + 14); 
+                    GameModule.drawMathText(ctx, "💡 數字與單位一起除，就自然導出 m/s 囉！", boxX + 40, 196 + 14, 13, "#2d3436");
+                    ctx.restore();
 
-                    // 6. 最終換算導出大牌匾 (關鍵修正：往下調整至 Y = 236)
+                    // 6. 最終換算導出大牌匾 (垂直高度定位 Y = 236)
                     GameModule.drawRoundRect(ctx, 65, 236, 350, 42, 10, "#55efc4", "#2db385", 3);
                     GameModule.drawMathText(ctx, `換算導出：${GameModule.state.currentQuest.answer} m/s`, 140, 267, 19, "#2d3436");
                     ctx.restore();
                 }
             },
 
-            /**
-             * 測試排版引擎極限
-             */
             testMathTypography() {
                 const ctx = GameModule.canvas.ctxLeft;
                 ctx.clearRect(0, 0, GameModule.canvas.left.width, GameModule.canvas.left.height);
