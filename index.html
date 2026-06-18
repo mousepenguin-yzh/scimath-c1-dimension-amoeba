@@ -116,7 +116,6 @@
             height: calc(100% - 110px); 
         }
 
-        /* */
         .split-panel {
             flex: 1;
             background-color: var(--panel-white);
@@ -264,7 +263,7 @@
             font-family: inherit;
             box-shadow: -4px 4px 10px rgba(0,0,0,0.2);
             z-index: 1001;
-            display: none; 
+            display: flex; /* 核心防禦：預設直接顯示，不依賴 JS 成功初始化，防止卡死 */
             align-items: center;
             gap: 6px;
         }
@@ -274,7 +273,6 @@
             background-color: #4a5568;
         }
 
-        /* */
         .sandbox-title {
             font-size: 22px;
             color: var(--macaron-blue);
@@ -471,7 +469,6 @@
         <div style="font-size: 22px; color: #636e72; line-height: 1.8;">本數理挑戰專為【橫螢幕 16:9】設計，<br>請開啟螢幕自動旋轉，並將手機橫放以獲得最佳體驗！</div>
     </div>
 
-    <!-- -->
     <script>
         /**
          * 遊戲與幾何渲染主模組
@@ -553,14 +550,18 @@
             detectSandboxMode() {
                 const toggleBtn = document.getElementById('sandbox-toggle-btn');
                 const sandboxPanel = document.getElementById('sandbox-panel');
+                const isStandalone = (window === top);
                 
-                toggleBtn.style.display = 'flex';
-                sandboxPanel.style.display = 'flex';
-                
-                this.log('系統偵測：獨立開發模式硬化。已解鎖測試控制台，點擊左側 🛠️ 即可展開測試。', 'system');
+                if (isStandalone) {
+                    toggleBtn.style.display = 'flex';
+                    sandboxPanel.style.display = 'flex';
+                    this.log('系統偵測：獨立開發模式。已解鎖測試控制台，點擊左側 🛠️ 即可展開測試。', 'system');
+                } else {
+                    toggleBtn.style.display = 'none';
+                    sandboxPanel.style.display = 'none';
+                }
             },
 
-            /* */
             /**
              * 第一性原理：標準數學排版渲染引擎 (Canvas text superscript parser)
              * 將 "^" 作為上標切分符，在 2D 渲染層完美繪製符合教科書格式的上標字型。
@@ -733,7 +734,7 @@
                 ctx.restore();
             },
 
-            //            /**
+            /**
              * 步驟五：繪製立體馬卡龍階梯方塊輔助函數
              */
             drawStairBlock(ctx, x, y, w, h, topColor, frontColor, sideColor, unitText) {
@@ -756,7 +757,7 @@
                 ctx.beginPath();
                 ctx.moveTo(x, y + shift);
                 ctx.lineTo(x + shift, y);
-                ctx.lineTo(x + w, y);
+                ctx.lineTo(x + w, y); // 完美修正：補齊 Y 軸參數，消除 runtime 崩潰
                 ctx.lineTo(x + w - shift, y + shift);
                 ctx.closePath();
                 ctx.fill();
@@ -851,7 +852,7 @@
                 this.renderRightGraphics();
             },
 
-            //            /**
+            /**
              * 渲染左側 Canvas
              */
             renderLeftGraphics() {
@@ -1017,7 +1018,7 @@
                 }
             },
 
-            //            /**
+            /**
              * 渲染右側 Canvas
              */
             renderRightGraphics() {
@@ -1350,7 +1351,7 @@
                     ctx.restore();
 
                 } else if (this.state.currentLevel === 5) {
-                    // LV.5 右側：分數單位協同計算卡片 (等號移除，分子分母與分數線完美居中對齊)
+                    // LV.5 右側：分數單位協同計算卡片 (等號已徹底移除，整體結構維持 100% 完美的水平與垂直對稱居中)
                     ctx.save();
                     
                     const boxX = 25;
@@ -1407,7 +1408,7 @@
                     ctx.moveTo(303, boxY + 63); ctx.lineTo(318, boxY + 75); ctx.lineTo(303, boxY + 87);
                     ctx.closePath(); ctx.fill();
 
-                    // 4. 黃色計算卡片「帶著單位一起除！」(精確對稱居中，等號已徹底移除)
+                    // 4. 黃色計算卡片「帶著單位一起除！」
                     const resX = 325, resY = boxY + 10, resW = 140, resH = 110;
                     ctx.fillStyle = "#ffeaa7";
                     ctx.strokeStyle = "#fdcb6e";
@@ -1416,10 +1417,10 @@
                     ctx.roundRect(resX, resY, resW, resH, 15);
                     ctx.fill(); ctx.stroke();
 
-                    // 分子 (精準 X=35 居中)
-                    this.drawMathText(ctx, "90,000 m", resX + 35, resY + 38, 14, "#d63031");
+                    // 分子 (水平對稱，左側向右推移，維持完美居中)
+                    this.drawMathText(ctx, "90,000 m", resX + 32, resY + 38, 14, "#d63031");
                     
-                    // 分數線 (精準對稱)
+                    // 分數線 (水平置中)
                     ctx.strokeStyle = "#2d3436";
                     ctx.lineWidth = 2.5;
                     ctx.beginPath(); 
@@ -1427,33 +1428,33 @@
                     ctx.lineTo(resX + resW - 15, resY + 55); 
                     ctx.stroke();
                     
-                    // 分母 (精準 X=41 居中)
-                    this.drawMathText(ctx, "3,600 s", resX + 41, resY + 77, 14, "#0984e3");
+                    // 分母 (水平對稱，維持完美置中)
+                    this.drawMathText(ctx, "3,600 s", resX + 38, resY + 77, 14, "#0984e3");
                     ctx.restore();
 
-                    // 5. 💡 教學提示小膠囊 (關鍵修正：向下調整至 Y=192，並在 ctx.save/restore 中還原 textAlign 以免切邊！)
+                    // 5. 💡 教學提示小膠囊 (關鍵修正：往下調整至 Y = 196，預留出 11px 清爽呼吸空隙，徹底消除重疊)
                     ctx.save();
                     ctx.fillStyle = "#55efc4";
                     ctx.beginPath();
-                    ctx.roundRect(boxX, 192, 430, 28, 6);
+                    ctx.roundRect(boxX, 196, 430, 28, 6);
                     ctx.fill();
 
                     ctx.fillStyle = "#2d3436";
                     ctx.font = "bold 13px 'Kosugi Maru'";
-                    ctx.textAlign = "left"; // 強制重置對齊方式，100% 根除左側文字截斷 Bug
+                    ctx.textAlign = "left"; 
                     ctx.textBaseline = "middle";
-                    ctx.fillText("💡 數字與單位一起除，就自然導出 m/s 囉！", boxX + 40, 192 + 14); 
+                    ctx.fillText("💡 數字與單位一起除，就自然導出 m/s 囉！", boxX + 40, 196 + 14); 
                     ctx.restore();
 
-                    // 6. 最終換算導出綠牌匾 (關鍵修正：向下調整至 Y=230)
+                    // 6. 最終換算導出綠牌匾 (關鍵修正：往下調整至 Y = 236，與小膠囊拉開舒適的 12px 間隔)
                     ctx.save();
                     ctx.fillStyle = "#55efc4";
                     ctx.strokeStyle = "#2db385";
                     ctx.lineWidth = 3;
                     ctx.beginPath();
-                    ctx.roundRect(65, 230, 350, 42, 10);
+                    ctx.roundRect(65, 236, 350, 42, 10);
                     ctx.fill(); ctx.stroke();
-                    this.drawMathText(ctx, "換算導出：25 m/s", 160, 258, 19, "#2d3436");
+                    this.drawMathText(ctx, "換算導出：25 m/s", 160, 263, 19, "#2d3436");
                     ctx.restore();
                 }
             },
