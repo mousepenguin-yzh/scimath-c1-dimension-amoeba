@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>國二理化挑戰 - 獨立遊戲模組 (步驟五完工步驟一重構)</title>
+    <title>國二理化挑戰 - 獨立遊戲模組 (手機高 legibility 優化版)</title>
     <!-- 引入日系可愛圓體與英文 Fredoka 圓體 -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -46,7 +46,7 @@
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            padding: 30px 40px;
+            padding: 20px 40px; /* 【手機優化】：減少上下內邊距，騰出垂直空間 */
             box-sizing: border-box;
             transition: background-color 0.4s ease, transform 0.1s ease;
         }
@@ -130,7 +130,7 @@
         }
 
         #game-viewport .menu-title {
-            font-size: 42px;
+            font-size: 46px; /* 【手機優化】：選單標題稍微放大 */
             font-weight: 700;
             color: #5D4037;
             margin: 0 0 15px 0;
@@ -138,9 +138,9 @@
         }
 
         #game-viewport .menu-subtitle {
-            font-size: 18px;
+            font-size: 19px; /* 【修正】：提高選單說明文案易讀性 */
             color: #8D6E63;
-            max-width: 800px;
+            max-width: 850px;
             line-height: 1.6;
             margin: 0 0 35px 0;
             font-weight: 600;
@@ -218,7 +218,6 @@
             line-height: 1.4;
         }
 
-        /* 預留給步驟二：最高分紀錄與完美勳章的外觀排版 */
         #game-viewport .lvl-card-record {
             font-size: 13px;
             color: #8D6E63;
@@ -267,8 +266,8 @@
            ========================================================================== */
         #game-viewport .center-card-flow {
             width: 90%;
-            height: 500px;
-            margin: 15px 0;
+            height: 460px; /* 【手機優化】：稍微壓縮高度，騰出空間給下方大按鍵鍵盤 */
+            margin: 10px 0; /* 【手機優化】：壓縮外邊距 */
             perspective: 1500px;
             position: relative;
             display: none; /* 進入解題畫面才由狀態機開啟 */
@@ -295,7 +294,7 @@
             height: 100%;
             backface-visibility: hidden;
             border-radius: 32px;
-            padding: 24px 30px;
+            padding: 15px 30px; /* 【手機優化】：減少卡片內邊距，使內容撐大 */
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -331,16 +330,16 @@
 
         #game-viewport .front-title {
             color: #8D6E63;
-            font-size: 16px;
+            font-size: 18px; /* 【手機優化】：調大標題字體 */
             font-weight: 700;
             letter-spacing: 2px;
         }
 
         #game-viewport .question-box {
-            font-size: 44px;
+            font-size: 52px; /* 【手機優化】：大幅調大公式字體，解決手機端看不清問題 */
             font-weight: 700;
             color: #5D4037;
-            margin: 10px 0;
+            margin: 5px 0; /* 【手機優化】：壓縮垂直間距 */
             letter-spacing: 1px;
         }
 
@@ -354,11 +353,11 @@
         }
 
         #game-viewport .answer-input {
-            width: 250px;
-            height: 54px;
+            width: 260px;
+            height: 58px; /* 【手機優化】：加大輸入框，突顯輸入焦點 */
             border: 4px solid #FFDAC1;
             border-radius: 16px;
-            font-size: 26px;
+            font-size: 30px; /* 【手機優化】：加大輸入答案字體 */
             font-weight: 700;
             text-align: center;
             color: #5D4037;
@@ -368,11 +367,11 @@
         }
 
         #game-viewport .btn-control {
-            height: 54px;
-            padding: 0 20px;
+            height: 58px; /* 【手機優化】：配合輸入框等高 */
+            padding: 0 24px;
             border: none;
             border-radius: 16px;
-            font-size: 18px;
+            font-size: 20px; /* 【手機優化】：調大按鈕字體 */
             font-weight: 700;
             cursor: pointer;
             transition: all 0.1s ease;
@@ -431,14 +430,14 @@
         }
 
         #game-viewport .overlay-title {
-            font-size: 36px;
+            font-size: 38px;
             color: #2E5A44;
             font-weight: 700;
             margin-bottom: 10px;
         }
 
         #game-viewport .overlay-desc {
-            font-size: 18px;
+            font-size: 20px;
             color: #616161;
             margin-bottom: 25px;
             font-weight: 600;
@@ -478,8 +477,8 @@
             border-radius: 12px;
             height: 54px;
             font-family: 'Fredoka', sans-serif;
-            font-size: 24px;
-            font-weight: 600;
+            font-size: 28px; /* 【手機優化】：大幅調大鍵盤字體，好按又清晰 */
+            font-weight: bold;
             color: #5D4037;
             cursor: pointer;
             box-shadow: 0 4px 0 #D7CCC8;
@@ -499,7 +498,7 @@
             background-color: #FFD1D1;
             color: #C62828;
             box-shadow: 0 4px 0 #EAB2B2;
-            font-size: 22px;
+            font-size: 24px;
         }
         #game-viewport .key-btn.backspace:active {
             background-color: #FBC2C2;
@@ -550,14 +549,14 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            margin: 10px 0;
+            margin: 5px 0; /* 縮小邊距 */
         }
 
         #game-viewport .back-highlight {
             font-size: 24px;
             font-weight: 700;
             color: #C62828;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         #game-viewport .back-text {
@@ -592,9 +591,9 @@
         #back-formula-container {
             width: 100%;
             text-align: left;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 16px; /* 【手機優化】：放大算式提示字 */
         }
 
         #back-formula-clicker {
@@ -607,12 +606,13 @@
             display: none;
             color: #C62828;
             background-color: #FFEBEE;
-            padding: 4px 10px;
+            padding: 6px 12px;
             border-radius: 8px;
             border: 1px solid #FFCDD2;
             width: 100%;
             box-sizing: border-box;
             margin-top: 5px;
+            font-size: 18px; /* 【手機優化】：放大展開後的公式 */
         }
 
         #game-viewport .btn-retry {
@@ -1572,7 +1572,7 @@
                             questionText = `${cmVal} cm<sup>3</sup> = ? m<sup>3</sup>`;
                             correctAnswer = val.toString();
                             explanationHighlight = "逆向換算：從 cm<sup>3</sup> 換回 m³！";
-                            explanationText = `從小單位換算為大單位時，數值要除以一百萬（除以 1,000,000）。<br>因為 1 m<sup>3</sup> = 1,000,000 cm<sup>3</sup>。`;
+                            explanationText = `從小單位換算為大單位時，數值要除以一百萬（除以 1,000,000）。<br>because 1 m<sup>3</sup> = 1,000,000 cm<sup>3</sup>。`;
                             explanationFormula = `${cmVal} ÷ 1,000,000 = ${correctAnswer} m<sup>3</sup>`;
                         }
                         break;
@@ -1601,7 +1601,7 @@
                             questionText = `${val} mL = ? cm<sup>3</sup>`;
                             correctAnswer = val.toString();
                             explanationHighlight = "毫升(mL) 與 立方公分(cm³) 完全等價！";
-                            explanationText = `黃金記憶：<b>1 mL = 1 cm<sup>3</sup></b>。<br>液態的容積單位「毫升」與固態的體積單位「立方公分」大小是完全相同的，不用任何計算，數值直接平移！`;
+                            explanationText = `黃金記憶：<b>1 mL = 1 cm<sup>3</sup></b>。<br>液態の容積單位「毫升」與固態の體積單位「立方公分」大小是完全相同的，不用任何計算，數值直接平移！`;
                             explanationFormula = `${val} mL = ${correctAnswer} cm<sup>3</sup>`;
                         } else if (type === 3) {
                             const vals = [0.5, 1, 1.2, 2, 2.5, 3];
@@ -1625,7 +1625,7 @@
                             questionText = `${val} m<sup>3</sup> = ? mL`;
                             correctAnswer = (val * 1000000).toString();
                             explanationHighlight = "立方米(m³) 跨級直通 毫升(mL)！";
-                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
+                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>so 連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
                             explanationFormula = `${val} × 1,000,000 = ${correctAnswer} mL`;
                         }
                         break;
@@ -2037,7 +2037,7 @@
                     
                     titleEl.innerText = addedBonus > 0 ? "🔥 連擊加分成功！" : "🎉 答對了！太厲害了";
 
-                    // 【步驟一優化】：若已回答完當前 Session 的最後一題，按鈕直接導向結算
+                    // 【步驟一優化】：若已回答完當前 Session 的最後一題，慢按鈕直接導向結算
                     if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
                         descEl.innerHTML = `本題獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！<br>
                                             ${addedBonus > 0 ? `<span style="color:#673AB7; font-weight:700;">連擊再賺 +${addedBonus} 分！</span>` : ''}`;
