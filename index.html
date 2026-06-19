@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>國二數理挑戰 - 獨立遊戲模組 (步驟四)</title>
+    <title>國二理化挑戰 - 獨立遊戲模組 (步驟五完工版)</title>
     <!-- 引入日系可愛圓體與英文 Fredoka 圓體 -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -33,8 +33,9 @@
 
         /* ==========================================================================
            【CSS 隔離】所有遊戲核心樣式均在 #game-viewport 命名空間下
-           ========================================================================== */
+           ========================================================================= */
         #game-viewport {
+            position: relative;
             width: 1280px;
             height: 720px;
             background-color: #FDFBF7; /* 馬卡龍舒壓奶油底色 */
@@ -49,6 +50,17 @@
             padding: 30px 40px;
             box-sizing: border-box;
             transition: background-color 0.4s ease, transform 0.1s ease;
+        }
+
+        /* 輕量級 Confetti 畫布，用於噴發彩色小紙花效果 */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 穿透點擊 */
+            z-index: 99;
         }
 
         /* 頂部資訊區 */
@@ -92,6 +104,16 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
+        }
+
+        /* 連對 Combo 計數器發光動畫 */
+        #game-viewport .combo-glow {
+            text-shadow: 0 0 10px #FFF, 0 0 20px #FF9E96;
+            animation: combo-pulse 0.4s infinite alternate;
+        }
+        @keyframes combo-pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
         }
 
         /* ==========================================================================
@@ -443,6 +465,92 @@
             box-shadow: 0 2px 0 #FF9E96;
         }
 
+        /* ==========================================================================
+           【狀態 C】終局狀態結算覆蓋層 (全螢幕覆蓋)
+           ========================================================================== */
+        #game-viewport .game-result-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(253, 251, 247, 0.98); /* 奶油色底 */
+            border-radius: 24px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 40px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        #game-viewport .result-emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce-loop 1s infinite alternate ease-in-out;
+        }
+
+        @keyframes bounce-loop {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-15px); }
+        }
+
+        #game-viewport .result-title {
+            font-size: 40px;
+            font-weight: 700;
+            color: #5D4037;
+            margin-bottom: 10px;
+        }
+
+        #game-viewport .result-score-box {
+            background-color: #FFF;
+            border: 4px solid #FFDAC1;
+            border-radius: 24px;
+            padding: 20px 50px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 #FCD1B4;
+        }
+
+        #game-viewport .result-score-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 64px;
+            font-weight: bold;
+            color: #E65100;
+        }
+
+        #game-viewport .perfect-badge {
+            display: inline-block;
+            background-color: #B5EAD7;
+            color: #1B5E20;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 16px;
+            margin-top: 10px;
+            box-shadow: 0 4px 0 #92D3BC;
+        }
+
+        #game-viewport .btn-restart-game {
+            height: 64px;
+            padding: 0 60px;
+            background-color: #B5EAD7;
+            color: #2E5A44;
+            border: none;
+            border-radius: 20px;
+            font-size: 22px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #92D3BC;
+            transition: all 0.1s ease;
+        }
+
+        #game-viewport .btn-restart-game:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #92D3BC;
+        }
+
         /* 頁尾版權標記 */
         #game-viewport .footer-tag {
             color: #BCAAA4;
@@ -515,7 +623,7 @@
         }
 
         /* ==========================================================================
-           【右下角橘色測試遙控器】（優化為：100% RWD 迷你折疊，解決遮擋問題）
+           【右下角橘色測試遙控器】
            ========================================================================== */
         #test-remote-panel {
             position: fixed;
@@ -631,6 +739,9 @@
         <!-- 【CSS隔離主容器】遊戲本體視界 (16:9 鎖定) -->
         <div id="game-viewport">
             
+            <!-- Confetti 噴發粒子專用畫布 -->
+            <canvas id="confetti-canvas"></canvas>
+
             <!-- 頂部資訊欄 -->
             <div class="header-bar">
                 <div class="level-badge" id="level-badge-container">
@@ -639,18 +750,18 @@
                 </div>
                 <div class="status-info">
                     <span class="status-item">❤️ 生命值: <span id="display-hearts">3</span>/3</span>
-                    <span class="status-item">⭐ Combo: <span id="display-combo">0</span></span>
+                    <span class="status-item" id="combo-container">⭐ Combo: <span id="display-combo">0</span></span>
                 </div>
             </div>
 
-            <!-- 【步驟二/三/四核心】單一主要字卡區 (3D 旋轉視角外層) -->
+            <!-- 【3D 雙面字卡流】 -->
             <div class="center-card-flow" id="main-card-flow">
                 <div class="flip-card-inner">
                     
                     <!-- 【狀態 A】卡片正面：解題畫面 -->
                     <div class="card-face card-front" id="card-front-face">
                         
-                        <!-- 答對時彈出的高質感「下一題」互動層 -->
+                        <!-- 答對時彈出的「下一題」覆蓋層 -->
                         <div class="next-question-overlay" id="success-overlay">
                             <div class="overlay-title">🎉 答對了！太厲害了</div>
                             <div class="overlay-desc" id="success-overlay-desc">完美完成此次空間維度轉換！</div>
@@ -659,7 +770,7 @@
 
                         <div class="front-title">空間維度與單位變形蟲</div>
                         
-                        <!-- 隨機題目渲染區 (使用標準 sup 標籤) -->
+                        <!-- 隨機題目渲染區 -->
                         <div class="question-box" id="question-text">
                             載入題目中...
                         </div>
@@ -689,7 +800,7 @@
                             <button class="key-btn decimal" onclick="GameModule.pressKey('.')">.</button>
                         </div>
 
-                        <!-- 【修正痛點 1】：移除直接劇透，改為「點選才看」防錯開關 -->
+                        <!-- 正面測試解答開關 -->
                         <div style="font-size:13px; color:#A1887F; font-weight: 600; margin-top: 5px;">
                             <span id="cheat-clicker" onclick="GameModule.toggleCheatView()" style="text-decoration:underline; cursor:pointer;">[ 點擊查看測試解答 ]</span>
                             <span id="cheat-reveal" style="display:none; color:#C62828; margin-left:5px; background-color: #FFEBEE; padding: 2px 8px; border-radius: 4px;"></span>
@@ -712,17 +823,39 @@
                             <div class="back-text" id="explanation-body">
                                 載入解析中...
                             </div>
-                            <!-- 【步驟四核心】：JavaScript 動態渲染 Native SVG 比例圖 -->
+                            
+                            <!-- 背面專屬的解答算式遮罩控制區，不主動暴雷 -->
+                            <div id="back-formula-container">
+                                <span id="back-formula-clicker" onclick="GameModule.toggleBackFormula()">[ 點擊看解答算式 ]</span>
+                                <div id="back-formula-reveal"></div>
+                            </div>
+
+                            <!-- JavaScript 動態渲染 Native SVG 比例圖 -->
                             <div class="svg-illustration-placeholder" id="svg-container">
                                 <!-- 動態渲染幾何 SVG -->
                             </div>
                         </div>
                         
-                        <!-- 【步驟四核心】：Retry 賽局重試與強制前進按鈕 -->
+                        <!-- Retry 賽局重試與強制前進按鈕 -->
                         <button class="btn-retry" id="btn-retry-back" onclick="GameModule.handleBackAction()">返回挑戰，我再想想！</button>
                     </div>
 
                 </div>
+            </div>
+
+            <!-- 【狀態 C】終局狀態結算覆蓋層 -->
+            <div class="game-result-overlay" id="result-overlay">
+                <div class="result-emoji" id="result-emoji">🏆</div>
+                <div class="result-title" id="result-title">全部通關！</div>
+                <div style="color: #8D6E63; font-size: 18px; font-weight: 600; margin-bottom: 15px;" id="result-subtitle">恭喜你，空間維度挑戰成功！</div>
+                
+                <div class="result-score-box">
+                    <div style="font-size: 18px; font-weight: 700; color: #8D6E63;">你的最終成績</div>
+                    <div class="result-score-text" id="result-score">100</div>
+                    <div class="perfect-badge" id="perfect-badge" style="display: none;">🌟 完美大師 (Perfect Clear)</div>
+                </div>
+
+                <button class="btn-restart-game" onclick="GameModule.restartWholeGame()">重新挑戰 ➔</button>
             </div>
 
             <!-- 底部裝飾與版權資訊 -->
@@ -745,7 +878,7 @@
         <p>本挑戰賽專為橫螢幕大字卡模式設計</p>
     </div>
 
-    <!-- 獨立開發專用：橘色測試遙控器 (優化：迷你收合，絕不阻擋手機操作) -->
+    <!-- 獨立開發專用：橘色測試遙控器 (優化：迷你收合) -->
     <div id="test-remote-panel">
         <div class="panel-header">
             <h3 id="remote-panel-title">測試遙控器 (開發面板)</h3>
@@ -765,7 +898,7 @@
                 <button class="remote-btn" style="background-color: #E65100; color:#fff;" onclick="GameModule.loadNewQuestion()">隨機換一題</button>
             </div>
             <div class="log-box" id="remote-log">
-                步驟四重構與迷你遙控器部署完畢。
+                步驟五動態音效與 Confetti 完全完工！
             </div>
         </div>
     </div>
@@ -774,12 +907,217 @@
          【JS 隔離】所有遊戲變數與行為均在命名空間 GameModule 內
          ========================================================================== -->
     <script>
+        // ==========================================================================
+        // 【步驟五技術核心之一】輕量級 Canvas Confetti 粒子模擬器
+        // ==========================================================================
+        const ConfettiEngine = {
+            canvas: null,
+            ctx: null,
+            particles: [],
+            active: false,
+            
+            init() {
+                this.canvas = document.getElementById('confetti-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            },
+            
+            resize() {
+                if (this.canvas) {
+                    this.canvas.width = 1280;
+                    this.canvas.height = 720;
+                }
+            },
+            
+            spawn() {
+                this.particles = [];
+                const colors = ['#FFB7B2', '#FFDAC1', '#FFE0B2', '#B5EAD7', '#C7CEEA', '#E8D7FF', '#FF9E96', '#92D3BC'];
+                // 在主卡片上方區域隨機散落 80 個拋射粒子
+                for (let i = 0; i < 90; i++) {
+                    this.particles.push({
+                        x: 640 + (Math.random() - 0.5) * 300,
+                        y: 250 + (Math.random() - 0.5) * 100,
+                        vx: (Math.random() - 0.5) * 12,
+                        vy: -Math.random() * 10 - 6, // 向上噴射
+                        size: Math.random() * 10 + 6,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        rotation: Math.random() * 360,
+                        rotationSpeed: (Math.random() - 0.5) * 12,
+                        opacity: 1
+                    });
+                }
+                if (!this.active) {
+                    this.active = true;
+                    this.loop();
+                }
+            },
+            
+            loop() {
+                if (this.particles.length === 0) {
+                    this.active = false;
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    return;
+                }
+                
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.4; // 重力加速度
+                    p.vx *= 0.97; // 空氣阻力
+                    p.rotation += p.rotationSpeed;
+                    p.opacity -= 0.012; // 漸進淡出
+                    
+                    if (p.opacity <= 0 || p.y > 720) {
+                        this.particles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    this.ctx.save();
+                    this.ctx.translate(p.x, p.y);
+                    this.ctx.rotate(p.rotation * Math.PI / 180);
+                    this.ctx.globalAlpha = p.opacity;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    this.ctx.restore();
+                }
+                
+                requestAnimationFrame(() => this.loop());
+            }
+        };
+
+        // ==========================================================================
+        // 【步驟五技術核心之二】純 Web Audio API 合成器音效引擎 (無外部 MP3 依存)
+        // ==========================================================================
+        const SoundEngine = {
+            audioCtx: null,
+            
+            lazyInit() {
+                if (!this.audioCtx) {
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+            },
+            
+            // 答對音效：叮咚兩聲。頻率隨 Combo 遞增 (Chromatic Pitch Scaling)
+            playCorrect(combo) {
+                try {
+                    this.lazyInit();
+                    const now = this.audioCtx.currentTime;
+                    
+                    // 基礎 C5 頻率 = 523.25 Hz。每增加 1 Combo，音高往上遞增一個半音 (半音乘積因子 1.05946)
+                    const semitones = Math.min(combo, 12); // 最多升 12 個半音 (一個八度)
+                    const baseFreq = 523.25 * Math.pow(1.059463, semitones);
+                    
+                    // 第一聲：主音 (Triangle Wave，和緩可愛)
+                    const osc1 = this.audioCtx.createOscillator();
+                    const gain1 = this.audioCtx.createGain();
+                    osc1.type = 'triangle';
+                    osc1.frequency.setValueAtTime(baseFreq, now);
+                    
+                    gain1.gain.setValueAtTime(0, now);
+                    gain1.gain.linearRampToValueAtTime(0.25, now + 0.04);
+                    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+                    
+                    osc1.connect(gain1);
+                    gain1.connect(this.audioCtx.destination);
+                    osc1.start(now);
+                    osc1.stop(now + 0.4);
+                    
+                    // 第二聲：純淨屬音 (Sine Wave，稍微延遲並升到純五度，營造明亮寬廣的「叮咚」感)
+                    setTimeout(() => {
+                        const osc2 = this.audioCtx.createOscillator();
+                        const gain2 = this.audioCtx.createGain();
+                        osc2.type = 'sine';
+                        osc2.frequency.setValueAtTime(baseFreq * 1.5, this.audioCtx.currentTime); // 純五度
+                        
+                        gain2.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                        gain2.gain.linearRampToValueAtTime(0.18, this.audioCtx.currentTime + 0.04);
+                        gain2.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + 0.3);
+                        
+                        osc2.connect(gain2);
+                        gain2.connect(this.audioCtx.destination);
+                        osc2.start();
+                        osc2.stop(this.audioCtx.currentTime + 0.3);
+                    }, 80);
+                    
+                } catch (e) {
+                    console.warn("Web Audio API incorrect sound synthesize failed:", e);
+                }
+            },
+            
+            // 答錯音效：沉悶下行雙弦警示音 (Sawtooth，電子電玩風)
+            playError() {
+                try {
+                    this.lazyInit();
+                    const now = this.audioCtx.currentTime;
+                    
+                    const osc = this.audioCtx.createOscillator();
+                    const gain = this.audioCtx.createGain();
+                    
+                    osc.type = 'sawtooth';
+                    // 低沉下沉頻率 140Hz -> 90Hz
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.linearRampToValueAtTime(90, now + 0.35);
+                    
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.2, now + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } catch (e) {
+                    console.warn("Web Audio API error sound synthesize failed:", e);
+                }
+            },
+
+            // 破關大捷：琶音和弦
+            playClear() {
+                try {
+                    this.lazyInit();
+                    const now = this.audioCtx.currentTime;
+                    const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 1046.50]; // C 和弦琶音大集結
+                    
+                    notes.forEach((freq, i) => {
+                        const delay = i * 0.12;
+                        setTimeout(() => {
+                            const osc = this.audioCtx.createOscillator();
+                            const gain = this.audioCtx.createGain();
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+                            
+                            gain.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                            gain.gain.linearRampToValueAtTime(0.15, this.audioCtx.currentTime + 0.05);
+                            gain.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + 0.8);
+                            
+                            osc.connect(gain);
+                            gain.connect(this.audioCtx.destination);
+                            osc.start();
+                            osc.stop(this.audioCtx.currentTime + 0.8);
+                        }, delay * 1000);
+                    });
+                } catch (e) {
+                    console.warn("Web Audio API clear sound synthesize failed:", e);
+                }
+            }
+        };
+
+        // ==========================================================================
+        // 【主模組邏輯命名空間】
+        // ==========================================================================
         const GameModule = {
             baseWidth: 1280,
             baseHeight: 720,
             
             // 核心賽局與狀態
-            currentLevel: 1,
+            currentLevel: 1, // 對應關卡：1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 (全通關)
             hearts: 3,
             combo: 0,
             isFlipped: false,
@@ -787,20 +1125,23 @@
             // 測試遙控器收合狀態
             isRemoteMinimized: false,
             
-            // 步驟四：單題重試賽局狀態
-            attemptsThisQuestion: 0, 
+            // 賽局計分器
+            attemptsThisQuestion: 0,
+            totalWrongAttempts: 0, 
 
             currentQuestion: {
                 questionText: "",
                 correctAnswer: "",
                 explanationHighlight: "",
-                explanationText: ""
+                explanationText: "",
+                explanationFormula: ""
             },
 
             init() {
                 this.setupRWD();
                 this.setupCommunication();
                 this.checkStandalone();
+                ConfettiEngine.init();
 
                 window.addEventListener('resize', () => this.setupRWD());
                 window.addEventListener('orientationchange', () => {
@@ -819,13 +1160,16 @@
                 viewport.style.transform = `scale(${scale})`;
             },
 
+            // 雙向通訊合約
             setupCommunication() {
+                // 1. 子傳父：向上發送 GAME_READY
                 parent.postMessage({ type: 'GAME_READY', challengeId: 1 }, '*');
                 
+                // 2. 父傳子：向下接收指令
                 window.addEventListener('message', (event) => {
                     const data = event.data;
                     if (data && data.type === 'START_GAME') {
-                        this.logToRemote(`接收父視窗指定啟動: LV.${data.config.level}`);
+                        this.logToRemote(`接收父視窗指令: 開啟 LV.${data.config.level}`);
                         this.changeLevelAndRestart(data.config.level);
                     }
                 });
@@ -837,7 +1181,6 @@
                 }
             },
 
-            // 【修正痛點 3】：開發面板迷你收合，防止手機端遮擋
             toggleRemotePanel() {
                 const content = document.getElementById('remote-panel-content');
                 const btn = document.getElementById('remote-toggle-btn');
@@ -859,7 +1202,6 @@
                 }
             },
 
-            // 【修正痛點 1】：點擊才揭曉答案
             toggleCheatView() {
                 const clicker = document.getElementById('cheat-clicker');
                 const reveal = document.getElementById('cheat-reveal');
@@ -874,16 +1216,30 @@
                 }
             },
 
-            // ------------------ 【隨機出題演算法 (整合修正痛點 2：LV.3 融入 m³)】 ------------------
+            toggleBackFormula() {
+                const clicker = document.getElementById('back-formula-clicker');
+                const reveal = document.getElementById('back-formula-reveal');
+
+                if (reveal.style.display === 'none' || reveal.style.display === '') {
+                    reveal.innerHTML = `算式：${this.currentQuestion.explanationFormula}`;
+                    reveal.style.display = 'block';
+                    clicker.innerText = '[ 隱藏解答算式 ]';
+                } else {
+                    reveal.style.display = 'none';
+                    clicker.innerText = '[ 點擊看解答算式 ]';
+                }
+            },
+
+            // ------------------ 【LV.1 ~ LV.5 隨機出題演算法】 ------------------
             generateRandomQuestion(level) {
                 let questionText = "";
                 let correctAnswer = "";
                 let explanationHighlight = "";
                 let explanationText = "";
+                let explanationFormula = "";
 
                 switch(level) {
                     case 1: {
-                        // 二維面積換算 (m² <-> cm²，倍率 10000)
                         const isForward = Math.random() < 0.5;
                         const vals = [0.5, 1, 1.5, 2, 4, 5, 8, 10, 12, 0.05];
                         const val = vals[Math.floor(Math.random() * vals.length)];
@@ -892,18 +1248,19 @@
                             questionText = `${val} m<sup>2</sup> = ? cm<sup>2</sup>`;
                             correctAnswer = (val * 10000).toString();
                             explanationHighlight = "長與寬各放大 100 倍！";
-                            explanationText = `二維面積（平方）換算時，長度和寬度都要進行換算。<br>因為 1 m = 100 cm，所以面積放大倍數為：100 × 100 = 10,000 倍。<br><br>算式：${val} × 10,000 = ${correctAnswer} cm<sup>2</sup>`;
+                            explanationText = `二維面積（平方）換算時，長度和寬度都要進行換算。<br>因為 1 m = 100 cm，所以面積放大倍數為：100 × 100 = 10,000 倍。`;
+                            explanationFormula = `${val} × 10,000 = ${correctAnswer} cm<sup>2</sup>`;
                         } else {
                             const cmVal = val * 10000;
                             questionText = `${cmVal} cm<sup>2</sup> = ? m<sup>2</sup>`;
                             correctAnswer = val.toString();
                             explanationHighlight = "逆向換算：從 cm<sup>2</sup> 換回 m<sup>2</sup>！";
-                            explanationText = `從小單位（cm<sup>2</sup>）換算為大單位（m<sup>2</sup>）時，數值要除以換算倍率。<br>因為 1 m<sup>2</sup> = 10,000 cm<sup>2</sup>。<br><br>算式：${cmVal} ÷ 10,000 = ${correctAnswer} m<sup>2</sup>`;
+                            explanationText = `從小單位（cm<sup>2</sup>）換算為大單位（m<sup>2</sup>）時，數值要除以換算倍率。<br>因為 1 m<sup>2</sup> = 10,000 cm<sup>2</sup>。`;
+                            explanationFormula = `${cmVal} ÷ 10,000 = ${correctAnswer} m<sup>2</sup>`;
                         }
                         break;
                     }
                     case 2: {
-                        // 三維體積換算 (m³ <-> cm³，倍率 1,000,000)
                         const isForward = Math.random() < 0.5;
                         const vals = [0.1, 0.5, 1, 1.5, 2, 0.05, 0.25];
                         const val = vals[Math.floor(Math.random() * vals.length)];
@@ -912,72 +1269,72 @@
                             questionText = `${val} m<sup>3</sup> = ? cm<sup>3</sup>`;
                             correctAnswer = (val * 1000000).toString();
                             explanationHighlight = "長、寬、高各放大 100 倍！";
-                            explanationText = `三維體積（立方）換算時，長度、寬度與高度都要進行換算。<br>1 m<sup>3</sup> 先拆為 1,000 個中方塊（分米），1 個中方塊再拆為 1,000 個小方塊（公分）。<br>所以體積放大倍數為：100 × 100 × 100 = 1,000,000 倍（一百萬）。<br><br>算式：${val} × 1,000,000 = ${correctAnswer} cm<sup>3</sup>`;
+                            explanationText = `三維體積（立方）換算時，長度、寬度與高度都要進行換算。<br>1 m<sup>3</sup> 先拆為 1,000 個中方塊（分米），1 個中方塊再拆為 1,000 個小方塊（公分）。<br>所以體積放大倍數為：100 × 100 × 100 = 1,000,000 倍（一百萬）。`;
+                            explanationFormula = `${val} × 1,000,000 = ${correctAnswer} cm<sup>3</sup>`;
                         } else {
                             const cmVal = val * 1000000;
                             questionText = `${cmVal} cm<sup>3</sup> = ? m<sup>3</sup>`;
                             correctAnswer = val.toString();
                             explanationHighlight = "逆向換算：從 cm<sup>3</sup> 換回 m<sup>3</sup>！";
-                            explanationText = `從小單位換算為大單位時，數值要除以一百萬（除以 1,000,000）。<br>因為 1 m<sup>3</sup> = 1,000,000 cm<sup>3</sup>。<br><br>算式：${cmVal} ÷ 1,000,000 = ${correctAnswer} m<sup>3</sup>`;
+                            explanationText = `從小單位換算為大單位時，數值要除以一百萬（除以 1,000,000）。<br>因為 1 m<sup>3</sup> = 1,000,000 cm<sup>3</sup>。`;
+                            explanationFormula = `${cmVal} ÷ 1,000,000 = ${correctAnswer} m<sup>3</sup>`;
                         }
                         break;
                     }
                     case 3: {
-                        // 【修正痛點 2】：容積與體積大跨界 (加入 m³ 與公升/毫升轉換，豐富挑戰維度)
-                        const type = Math.floor(Math.random() * 6); // 增加題型至 6 種
+                        const type = Math.floor(Math.random() * 6);
                         
                         if (type === 0) {
-                            // L -> cm³ (倍率 1000)
                             const vals = [0.5, 1, 1.5, 2, 3.5, 5];
                             const val = vals[Math.floor(Math.random() * vals.length)];
                             questionText = `${val} L = ? cm<sup>3</sup>`;
                             correctAnswer = (val * 1000).toString();
                             explanationHighlight = "公升(L) 與 立方公分(cm³) 的橋樑！";
-                            explanationText = `記憶黃金鏈接：<b>1 mL = 1 cm<sup>3</sup>（毫升與立方公分完全相等）</b>。<br>因為 1 L = 1,000 mL，所以 1 L 也就等於 1,000 cm<sup>3</sup>。<br><br>算式：${val} × 1,000 = ${correctAnswer} cm<sup>3</sup>`;
+                            explanationText = `記憶黃金鏈接：<b>1 mL = 1 cm<sup>3</sup>（毫升與立方公分完全相等）</b>。<br>因為 1 L = 1,000 mL，所以 1 L 也就等於 1,000 cm<sup>3</sup>。`;
+                            explanationFormula = `${val} × 1,000 = ${correctAnswer} cm<sup>3</sup>`;
                         } else if (type === 1) {
-                            // cm³ -> L
                             const vals = [500, 1000, 1500, 2000, 3000, 5000];
                             const val = vals[Math.floor(Math.random() * vals.length)];
                             questionText = `${val} cm<sup>3</sup> = ? L`;
                             correctAnswer = (val / 1000).toString();
                             explanationHighlight = "立方公分(cm³) 換算回 公升(L)！";
-                            explanationText = `從小單位換算回大單位：1,000 cm<sup>3</sup> = 1 L。<br>因此將數值除以 1,000 即可。<br><br>算式：${val} ÷ 1,000 = ${correctAnswer} L`;
+                            explanationText = `從小單位換算回大單位：1,000 cm<sup>3</sup> = 1 L。<br>因此將數值除以 1,000 即可。`;
+                            explanationFormula = `${val} ÷ 1,000 = ${correctAnswer} L`;
                         } else if (type === 2) {
-                            // mL -> cm³ (等值轉換)
                             const val = Math.floor(Math.random() * 450) + 50;
                             questionText = `${val} mL = ? cm<sup>3</sup>`;
                             correctAnswer = val.toString();
                             explanationHighlight = "毫升(mL) 與 立方公分(cm³) 完全等價！";
-                            explanationText = `黃金記憶：<b>1 mL = 1 cm<sup>3</sup></b>。<br>液態的容積單位「毫升」與固態的體積單位「立方公分」大小是完全相同的，不用任何計算，數值直接平移！<br><br>算式：${val} mL = ${correctAnswer} cm<sup>3</sup>`;
+                            explanationText = `黃金記憶：<b>1 mL = 1 cm<sup>3</sup></b>。<br>液態的容積單位「毫升」與固態的體積單位「立方公分」大小是完全相同的，不用任何計算，數值直接平移！`;
+                            explanationFormula = `${val} mL = ${correctAnswer} cm<sup>3</sup>`;
                         } else if (type === 3) {
-                            // m³ -> L (全新加入，1 m³ = 1000 L)
                             const vals = [0.5, 1, 1.2, 2, 2.5, 3];
                             const val = vals[Math.floor(Math.random() * vals.length)];
                             questionText = `${val} m<sup>3</sup> = ? L`;
                             correctAnswer = (val * 1000).toString();
                             explanationHighlight = "立方米(m³) 到 公升(L) 的千倍轉換！";
-                            explanationText = `物理課核心公式：<b>1 m<sup>3</sup>（立方米）= 1,000 L（公升）</b>。<br>這是工程與水資源大容量換算的基本常識！大單位換成小單位，乘以 1,000 即可。<br><br>算式：${val} × 1,000 = ${correctAnswer} L`;
+                            explanationText = `物理課核心公式：<b>1 m<sup>3</sup>（立方米）= 1,000 L（公升）</b>。<br>這是工程與水資源大容量換算的基本常識！大單位換成小單位，乘以 1,000 即可。`;
+                            explanationFormula = `${val} × 1,000 = ${correctAnswer} L`;
                         } else if (type === 4) {
-                            // L -> m³ (逆向換算)
                             const vals = [500, 1000, 1500, 2000, 4000, 5000];
                             const val = vals[Math.floor(Math.random() * vals.length)];
                             questionText = `${val} L = ? m<sup>3</sup>`;
                             correctAnswer = (val / 1000).toString();
                             explanationHighlight = "公升(L) 逆向換算回 立方米(m³)！";
-                            explanationText = `因為 1,000 L = 1 m<sup>3</sup>。當從小容積單位換回大體積單位時，數值必須除以 1,000。<br><br>算式：${val} ÷ 1,000 = ${correctAnswer} m<sup>3</sup>`;
+                            explanationText = `因為 1,000 L = 1 m<sup>3</sup>。當從小容積單位換回大體積單位時，數值必須除以 1,000。`;
+                            explanationFormula = `${val} ÷ 1,000 = ${correctAnswer} m<sup>3</sup>`;
                         } else {
-                            // m³ -> mL (超大跨界，1 m³ = 1,000,000 mL)
                             const vals = [0.1, 0.5, 1, 1.5];
                             const val = vals[Math.floor(Math.random() * vals.length)];
                             questionText = `${val} m<sup>3</sup> = ? mL`;
                             correctAnswer = (val * 1000000).toString();
                             explanationHighlight = "立方米(m³) 跨級直通 毫升(mL)！";
-                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>所以連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。<br><br>算式：${val} × 1,000,000 = ${correctAnswer} mL`;
+                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>所以連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
+                            explanationFormula = `${val} × 1,000,000 = ${correctAnswer} mL`;
                         }
                         break;
                     }
                     case 4: {
-                        // 微觀尺度 (mm, µm, nm 跳階與連續千倍換算)
                         const type = Math.floor(Math.random() * 5);
                         const vals = [0.5, 1, 1.5, 2, 3, 5, 8, 10, 0.05];
                         const val = vals[Math.floor(Math.random() * vals.length)];
@@ -986,35 +1343,39 @@
                             questionText = `${val} mm = ? &mu;m`;
                             correctAnswer = (val * 1000).toString();
                             explanationHighlight = "公厘(mm) 換算為 微米(&mu;m)";
-                            explanationText = `微觀長度世界中，mm、&mu;m、nm 每個階梯都是 1,000 倍。<br>1 mm = 1,000 &mu;m（微米）。所以大單位換小單位乘以 1,000。<br><br>算式：${val} × 1,000 = ${correctAnswer} &mu;m`;
+                            explanationText = `微觀長度世界中，mm、&mu;m、nm 每個階梯都是 1,000 倍。<br>1 mm = 1,000 &mu;m（微米）。所以大單位換小單位乘以 1,000。`;
+                            explanationFormula = `${val} × 1,000 = ${correctAnswer} &mu;m`;
                         } else if (type === 1) {
                             questionText = `${val} &mu;m = ? nm`;
                             correctAnswer = (val * 1000).toString();
                             explanationHighlight = "微米(&mu;m) 換算為 奈米(nm)";
-                            explanationText = `微(微米)和奈(奈米)都是千倍魔王，跨一步放大 1,000 倍！<br>1 &mu;m = 1,000 nm（奈米）。<br><br>算式：${val} × 1,000 = ${correctAnswer} nm`;
+                            explanationText = `微(微米)和奈(奈米)都是千倍魔王，跨一步放大 1,000 倍！<br>1 &mu;m = 1,000 nm（奈米）。`;
+                            explanationFormula = `${val} × 1,000 = ${correctAnswer} nm`;
                         } else if (type === 2) {
                             const cleanVal = val === 0.05 ? 0.1 : val;
                             questionText = `${cleanVal} mm = ? nm`;
                             correctAnswer = (cleanVal * 1000000).toString();
                             explanationHighlight = "連跳兩階！公厘(mm) 直通 奈米(nm)";
-                            explanationText = `連續跨兩步（公厘 ➔ 微米 ➔ 奈米），要乘以 1,000 再乘以 1,000，也就是放大一百萬倍（1,000,000）！<br><br>算式：${cleanVal} × 1,000,000 = ${correctAnswer} nm`;
+                            explanationText = `連續跨兩步（公厘 ➔ 微米 ➔ 奈米），要乘以 1,000 再乘以 1,000，也就是放大一百萬倍（1,000,000）！`;
+                            explanationFormula = `${cleanVal} × 1,000,000 = ${correctAnswer} nm`;
                         } else if (type === 3) {
                             const mVal = val * 1000;
                             questionText = `${mVal} &mu;m = ? mm`;
                             correctAnswer = val.toString();
                             explanationHighlight = "逆向換算：微米(&mu;m) 換回 公厘(mm)";
-                            explanationText = `從小單位換回大單位，數值要除以 1,000。<br>1,000 &mu;m = 1 mm。<br><br>算式：${mVal} ÷ 1,000 = ${correctAnswer} mm`;
+                            explanationText = `從小單位換回大單位，數值要除以 1,000。<br>1,000 &mu;m = 1 mm。`;
+                            explanationFormula = `${mVal} ÷ 1,000 = ${correctAnswer} mm`;
                         } else {
                             const nVal = val * 1000;
                             questionText = `${nVal} nm = ? &mu;m`;
                             correctAnswer = val.toString();
                             explanationHighlight = "逆向換算：奈米(nm) 換回 微米(&mu;m)";
-                            explanationText = `從奈米換回微米，數值除以 1,000。<br>1,000 nm = 1 &mu;m。<br><br>算式：${nVal} ÷ 1,000 = ${correctAnswer} &mu;m`;
+                            explanationText = `從奈米換回微米，數值除以 1,000。<br>1,000 nm = 1 &mu;m。`;
+                            explanationFormula = `${nVal} ÷ 1,000 = ${correctAnswer} &mu;m`;
                         }
                         break;
                     }
                     case 5: {
-                        // 複合單位 (密度或速度拆解)
                         const isDensity = Math.random() < 0.5;
                         if (isDensity) {
                             const isForward = Math.random() < 0.5;
@@ -1034,17 +1395,16 @@
                                 拆解原理分析：<br>
                                 分子：1 g = 0.001 kg<br>
                                 分母：1 cm<sup>3</sup> = 0.000001 m<sup>3</sup><br>
-                                相除得到：0.001 ÷ 0.000001 = 1,000 倍。<br><br>
-                                算式：${item.g} × 1,000 = ${correctAnswer} kg/m<sup>3</sup> （這是${item.name}的密度）`;
+                                相除得到：0.001 ÷ 0.000001 = 1,000 倍。`;
+                                explanationFormula = `${item.g} × 1,000 = ${correctAnswer} kg/m<sup>3</sup> （這代表${item.name}的密度）`;
                             } else {
                                 questionText = `${item.kg} kg/m<sup>3</sup> = ? g/cm<sup>3</sup>`;
                                 correctAnswer = item.g.toString();
                                 explanationHighlight = "逆向換算：kg/m<sup>3</sup> 到 g/cm<sup>3</sup>";
-                                explanationText = `<b>從公制大單位 kg/m<sup>3</sup> 換算回實驗室單位 g/cm<sup>3</sup> 時，數值縮小 1,000 倍（除以 1,000）。</b><br>
-                                算式：${item.kg} ÷ 1,000 = ${correctAnswer} g/cm<sup>3</sup> （這是${item.name}的密度）`;
+                                explanationText = `<b>從公制大單位 kg/m<sup>3</sup> 換算回實驗室單位 g/cm<sup>3</sup> 時，數值縮小 1,000 倍（除以 1,000）。</b>`;
+                                explanationFormula = `${item.kg} ÷ 1,000 = ${correctAnswer} g/cm<sup>3</sup> （這代表${item.name}的密度）`;
                             }
                         } else {
-                            // 速度 (km/h <-> m/s)
                             const isForward = Math.random() < 0.5;
                             const speeds = [
                                 { kmh: 36, ms: 10 },
@@ -1064,13 +1424,14 @@
                                 分母：1 小時 = 3,600 秒<br>
                                 兩者相除：${item.kmh * 1000} ÷ 3,600 = ${correctAnswer} m/s。<br>
                                 記住公式：分子分母獨立分開算，分數帶著單位一起算！`;
+                                explanationFormula = `${item.kmh} ÷ 3.6 = ${correctAnswer} m/s`;
                             } else {
                                 questionText = `${item.ms} m/s = ? km/hr`;
                                 correctAnswer = item.kmh.toString();
                                 explanationHighlight = "逆向速度：m/s 換算回 km/hr";
                                 explanationText = `<b>m/s 換算為 km/hr 時，必須乘以 3.6。</b><br>
-                                拆解過程：每秒跑 ${item.ms} 公尺，一小時會跑 ${item.ms} × 3,600 = ${item.ms * 3600} 公尺 = ${item.kmh} 公里。<br><br>
-                                算式：${item.ms} × 3.6 = ${correctAnswer} km/hr`;
+                                拆解過程：每秒跑 ${item.ms} 公尺，一小時會跑 ${item.ms} × 3,600 = ${item.ms * 3600} 公尺 = ${item.kmh} 公里。`;
+                                explanationFormula = `${item.ms} × 3.6 = ${correctAnswer} km/hr`;
                             }
                         }
                         break;
@@ -1081,21 +1442,20 @@
                     questionText,
                     correctAnswer,
                     explanationHighlight,
-                    explanationText
+                    explanationText,
+                    explanationFormula
                 };
             },
 
-            // ------------------ 【步驟四：互動式 SVG 動態生成引擎】 ------------------
+            // ------------------ 【動態 SVG 圖解生成】 ------------------
             renderStateBSVG() {
                 const container = document.getElementById('svg-container');
                 const lvl = this.currentLevel;
                 const isDensity = this.currentQuestion.questionText.includes('g/cm');
-                const isVelocity = this.currentQuestion.questionText.includes('km/hr') || this.currentQuestion.questionText.includes('m/s');
 
                 let svgHtml = "";
 
                 if (lvl === 1) {
-                    // LV.1: 二維面積對比圖
                     svgHtml = `
                     <svg viewBox="0 0 400 120" width="100%" height="100%">
                         <rect x="25" y="20" width="80" height="80" rx="8" fill="#FFF0F0" stroke="#FFB7B2" stroke-width="3" />
@@ -1109,7 +1469,6 @@
                         <text x="270" y="75" font-family="Fredoka" font-size="14" fill="#5E35B1" text-anchor="middle" font-weight="bold">= 10,000 cm²</text>
                     </svg>`;
                 } else if (lvl === 2) {
-                    // LV.2: 三維體積立方投影積木
                     svgHtml = `
                     <svg viewBox="0 0 400 120" width="100%" height="100%">
                         <g transform="translate(45, 25) scale(0.65)">
@@ -1132,38 +1491,31 @@
                         <text x="345" y="65" font-size="13" fill="#01579B" text-anchor="middle" font-weight="bold">= 1,000,000 cm³</text>
                     </svg>`;
                 } else if (lvl === 3) {
-                    // LV.3: 容積與體積跨界天平橋樑 (整合 m³)
                     svgHtml = `
                     <svg viewBox="0 0 400 120" width="100%" height="100%">
-                        <!-- Tank 1m³ -->
                         <rect x="15" y="45" width="45" height="45" rx="5" fill="#E0F7FA" stroke="#00ACC1" stroke-width="2" />
                         <text x="37.5" y="72" font-size="11" fill="#006064" text-anchor="middle" font-weight="bold">1 m³</text>
                         
                         <text x="75" y="72" font-size="12" fill="#00ACC1" text-anchor="middle" font-weight="bold">=(1000×)</text>
                         
-                        <!-- Milk Carton 1 L -->
                         <rect x="105" y="42" width="35" height="48" rx="3" fill="#E8F5E9" stroke="#43A047" stroke-width="2" />
                         <path d="M 105 42 L 122.5 28 L 140 42 Z" fill="#C8E6C9" stroke="#43A047" stroke-width="2"/>
                         <text x="122.5" y="70" font-size="11" fill="#1B5E20" text-anchor="middle" font-weight="bold">1 L</text>
                         
                         <text x="160" y="72" font-size="12" fill="#43A047" text-anchor="middle" font-weight="bold">=(1000×)</text>
                         
-                        <!-- Beaker 1 mL -->
                         <rect x="190" y="55" width="25" height="35" rx="2" fill="#FFFDE7" stroke="#FBC02D" stroke-width="2" />
                         <line x1="190" y1="65" x2="200" y2="65" stroke="#FBC02D" stroke-width="1.5" />
                         <line x1="190" y1="75" x2="200" y2="75" stroke="#FBC02D" stroke-width="1.5" />
                         <text x="202.5" y="76" font-size="10" fill="#F57F17" text-anchor="middle" font-weight="bold">1 mL</text>
                         
-                        <!-- Golden Equal Sign -->
                         <text x="240" y="72" font-size="20" fill="#FF8F00" text-anchor="middle" font-weight="bold">≡</text>
                         <text x="240" y="92" font-size="9" fill="#FF8F00" text-anchor="middle" font-weight="700">完全等值</text>
                         
-                        <!-- Small Cube 1cm³ -->
                         <rect x="270" y="55" width="30" height="30" rx="4" fill="#FFF0F5" stroke="#E91E63" stroke-width="2" />
                         <text x="285" y="74" font-size="9" fill="#880E4F" text-anchor="middle" font-weight="bold">1 cm³</text>
                     </svg>`;
                 } else if (lvl === 4) {
-                    // LV.4: 微觀階梯 mm -> um -> nm
                     svgHtml = `
                     <svg viewBox="0 0 400 120" width="100%" height="100%">
                         <g transform="translate(15, 35)">
@@ -1192,7 +1544,6 @@
                         </defs>
                     </svg>`;
                 } else if (lvl === 5) {
-                    // LV.5: 複合單位分數上下拆分框
                     const leftUnit = isDensity ? "g/cm³" : "km/hr";
                     const rightUnit = isDensity ? "kg/m³" : "m/s";
                     const numText = isDensity ? "分子: 1 g = 0.001 kg" : "分子: 1 km = 1000 m";
@@ -1225,56 +1576,63 @@
                 container.innerHTML = svgHtml;
             },
 
-            // ------------------ 【加載隨機題目流】 ------------------
+            // ------------------ 【加載題目流程】 ------------------
             loadNewQuestion() {
-                // 重設單題嘗試次數
                 this.attemptsThisQuestion = 0;
-
-                // 1. 隱藏答對時的下一題覆蓋面板
+                
+                // 1. 隱藏正面覆蓋層
                 document.getElementById('success-overlay').style.display = 'none';
                 
-                // 2. 清空正面輸入框與作弊答案遮罩
+                // 2. 清空輸入框
                 document.getElementById('player-input').value = "";
-                document.getElementById('cheat-reveal').style.display = 'none';
-                document.getElementById('cheat-clicker').innerText = '[ 點擊查看測試解答 ]';
                 
-                // 3. 確保卡片正面向前
+                // 3. 重設背面折疊解答算式
+                const backFormulaReveal = document.getElementById('back-formula-reveal');
+                const backFormulaClicker = document.getElementById('back-formula-clicker');
+                if (backFormulaReveal && backFormulaClicker) {
+                    backFormulaReveal.style.display = 'none';
+                    backFormulaReveal.innerHTML = '';
+                    backFormulaClicker.style.display = 'inline-block';
+                    backFormulaClicker.innerText = '[ 點擊看解答算式 ]';
+                }
+
+                // 4. 確保翻回正面
                 if (this.isFlipped) {
                     this.flipToA();
                 }
 
-                // 4. 產生新隨機題
+                // 5. 調用演算法產生對應難度關卡的題目
                 this.currentQuestion = this.generateRandomQuestion(this.currentLevel);
 
-                // 5. 渲染題目與背後原理說明
+                // 6. 渲染正反面
                 document.getElementById('question-text').innerHTML = this.currentQuestion.questionText;
                 document.getElementById('explanation-highlight').innerHTML = this.currentQuestion.explanationHighlight;
                 document.getElementById('explanation-body').innerHTML = this.currentQuestion.explanationText;
 
-                // 6. 【步驟四核心】：渲染對應原理的 SVG 比例圖
+                // 7. 繪製動態 SVG
                 this.renderStateBSVG();
 
-                this.logToRemote(`載入新題目 (關卡: LV.${this.currentLevel})，正確解答已加載。`);
+                this.logToRemote(`載入關卡 LV.${this.currentLevel} 隨機題目。正確答案：${this.currentQuestion.correctAnswer}`);
             },
 
-            // 關卡快速切換
+            // 關卡跳躍
             changeLevelAndRestart(level) {
                 this.currentLevel = level;
                 document.getElementById('display-level').innerText = `挑戰關卡：LV.${level}`;
                 
                 const colors = {
-                    1: '#FFF0F0', // 櫻花淡粉紅
-                    2: '#FFF9E6', // 香蕉淡黃
-                    3: '#E6FFFA', // 薄荷淡藍綠
-                    4: '#F0E6FF', // 薰衣草淡紫
-                    5: '#FFF0E6'  // 甜橙淡粉
+                    1: '#FFF0F0',
+                    2: '#FFF9E6',
+                    3: '#E6FFFA',
+                    4: '#F0E6FF',
+                    5: '#FFF0E6'
                 };
                 document.getElementById('game-viewport').style.backgroundColor = colors[level] || '#FDFBF7';
                 
                 this.loadNewQuestion();
             },
 
-            // ------------------ 【自製鍵盤輸入】 ------------------
+            // ------------------ 【自製果凍鍵盤輸入】 ------------------
             pressKey(keyValue) {
                 const inputEl = document.getElementById('player-input');
                 let currentVal = inputEl.value;
@@ -1298,34 +1656,24 @@
                 inputEl.focus();
             },
 
-            // ------------------ 【狀態 A <--> 狀態 B 翻轉邏輯】 ------------------
+            // ------------------ 【3D 雙面翻轉】 ------------------
             flipToB(triggerType = 'hint') {
                 if (this.isFlipped) return;
                 
                 this.isFlipped = true;
                 const cardFlow = document.getElementById('main-card-flow');
                 const sourceEl = document.getElementById('explanation-source');
-                const retryBtn = document.getElementById('btn-retry-back');
 
                 if (triggerType === 'hint') {
                     sourceEl.innerText = "💡 查看提示";
-                    retryBtn.innerText = "返回挑戰，我再想想！";
                 } else if (triggerType === 'incorrect') {
-                    sourceEl.innerText = `❌ 答錯了！第 ${this.attemptsThisQuestion} 次嘗試失敗`;
-                    
-                    // 【步驟四核心：Retry 賽局按鈕狀態更新】
-                    if (this.attemptsThisQuestion < 3) {
-                        retryBtn.innerText = `返回挑戰，我再試一次！(剩餘 ${3 - this.attemptsThisQuestion} 次重試機會)`;
-                    } else {
-                        retryBtn.innerText = `挑戰失敗，前往下一題 ➔`;
-                    }
+                    sourceEl.innerText = `❌ 答錯了！別氣餒`;
                 } else {
-                    sourceEl.innerText = "⚙️ 手動翻面";
-                    retryBtn.innerText = "返回挑戰";
+                    sourceEl.innerText = "⚙️ 測試遙控器翻面";
                 }
 
                 cardFlow.classList.add('flipped');
-                this.logToRemote(`卡片翻面：狀態 B (來源: ${triggerType})`);
+                this.logToRemote(`卡片翻面 ➔ 狀態 B (來源: ${triggerType})`);
             },
 
             flipToA() {
@@ -1339,26 +1687,16 @@
                     document.getElementById('player-input').focus();
                 }, 400);
 
-                this.logToRemote('卡片翻面：狀態 A (返回解題)');
+                this.logToRemote('卡片翻面 ➔ 狀態 A');
             },
 
-            // ------------------ 【步驟四核心：帶有重試機制之作答判定】 ------------------
-            handleBackAction() {
-                if (this.attemptsThisQuestion >= 3) {
-                    // 如果三次都答錯，點擊按鈕直接強迫刷新前往下一題
-                    this.loadNewQuestion();
-                } else {
-                    // 否則，翻回正面讓學生再次嘗試
-                    this.flipToA();
-                }
-            },
-
+            // ------------------ 【解答判定與生命值賽局】 ------------------
             submitAnswer() {
                 const inputEl = document.getElementById('player-input');
                 const answer = inputEl.value.trim();
 
                 if (answer === "") {
-                    this.logToRemote('警告：請輸入數值再送出');
+                    this.logToRemote('警告：請先輸入答案再送出');
                     this.flashFrontEffect('error-shake');
                     return;
                 }
@@ -1372,35 +1710,90 @@
 
             handleCorrect() {
                 this.combo++;
+                
+                // 【步驟五核心】發光 Combo 累計器動畫觸發
+                const comboContainer = document.getElementById('combo-container');
                 document.getElementById('display-combo').innerText = this.combo;
+                if (this.combo >= 2) {
+                    comboContainer.classList.add('combo-glow');
+                }
+
+                // 【步驟五核心】觸發 Web Audio API 升調音效與 Confetti 粒子噴發
+                SoundEngine.playCorrect(this.combo);
+                ConfettiEngine.spawn();
+
                 this.flashFrontEffect('correct-flash');
                 
-                // 彈出答對下一題覆蓋面板
+                this.logToRemote(`答對了！當前 Combo：${this.combo}`);
+
+                // 彈出答對下一題覆蓋層
                 setTimeout(() => {
                     const descEl = document.getElementById('success-overlay-desc');
-                    descEl.innerHTML = `恭喜解答正確！當前連擊次數：<b style="color:#C62828; font-size:24px;">${this.combo} Combo</b>`;
+                    const nextBtn = document.querySelector('#success-overlay .btn-next-level');
+                    
+                    if (this.currentLevel === 5) {
+                        descEl.innerHTML = `恭喜解答正確！這是最終大魔王關卡！`;
+                        nextBtn.innerHTML = `結算成績 ➔`;
+                        // 點擊後進入結算
+                        nextBtn.onclick = () => this.triggerGameClear();
+                    } else {
+                        descEl.innerHTML = `恭喜解答正確！當前連擊次數：<b style="color:#C62828; font-size:24px;">${this.combo} Combo</b>`;
+                        nextBtn.innerHTML = `挑戰下一關 ➔`;
+                        nextBtn.onclick = () => this.advanceToNextLevel();
+                    }
                     document.getElementById('success-overlay').style.display = 'flex';
                 }, 400);
+            },
 
-                this.logToRemote(`答對了！當前 Combo 累計：${this.combo}`);
+            // 前往下一關 (1 -> 2 -> 3 -> 4 -> 5)
+            advanceToNextLevel() {
+                const nextLvl = this.currentLevel + 1;
+                this.changeLevelAndRestart(nextLvl);
             },
 
             handleIncorrect() {
                 this.combo = 0;
-                this.attemptsThisQuestion++; // 累計嘗試失敗次數
+                this.attemptsThisQuestion++;
+                this.totalWrongAttempts++;
                 
-                this.hearts = Math.max(0, this.hearts - 1);
-                
+                // 中斷 Combo 移除發光特效
+                const comboContainer = document.getElementById('combo-container');
                 document.getElementById('display-combo').innerText = this.combo;
+                comboContainer.classList.remove('combo-glow');
+
+                // 生命值扣除機制
+                this.hearts = Math.max(0, this.hearts - 1);
                 document.getElementById('display-hearts').innerText = this.hearts;
+
+                // 【步驟五核心】觸發下行警示 Warning 音效
+                SoundEngine.playError();
                 
                 this.flashFrontEffect('error-shake');
-                this.logToRemote(`答錯了！第 ${this.attemptsThisQuestion} 次答錯。剩餘生命：${this.hearts}`);
+                this.logToRemote(`答錯了！生命值扣 1。剩餘生命：${this.hearts}`);
 
-                // 答錯後延遲 0.8 秒自動翻轉到 B 面
+                // 生命值歸零 ➔ 挑戰失敗
+                if (this.hearts <= 0) {
+                    setTimeout(() => {
+                        this.triggerGameOver();
+                    }, 800);
+                    return;
+                }
+
+                // 否則自動翻到背面原理說明卡 (狀態 B)
                 setTimeout(() => {
                     this.flipToB('incorrect');
                 }, 800);
+            },
+
+            // 處理背面返回動作
+            handleBackAction() {
+                if (this.attemptsThisQuestion >= 3 || this.hearts <= 0) {
+                    // 如果這題三次嘗試失敗（不扣光心但達次數，或者在背面心扣光），前進到下一題
+                    this.loadNewQuestion();
+                } else {
+                    // 翻回正面讓玩家重試
+                    this.flipToA();
+                }
             },
 
             flashFrontEffect(effectClass) {
@@ -1410,12 +1803,87 @@
                 frontFace.classList.add(effectClass);
             },
 
-            // ------------------ 【遙控器專用輔助調試】 ------------------
-            showCheatAnswer() {
-                this.logToRemote(`當前正確答案為: ${this.currentQuestion.correctAnswer}`);
-                document.getElementById('player-input').value = this.currentQuestion.correctAnswer;
+            // ==========================================================================
+            // 【步驟五技術核心之三】State C 破關係統與生命歸零結算
+            // ==========================================================================
+            
+            // 計算成績第一性原理：最高 100 分。每錯一次扣 10 分。最低 0 分。
+            calculateFinalScore() {
+                const deduction = this.totalWrongAttempts * 10;
+                return Math.max(0, 100 - deduction);
             },
 
+            // 全部通關 ➔ 大捷結算
+            triggerGameClear() {
+                const finalScore = this.calculateFinalScore();
+                const isPerfect = (this.totalWrongAttempts === 0 && this.hearts === 3);
+
+                // 播放大捷琶音
+                SoundEngine.playClear();
+                ConfettiEngine.spawn();
+
+                // 顯示通關畫面
+                document.getElementById('result-emoji').innerText = "🏆";
+                document.getElementById('result-title').innerText = "全部挑戰通關！";
+                document.getElementById('result-subtitle').innerText = "恭喜你，完美解鎖空間維度大師勳章！";
+                document.getElementById('result-score').innerText = finalScore;
+                
+                if (isPerfect) {
+                    document.getElementById('perfect-badge').style.display = "inline-block";
+                } else {
+                    document.getElementById('perfect-badge').style.display = "none";
+                }
+
+                document.getElementById('result-overlay').style.display = "flex";
+
+                // 【微前端整合通訊機制】：子傳父 GAME_OVER
+                this.sendGameOverMessage(finalScore, isPerfect);
+            },
+
+            // 生命值歸零 ➔ 挑戰失敗
+            triggerGameOver() {
+                const finalScore = this.calculateFinalScore();
+
+                document.getElementById('result-emoji').innerText = "💀";
+                document.getElementById('result-title').innerText = "挑戰結束！";
+                document.getElementById('result-subtitle').innerText = "生命值已被變形蟲吞噬，再接再厲！";
+                document.getElementById('result-score').innerText = finalScore;
+                document.getElementById('perfect-badge').style.display = "none";
+                
+                document.getElementById('result-overlay').style.display = "flex";
+
+                // 向上發送失敗 GAME_OVER
+                this.sendGameOverMessage(finalScore, false);
+            },
+
+            // 向上發送通訊
+            sendGameOverMessage(score, isPerfect) {
+                const payload = {
+                    type: 'GAME_OVER',
+                    challengeId: 1,
+                    currentLevel: this.currentLevel,
+                    isPerfect: isPerfect,
+                    score: score
+                };
+                parent.postMessage(payload, '*');
+                this.logToRemote(`【通訊廣播】向上發送 GAME_OVER。成績: ${score}，Perfect: ${isPerfect}`);
+            },
+
+            // 重新挑戰
+            restartWholeGame() {
+                document.getElementById('result-overlay').style.display = "none";
+                this.hearts = 3;
+                this.combo = 0;
+                this.totalWrongAttempts = 0;
+                document.getElementById('display-hearts').innerText = this.hearts;
+                document.getElementById('display-combo').innerText = this.combo;
+                document.getElementById('combo-container').classList.remove('combo-glow');
+                
+                // 重設回第一關
+                this.changeLevelAndRestart(1);
+            },
+
+            // ------------------ 【測試面板輔助】 ------------------
             logToRemote(message) {
                 const logBox = document.getElementById('remote-log');
                 if (logBox) {
