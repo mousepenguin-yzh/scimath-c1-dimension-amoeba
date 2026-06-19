@@ -34,7 +34,7 @@
            【CSS 隔離】所有遊戲核心樣式均在 #game-viewport 命名空間下
            ========================================================================= */
         #game-viewport {
-            /* 【核心修正】：絕對定位隔離，脫離排版限制，防止雙重縮放捏扁 */
+            /* 絕對定位隔離，脫離手機瀏覽器雙重擠壓限制，頂天立地撐滿高度 */
             position: absolute;
             left: 50%;
             top: 50%;
@@ -49,7 +49,7 @@
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 40px; /* 【手機優化】：減少上下內邊距，騰出垂直空間 */
+            padding: 15px 40px; /* 【手機優化】：壓縮上下 padding 釋放高度 */
             box-sizing: border-box;
             transition: background-color 0.4s ease, transform 0.1s ease;
         }
@@ -60,7 +60,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* 穿透點擊 */
+            pointer-events: none;
             z-index: 99;
         }
 
@@ -73,29 +73,49 @@
             z-index: 10;
         }
 
-        /* 馬卡龍粉紅主題徽章 */
+        /* 【大字優化】：退出挑戰/返回前頁按鈕 */
+        #game-viewport .btn-exit-game {
+            background-color: #ECEFF1;
+            color: #37474F;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 22px; /* 寬大好按 */
+            border: none;
+            box-shadow: 0 6px 0 #B0BEC5;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #game-viewport .btn-exit-game:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #B0BEC5;
+        }
+
+        /* 【大字優化】：馬卡龍主題徽章與資訊列 */
         #game-viewport .level-badge {
-            background-color: #FFB7B2; /* 櫻花粉 */
+            background-color: #FFB7B2;
             color: #5D4037;
             padding: 10px 24px;
             border-radius: 50px;
             font-weight: 700;
-            font-size: 20px;
+            font-size: 22px; /* 放大 */
             box-shadow: 0 6px 0 #FF9E96;
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            transition: all 0.3s ease;
         }
 
-        /* 馬卡龍薄荷綠資訊欄 */
         #game-viewport .status-info {
-            background-color: #B5EAD7; /* 薄荷綠 */
+            background-color: #B5EAD7;
             color: #2E5A44;
             padding: 10px 24px;
             border-radius: 50px;
             font-weight: 700;
-            font-size: 20px;
+            font-size: 22px; /* 放大 */
             box-shadow: 0 6px 0 #92D3BC;
             display: flex;
             gap: 20px;
@@ -107,7 +127,7 @@
             gap: 6px;
         }
 
-        /* 連對 Combo 計數器發光動畫 */
+        /* 連對 Combo 計數器發光與放大動畫 */
         #game-viewport .combo-glow {
             text-shadow: 0 0 10px #FFF, 0 0 20px #FF9E96;
             animation: combo-pulse 0.4s infinite alternate;
@@ -133,7 +153,7 @@
         }
 
         #game-viewport .menu-title {
-            font-size: 46px; /* 【手機優化】：選單標題稍微放大 */
+            font-size: 46px;
             font-weight: 700;
             color: #5D4037;
             margin: 0 0 15px 0;
@@ -141,7 +161,7 @@
         }
 
         #game-viewport .menu-subtitle {
-            font-size: 19px; /* 【修正】：提高選單說明文案易讀性 */
+            font-size: 19px;
             color: #8D6E63;
             max-width: 850px;
             line-height: 1.6;
@@ -185,7 +205,6 @@
             box-shadow: 0 4px 0 #FCD1B4;
         }
 
-        /* 5 個關卡卡片個別配色 */
         #game-viewport .level-card-btn.lvl-1 { border-color: #FFB7B2; box-shadow: 0 10px 0 #FFA6A0, 0 12px 25px rgba(0,0,0,0.05); }
         #game-viewport .level-card-btn.lvl-1:hover { box-shadow: 0 18px 0 #FFA6A0, 0 20px 30px rgba(0,0,0,0.1); }
         #game-viewport .level-card-btn.lvl-1:active { box-shadow: 0 4px 0 #FFA6A0; }
@@ -238,7 +257,7 @@
             margin-left: 3px;
         }
 
-        /* ------------------ 【Iframe 嵌入等待檢視】 ------------------ */
+        /* ------------------ 【Iframe 等待檢視】 ------------------ */
         #game-viewport .iframe-waiting-view {
             display: none;
             flex-direction: column;
@@ -259,21 +278,16 @@
             margin-bottom: 25px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* ==========================================================================
            【3D 雙面字卡流】外層
            ========================================================================== */
         #game-viewport .center-card-flow {
             width: 90%;
-            height: 460px; /* 【手機優化】：稍微壓縮高度，騰出空間給下方大按鍵鍵盤 */
-            margin: 10px 0; /* 【手機優化】：壓縮外邊距 */
+            height: 440px; /* 【手機優化】：微調高度，給鍵盤與頂列更多寬鬆度 */
+            margin: 8px 0;
             perspective: 1500px;
             position: relative;
-            display: none; /* 進入解題畫面才由狀態機開啟 */
+            display: none;
         }
 
         #game-viewport .flip-card-inner {
@@ -285,19 +299,17 @@
             transform-style: preserve-3d;
         }
 
-        /* 當啟動 flipped 狀態時，整張卡片旋轉 180 度 */
         #game-viewport .center-card-flow.flipped .flip-card-inner {
             transform: rotateY(180deg);
         }
 
-        /* 卡片正面與背面的共有基礎樣式 */
         #game-viewport .card-face {
             position: absolute;
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
             border-radius: 32px;
-            padding: 15px 30px; /* 【手機優化】：減少卡片內邊距，使內容撐大 */
+            padding: 12px 30px; /* 【手機優化】：壓縮內邊距 */
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -308,7 +320,7 @@
         /* ------------------ 【狀態 A】正面：解題畫面 ------------------ */
         #game-viewport .card-front {
             background: #FFFFFF;
-            border: 4px solid #FFDAC1; /* 暖橘邊框 */
+            border: 4px solid #FFDAC1;
             box-shadow: 0 12px 0 #FCD1B4, 0 16px 30px rgba(0, 0, 0, 0.05);
             transform: rotateY(0deg);
         }
@@ -316,51 +328,41 @@
         #game-viewport .card-front.correct-flash {
             animation: correct-glow-pulse 0.5s ease-out;
         }
-        @keyframes correct-glow-pulse {
-            0% { border-color: #FFDAC1; box-shadow: 0 0 0px #B5EAD7; }
-            50% { border-color: #69F0AE; box-shadow: 0 0 30px #69F0AE; }
-            100% { border-color: #FFDAC1; box-shadow: 0 12px 0 #FCD1B4; }
-        }
 
         #game-viewport .card-front.error-shake {
             animation: error-shake-move 0.5s ease-in-out;
         }
-        @keyframes error-shake-move {
-            0%, 100% { transform: translateX(0); border-color: #FFDAC1; }
-            20%, 60% { transform: translateX(-10px); border-color: #FFB7B2; }
-            40%, 80% { transform: translateX(10px); border-color: #FFB7B2; }
-        }
 
         #game-viewport .front-title {
             color: #8D6E63;
-            font-size: 18px; /* 【手機優化】：調大標題字體 */
+            font-size: 18px;
             font-weight: 700;
             letter-spacing: 2px;
         }
 
         #game-viewport .question-box {
-            font-size: 52px; /* 【手機優化】：大幅調大公式字體，解決手機端看不清問題 */
+            font-size: 56px; /* 【大字優化】：算式題目再放大 */
             font-weight: 700;
             color: #5D4037;
-            margin: 5px 0; /* 【手機優化】：壓縮垂直間距 */
+            margin: 5px 0;
             letter-spacing: 1px;
         }
 
         #game-viewport .input-and-controls {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             width: 100%;
             justify-content: center;
             margin-bottom: 5px;
         }
 
         #game-viewport .answer-input {
-            width: 260px;
-            height: 58px; /* 【手機優化】：加大輸入框，突顯輸入焦點 */
+            width: 280px; /* 【大字優化】：寬度加大 */
+            height: 64px;  /* 【大字優化】：高度加大 */
             border: 4px solid #FFDAC1;
             border-radius: 16px;
-            font-size: 30px; /* 【手機優化】：加大輸入答案字體 */
+            font-size: 32px; /* 【大字優化】：數字放大 */
             font-weight: 700;
             text-align: center;
             color: #5D4037;
@@ -369,12 +371,13 @@
             caret-color: #FF9E96;
         }
 
+        /* 【大字優化】：送出、清除、提示按鈕全面巨大化 */
         #game-viewport .btn-control {
-            height: 58px; /* 【手機優化】：配合輸入框等高 */
-            padding: 0 24px;
+            height: 64px; /* 加高 */
+            padding: 0 30px; /* 加寬 */
             border: none;
             border-radius: 16px;
-            font-size: 20px; /* 【手機優化】：調大按鈕字體 */
+            font-size: 22px; /* 字体加大 */
             font-weight: 700;
             cursor: pointer;
             transition: all 0.1s ease;
@@ -383,30 +386,30 @@
         #game-viewport .btn-submit {
             background-color: #B5EAD7;
             color: #2E5A44;
-            box-shadow: 0 5px 0 #92D3BC;
+            box-shadow: 0 6px 0 #92D3BC;
         }
         #game-viewport .btn-submit:active {
-            transform: translateY(3px);
+            transform: translateY(4px);
             box-shadow: 0 2px 0 #92D3BC;
         }
 
         #game-viewport .btn-hint {
             background-color: #FFDAC1;
             color: #8D6E63;
-            box-shadow: 0 5px 0 #E2B695;
+            box-shadow: 0 6px 0 #E2B695;
         }
         #game-viewport .btn-hint:active {
-            transform: translateY(3px);
+            transform: translateY(4px);
             box-shadow: 0 2px 0 #E2B695;
         }
 
         #game-viewport .btn-clear-input {
             background-color: #FFE0B2;
             color: #EF6C00;
-            box-shadow: 0 5px 0 #F5C68A;
+            box-shadow: 0 6px 0 #F5C68A;
         }
         #game-viewport .btn-clear-input:active {
-            transform: translateY(3px);
+            transform: translateY(4px);
             box-shadow: 0 2px 0 #F5C68A;
         }
 
@@ -425,11 +428,6 @@
             align-items: center;
             z-index: 20;
             animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes pop-in {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
         }
 
         #game-viewport .overlay-title {
@@ -459,13 +457,10 @@
             box-shadow: 0 6px 0 #92D3BC;
             transition: all 0.1s ease;
         }
-        #game-viewport .btn-next-level:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #92D3BC;
-        }
 
+        /* 自製果凍鍵盤按鍵極大化 */
         #game-viewport .custom-keyboard {
-            display: none; /* 進入解題畫面才由狀態機開啟 */
+            display: none;
             grid-template-columns: repeat(6, 1fr);
             gap: 8px;
             width: 100%;
@@ -478,9 +473,9 @@
             background-color: #F5EBE6;
             border: none;
             border-radius: 12px;
-            height: 54px;
+            height: 60px; /* 【大鍵優化】：按鈕加高 */
             font-family: 'Fredoka', sans-serif;
-            font-size: 28px; /* 【手機優化】：大幅調大鍵盤字體，好按又清晰 */
+            font-size: 32px; /* 【大鍵優化】：按鈕數字極大化，防止誤觸，超清晰 */
             font-weight: bold;
             color: #5D4037;
             cursor: pointer;
@@ -503,20 +498,12 @@
             box-shadow: 0 4px 0 #EAB2B2;
             font-size: 24px;
         }
-        #game-viewport .key-btn.backspace:active {
-            background-color: #FBC2C2;
-            box-shadow: 0 2px 0 #EAB2B2;
-        }
 
         #game-viewport .key-btn.decimal {
             background-color: #E8D7FF;
             color: #5E35B1;
             box-shadow: 0 4px 0 #D1B3FF;
             font-weight: 700;
-        }
-        #game-viewport .key-btn.decimal:active {
-            background-color: #DCD0FF;
-            box-shadow: 0 2px 0 #D1B3FF;
         }
 
         /* ------------------ 【狀態 B】背面：原理說明畫面 ------------------ */
@@ -525,7 +512,7 @@
             border: 4px solid #B5EAD7;
             box-shadow: 0 12px 0 #92D3BC, 0 16px 30px rgba(0, 0, 0, 0.05);
             transform: rotateY(180deg);
-            padding: 15px 30px; /* 【手機優化】：適度減少內縮，釋放空間 */
+            padding: 12px 30px;
         }
 
         #game-viewport .back-header {
@@ -534,12 +521,12 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px dashed #E0F2F1;
-            padding-bottom: 8px;
+            padding-bottom: 6px;
         }
 
         #game-viewport .back-title {
             color: #00796B;
-            font-size: 26px; /* 【手機優化】：標題顯眼易讀 */
+            font-size: 26px;
             font-weight: 700;
             display: flex;
             align-items: center;
@@ -551,37 +538,37 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* 【手機優化】：使文字與圖示均勻分配高度 */
+            justify-content: space-between;
             align-items: center;
-            margin: 6px 0; /* 縮小邊距 */
+            margin: 4px 0;
         }
 
         #game-viewport .back-highlight {
-            font-size: 28px; /* 【手機優化】：大概念顯眼呈現 */
+            font-size: 28px;
             font-weight: 700;
             color: #C62828;
             margin-bottom: 4px;
         }
 
         #game-viewport .back-text {
-            font-size: 20px; /* 【手機優化】：從 16px 大幅調升至 20px，在 0.4 縮放率下依舊極致清晰！ */
+            font-size: 22px; /* 【大字優化】：背面文字解析一律加高到 22px */
             color: #5D4037;
             line-height: 1.6;
-            margin: 0 0 8px 0;
+            margin: 0 0 6px 0;
             font-weight: 600;
             text-align: left;
             width: 100%;
             box-sizing: border-box;
             background: #FDFBF7;
-            padding: 10px 16px;
+            padding: 8px 16px;
             border-radius: 12px;
             border: 1px solid #FFF3E0;
         }
 
-        /* 繪製 SVG 專用高質感展示盒 */
+        /* 【大圖優化】：SVG 寬幅高清晰圖案展示盒 */
         #game-viewport .svg-illustration-placeholder {
             width: 100%;
-            height: 140px;
+            height: 155px; /* 高度拉長 */
             background-color: #FFFDF9;
             border-radius: 16px;
             border: 2px solid #FFE0B2;
@@ -595,9 +582,9 @@
         #back-formula-container {
             width: 100%;
             text-align: left;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 700;
-            font-size: 18px; /* 【手機優化】：提升算式標籤字體 */
+            font-size: 18px;
         }
 
         #back-formula-clicker {
@@ -616,7 +603,7 @@
             width: 100%;
             box-sizing: border-box;
             margin-top: 5px;
-            font-size: 21px; /* 【手機優化】：提升解答算式字體 */
+            font-size: 22px; /* 【大字優化】 */
         }
 
         #game-viewport .btn-retry {
@@ -625,7 +612,7 @@
             background-color: #FFB7B2;
             border: none;
             border-radius: 16px;
-            font-size: 20px;
+            font-size: 22px; /* 放大 */
             font-weight: 700;
             color: #5D4037;
             cursor: pointer;
@@ -633,13 +620,8 @@
             transition: all 0.1s ease;
         }
 
-        #game-viewport .btn-retry:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #FF9E96;
-        }
-
         /* ==========================================================================
-           【狀態 C】終局狀態結算覆蓋層 (全螢幕覆蓋)
+           【狀態 C】終局狀態結算覆蓋層
            ========================================================================== */
         #game-viewport .game-result-overlay {
             position: absolute;
@@ -647,7 +629,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(253, 251, 247, 0.98); /* 奶油色底 */
+            background-color: rgba(253, 251, 247, 0.98);
             border-radius: 24px;
             display: none;
             flex-direction: column;
@@ -663,11 +645,6 @@
             font-size: 70px;
             margin-bottom: 10px;
             animation: bounce-loop 1s infinite alternate ease-in-out;
-        }
-
-        @keyframes bounce-loop {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-15px); }
         }
 
         #game-viewport .result-title {
@@ -698,7 +675,6 @@
             line-height: 1;
         }
 
-        /* 完美通關徽章樣式 */
         #game-viewport .perfect-badge {
             display: none;
             background: linear-gradient(135deg, #FFF176 0%, #F57F17 100%);
@@ -712,12 +688,7 @@
             border: 3px solid #FFF;
             animation: badge-shine 1s infinite alternate ease-in-out;
         }
-        @keyframes badge-shine {
-            0% { transform: scale(0.95); box-shadow: 0 4px 15px rgba(245, 127, 23, 0.4); }
-            100% { transform: scale(1.05); box-shadow: 0 8px 25px rgba(245, 127, 23, 0.8); }
-        }
 
-        /* 分數拆解明細排版 */
         #game-viewport .score-details-list {
             display: flex;
             gap: 20px;
@@ -741,194 +712,19 @@
             color: #2E5A44;
             border: none;
             border-radius: 20px;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 6px 0 #92D3BC;
             transition: all 0.1s ease;
         }
 
-        #game-viewport .btn-restart-game:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #92D3BC;
-        }
-
-        /* 頁尾版權標記 */
         #game-viewport .footer-tag {
             color: #BCAAA4;
             font-weight: 600;
             font-size: 16px;
             letter-spacing: 1px;
             z-index: 10;
-        }
-
-        /* ==========================================================================
-           【直螢幕防呆遮罩】與遊戲 viewport 隔離
-           ========================================================================== */
-        #orientation-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #FFB7B2;
-            z-index: 9999;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #5D4037;
-            text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        #orientation-overlay .phone-icon-wrapper {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            margin-bottom: 30px;
-        }
-
-        #orientation-overlay .phone-svg {
-            width: 100%;
-            height: 100%;
-            fill: #5D4037;
-            animation: rotate-phone 2s infinite ease-in-out;
-        }
-
-        @keyframes rotate-phone {
-            0% { transform: rotate(0deg); }
-            40% { transform: rotate(-90deg); }
-            70% { transform: rotate(-90deg); }
-            100% { transform: rotate(0deg); }
-        }
-
-        #orientation-overlay h2 {
-            font-size: 32px;
-            font-weight: 700;
-            margin: 0 0 15px 0;
-        }
-
-        #orientation-overlay p {
-            font-size: 20px;
-            margin: 0;
-            opacity: 0.9;
-            font-weight: 600;
-        }
-
-        /* 媒體查詢：當處於直式螢幕或高度過長時顯示遮罩 */
-        @media (orientation: portrait) {
-            #orientation-overlay {
-                display: flex;
-            }
-        }
-
-        /* ==========================================================================
-           【右下角橘色測試遙控器】
-           ========================================================================== */
-        #test-remote-panel {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            width: 290px;
-            background: linear-gradient(135deg, #FF9E2A 0%, #E65100 100%);
-            border: 3px solid #FFF;
-            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
-            border-radius: 20px;
-            padding: 12px;
-            box-sizing: border-box;
-            z-index: 10000;
-            color: #FFFFFF;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        #test-remote-panel .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px dashed rgba(255,255,255,0.3);
-            padding-bottom: 6px;
-            margin-bottom: 8px;
-        }
-
-        #test-remote-panel h3 {
-            margin: 0;
-            font-size: 15px;
-            letter-spacing: 1px;
-            font-weight: 700;
-        }
-
-        #test-remote-panel .btn-toggle-remote {
-            background-color: #FFFFFF;
-            color: #E65100;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 11px;
-            cursor: pointer;
-        }
-
-        #test-remote-panel .remote-content {
-            display: block;
-        }
-
-        #test-remote-panel .status-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            background: rgba(0,0,0,0.15);
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        #test-remote-panel .led-light {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            background-color: #69F0AE;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #69F0AE;
-        }
-
-        #test-remote-panel .btn-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 6px;
-            margin-bottom: 8px;
-        }
-
-        #test-remote-panel .remote-btn {
-            background-color: #FFF;
-            color: #E65100;
-            border: none;
-            padding: 6px 8px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 12px;
-            cursor: pointer;
-            box-shadow: 0 3px 0 #B33D00;
-            transition: all 0.1s;
-        }
-
-        #test-remote-panel .remote-btn:active {
-            transform: translateY(3px);
-            box-shadow: none;
-        }
-
-        #test-remote-panel .log-box {
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            padding: 8px;
-            font-family: monospace;
-            font-size: 11px;
-            max-height: 70px;
-            overflow-y: auto;
-            border: 1px solid rgba(255,255,255,0.1);
         }
     </style>
 </head>
@@ -986,12 +782,16 @@
             </div>
 
             <!-- ==========================================================================
-               頂部資訊欄 (進入遊戲時才顯示)
+               頂部資訊欄 (進入遊戲時才顯示，【大字優化】加入退出按鈕)
                ========================================================================== -->
             <div class="header-bar" id="game-header-bar">
-                <div class="level-badge" id="level-badge-container">
-                    <span>🏆</span>
-                    <span id="display-level">挑戰關卡：LV.1</span>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <!-- 【大字優化】：新增退出挑戰按鈕 -->
+                    <button class="btn-exit-game" id="btn-exit-game" onclick="GameModule.exitToMenu()">🚪 退出挑戰</button>
+                    <div class="level-badge" id="level-badge-container">
+                        <span>🏆</span>
+                        <span id="display-level">挑戰關卡：LV.1</span>
+                    </div>
                 </div>
                 <div class="status-info">
                     <span class="status-item" style="background-color: #E8D7FF; color: #5E35B1; box-shadow: 0 6px 0 #D1B3FF;">
@@ -1142,7 +942,6 @@
                 <div class="led-light"></div>
             </div>
             <div class="btn-grid">
-                <!-- 測試面板的 LV 按鈕模擬 Iframe 載入 5 題測驗，完美的單機/Iframe雙分流測試 -->
                 <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(1)">LV.1 (模擬 Iframe)</button>
                 <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(2)">LV.2 (模擬 Iframe)</button>
                 <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(3)">LV.3 (模擬 Iframe)</button>
@@ -1497,7 +1296,7 @@
             },
 
             // ==========================================================================
-            // 【步驟一全新架構】：進入指定關卡的題目循環 Session
+            // 進入指定關卡的題目循環 Session
             // ==========================================================================
             startSession(level, isIframe = false) {
                 this.currentLevel = level;
@@ -1524,11 +1323,30 @@
                 };
                 document.getElementById('game-viewport').style.backgroundColor = colors[level] || '#FDFBF7';
 
+                // 【退出按鈕控制】：Iframe模式下不顯示退出主選單按鈕
+                const exitBtn = document.getElementById('btn-exit-game');
+                if (isIframe) {
+                    exitBtn.style.display = 'none';
+                } else {
+                    exitBtn.style.display = 'inline-block';
+                }
+
                 // 載入當前 session 的第一題
                 this.loadNewQuestion();
                 
                 // 狀態機切換至解題畫面
                 this.switchView('gameplay');
+            },
+
+            // 退出挑戰按鈕
+            exitToMenu() {
+                if (this.isIframeMode) {
+                    parent.postMessage({ type: 'EXIT_CHALLENGE', challengeId: 1 }, '*');
+                    this.logToRemote('【通訊廣播】向上發送 EXIT_CHALLENGE');
+                } else {
+                    this.switchView('menu');
+                    this.logToRemote('玩家點擊退出挑戰，返回主選單。');
+                }
             },
 
             // ------------------ 【隨機出題演算法】 ------------------
@@ -1630,7 +1448,7 @@
                             questionText = `${val} m<sup>3</sup> = ? mL`;
                             correctAnswer = (val * 1000000).toString();
                             explanationHighlight = "立方米(m³) 跨級直通 毫升(mL)！";
-                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>so 連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
+                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
                             explanationFormula = `${val} × 1,000,000 = ${correctAnswer} mL`;
                         }
                         break;
@@ -1748,7 +1566,7 @@
                 };
             },
 
-            // ------------------ 【步驟四：互動式 SVG 動態生成引擎 (全新大字體重塑版)】 ------------------
+            // ------------------ 【步驟四核心：互動式 SVG 動態生成引擎 (寬幅超大字體重塑，完全避開字圖重疊)】 ------------------
             renderStateBSVG() {
                 const container = document.getElementById('svg-container');
                 const lvl = this.currentLevel;
@@ -1757,91 +1575,95 @@
                 let svgHtml = "";
 
                 if (lvl === 1) {
+                    // LV.1 SVG 寬幅高清晰渲染
                     svgHtml = `
-                    <svg viewBox="0 0 400 120" width="100%" height="100%">
-                        <rect x="25" y="15" width="80" height="80" rx="8" fill="#FFF0F0" stroke="#FFB7B2" stroke-width="4" />
-                        <text x="65" y="62" font-family="Fredoka" font-size="20" fill="#5D4037" text-anchor="middle" font-weight="bold">1 m²</text>
+                    <svg viewBox="0 0 500 130" width="100%" height="100%">
+                        <rect x="25" y="15" width="80" height="80" rx="12" fill="#FFF0F0" stroke="#FFB7B2" stroke-width="4" />
+                        <text x="65" y="62" font-family="Fredoka" font-size="22" fill="#5D4037" text-anchor="middle" font-weight="bold">1 m²</text>
                         
                         <path d="M 140 55 L 190 55 M 180 45 L 190 55 L 180 65" stroke="#FF9E96" stroke-width="4" fill="none" stroke-linecap="round"/>
                         <text x="165" y="38" font-size="16" fill="#8D6E63" text-anchor="middle" font-weight="700">長寬皆 ×100</text>
                         
-                        <rect x="230" y="15" width="100" height="80" rx="8" fill="#E8D7FF" stroke="#D1B3FF" stroke-width="4" />
-                        <text x="280" y="48" font-size="15" fill="#5D4037" text-anchor="middle" font-weight="700">100cm × 100cm</text>
-                        <text x="280" y="74" font-family="Fredoka" font-size="18" fill="#5E35B1" text-anchor="middle" font-weight="bold">= 10,000 cm²</text>
+                        <rect x="230" y="15" width="105" height="80" rx="12" fill="#E8D7FF" stroke="#D1B3FF" stroke-width="4" />
+                        <text x="282.5" y="48" font-size="15" fill="#5D4037" text-anchor="middle" font-weight="700">100cm×100cm</text>
+                        <text x="282.5" y="74" font-family="Fredoka" font-size="18" fill="#5E35B1" text-anchor="middle" font-weight="bold">= 10,000 cm²</text>
                     </svg>`;
                 } else if (lvl === 2) {
+                    // LV.2 SVG 寬幅等角投影積木渲染
                     svgHtml = `
-                    <svg viewBox="0 0 400 120" width="100%" height="100%">
-                        <g transform="translate(35, 15) scale(0.75)">
+                    <svg viewBox="0 0 500 130" width="100%" height="100%">
+                        <g transform="translate(35, 12) scale(0.8)">
                             <polygon points="50,0 100,25 50,50 0,25" fill="#FFE0B2" stroke="#EF6C00" stroke-width="3"/>
                             <polygon points="0,25 50,50 50,100 0,75" fill="#FFCC80" stroke="#EF6C00" stroke-width="3"/>
                             <polygon points="50,50 100,25 100,75 50,100" fill="#FFA726" stroke="#EF6C00" stroke-width="3"/>
-                            <text x="50" y="62" font-family="Fredoka" font-size="20" fill="#5D4037" text-anchor="middle" font-weight="bold">1 m³</text>
+                            <text x="50" y="62" font-family="Fredoka" font-size="22" fill="#5D4037" text-anchor="middle" font-weight="bold">1 m³</text>
                         </g>
                         
-                        <path d="M 145 55 L 195 55 M 185 45 L 195 55 L 185 65" stroke="#EF6C00" stroke-width="4" fill="none" stroke-linecap="round"/>
-                        <text x="170" y="38" font-size="15" fill="#8D6E63" text-anchor="middle" font-weight="700">長寬高皆 ×100</text>
+                        <path d="M 165 62 L 220 62 M 210 52 L 220 62 L 210 72" stroke="#EF6C00" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        <text x="192.5" y="42" font-size="15" fill="#8D6E63" text-anchor="middle" font-weight="bold">長寬高皆 ×100</text>
                         
-                        <g transform="translate(230, 15) scale(0.75)">
+                        <g transform="translate(245, 12) scale(0.8)">
                             <polygon points="50,0 100,25 50,50 0,25" fill="#E1F5FE" stroke="#0288D1" stroke-width="3"/>
                             <polygon points="0,25 50,50 50,100 0,75" fill="#B3E5FC" stroke="#0288D1" stroke-width="3"/>
                             <polygon points="50,50 100,25 100,75 50,100" fill="#81D4FA" stroke="#0288D1" stroke-width="3"/>
-                            <text x="50" y="52" font-size="14" fill="#01579B" text-anchor="middle" font-weight="700">100cm×100cm</text>
-                            <text x="50" y="74" font-size="15" fill="#01579B" text-anchor="middle" font-weight="bold">×100cm</text>
+                            <text x="50" y="52" font-size="13" fill="#01579B" text-anchor="middle" font-weight="bold">100cm×100cm</text>
+                            <text x="50" y="74" font-size="14" fill="#01579B" text-anchor="middle" font-weight="bold">× 100cm</text>
                         </g>
-                        <text x="355" y="60" font-size="16" fill="#01579B" text-anchor="middle" font-weight="bold">= 1,000,000 cm³</text>
+                        <text x="420" y="65" font-size="18" fill="#01579B" font-weight="bold">= 1,000,000 cm³</text>
                     </svg>`;
                 } else if (lvl === 3) {
+                    // LV.3 SVG 寬幅容器天平
                     svgHtml = `
-                    <svg viewBox="0 0 420 120" width="100%" height="100%">
+                    <svg viewBox="0 0 500 130" width="100%" height="100%">
                         <!-- Tank 1m³ -->
-                        <rect x="10" y="40" width="50" height="50" rx="6" fill="#E0F7FA" stroke="#00ACC1" stroke-width="3" />
-                        <text x="35" y="70" font-size="14" fill="#006064" text-anchor="middle" font-weight="bold">1 m³</text>
+                        <rect x="15" y="40" width="60" height="60" rx="8" fill="#E0F7FA" stroke="#00ACC1" stroke-width="3" />
+                        <text x="45" y="76" font-size="16" fill="#006064" text-anchor="middle" font-weight="bold">1 m³</text>
                         
-                        <text x="82" y="68" font-size="14" fill="#00ACC1" text-anchor="middle" font-weight="bold">=(1000×)</text>
+                        <text x="105" y="74" font-size="15" fill="#00ACC1" text-anchor="middle" font-weight="bold">=(1000×)</text>
                         
                         <!-- Milk Carton 1 L -->
-                        <rect x="110" y="38" width="40" height="52" rx="4" fill="#E8F5E9" stroke="#43A047" stroke-width="3" />
-                        <path d="M 110 38 L 130 24 L 150 38 Z" fill="#C8E6C9" stroke="#43A047" stroke-width="3"/>
-                        <text x="130" y="70" font-size="14" fill="#1B5E20" text-anchor="middle" font-weight="bold">1 L</text>
+                        <rect x="135" y="38" width="45" height="63" rx="4" fill="#E8F5E9" stroke="#43A047" stroke-width="3" />
+                        <path d="M 135 38 L 157.5 24 L 180 38 Z" fill="#C8E6C9" stroke="#43A047" stroke-width="3"/>
+                        <text x="157.5" y="74" font-size="16" fill="#1B5E20" text-anchor="middle" font-weight="bold">1 L</text>
                         
-                        <text x="175" y="68" font-size="14" fill="#43A047" text-anchor="middle" font-weight="bold">=(1000×)</text>
+                        <text x="210" y="74" font-size="15" fill="#43A047" text-anchor="middle" font-weight="bold">=(1000×)</text>
                         
                         <!-- Beaker 1 mL -->
-                        <rect x="200" y="50" width="30" height="40" rx="3" fill="#FFFDE7" stroke="#FBC02D" stroke-width="3" />
-                        <line x1="200" y1="62" x2="212" y2="62" stroke="#FBC02D" stroke-width="2" />
-                        <line x1="200" y1="74" x2="212" y2="74" stroke="#FBC02D" stroke-width="2" />
-                        <text x="215" y="75" font-size="13" fill="#F57F17" text-anchor="middle" font-weight="bold">1mL</text>
+                        <rect x="235" y="50" width="35" height="50" rx="4" fill="#FFFDE7" stroke="#FBC02D" stroke-width="3" />
+                        <line x1="235" y1="64" x2="248" y2="64" stroke="#FBC02D" stroke-width="2.5" />
+                        <line x1="235" y1="78" x2="248" y2="78" stroke="#FBC02D" stroke-width="2.5" />
+                        <text x="252.5" y="79" font-size="14" fill="#F57F17" text-anchor="middle" font-weight="bold">1mL</text>
                         
                         <!-- Golden Equal Sign -->
-                        <text x="258" y="68" font-size="24" fill="#FF8F00" text-anchor="middle" font-weight="bold">≡</text>
-                        <text x="258" y="88" font-size="11" fill="#FF8F00" text-anchor="middle" font-weight="700">完全等值</text>
+                        <text x="315" y="72" font-size="28" fill="#FF8F00" text-anchor="middle" font-weight="bold">≡</text>
+                        <text x="315" y="94" font-size="12" fill="#FF8F00" text-anchor="middle" font-weight="bold">完全等值</text>
                         
                         <!-- Small Cube 1cm³ -->
-                        <rect x="290" y="50" width="40" height="40" rx="6" fill="#FFF0F5" stroke="#E91E63" stroke-width="3" />
-                        <text x="310" y="74" font-size="12" fill="#880E4F" text-anchor="middle" font-weight="bold">1 cm³</text>
+                        <rect x="360" y="50" width="50" height="50" rx="8" fill="#FFF0F5" stroke="#E91E63" stroke-width="3" />
+                        <text x="385" y="80" font-size="13" fill="#880E4F" text-anchor="middle" font-weight="bold">1 cm³</text>
                     </svg>`;
                 } else if (lvl === 4) {
+                    // LV.4 SVG 微觀階梯
                     svgHtml = `
-                    <svg viewBox="0 0 400 120" width="100%" height="100%">
-                        <g transform="translate(15, 30)">
-                            <circle cx="30" cy="30" r="26" fill="#E8F5E9" stroke="#4CAF50" stroke-width="3" />
-                            <text x="30" y="36" font-family="Fredoka" font-size="18" fill="#1B5E20" text-anchor="middle" font-weight="bold">mm</text>
+                    <svg viewBox="0 0 500 130" width="100%" height="100%">
+                        <g transform="translate(25, 25)">
+                            <circle cx="35" cy="35" r="32" fill="#E8F5E9" stroke="#4CAF50" stroke-width="4" />
+                            <text x="35" y="41" font-family="Fredoka" font-size="22" fill="#1B5E20" text-anchor="middle" font-weight="bold">mm</text>
                         </g>
-                        <g transform="translate(150, 30)">
-                            <circle cx="30" cy="30" r="26" fill="#E0F7FA" stroke="#00BCD4" stroke-width="3" />
-                            <text x="30" y="36" font-family="Fredoka" font-size="18" fill="#006064" text-anchor="middle" font-weight="bold">µm</text>
+                        <g transform="translate(195, 25)">
+                            <circle cx="35" cy="35" r="32" fill="#E0F7FA" stroke="#00BCD4" stroke-width="4" />
+                            <text x="35" y="41" font-family="Fredoka" font-size="22" fill="#006064" text-anchor="middle" font-weight="bold">µm</text>
                         </g>
-                        <g transform="translate(285, 30)">
-                            <circle cx="30" cy="30" r="26" fill="#EDE7F6" stroke="#673AB7" stroke-width="3" />
-                            <text x="30" y="36" font-family="Fredoka" font-size="18" fill="#311B92" text-anchor="middle" font-weight="bold">nm</text>
+                        <g transform="translate(365, 25)">
+                            <circle cx="35" cy="35" r="32" fill="#EDE7F6" stroke="#673AB7" stroke-width="4" />
+                            <text x="35" y="41" font-family="Fredoka" font-size="22" fill="#311B92" text-anchor="middle" font-weight="bold">nm</text>
                         </g>
                         
-                        <path d="M 78 60 L 140 60" stroke="#90A4AE" stroke-width="3" fill="none" stroke-dasharray="4" marker-end="url(#arrow)" />
-                        <text x="109" y="46" font-size="15" fill="#455A64" text-anchor="middle" font-weight="bold">× 1000</text>
+                        <path d="M 105 60 L 180 60" stroke="#90A4AE" stroke-width="3" fill="none" stroke-dasharray="4" marker-end="url(#arrow)" />
+                        <text x="142" y="43" font-size="18" fill="#455A64" text-anchor="middle" font-weight="bold">× 1000</text>
                         
-                        <path d="M 213 60 L 275 60" stroke="#90A4AE" stroke-width="3" fill="none" stroke-dasharray="4" marker-end="url(#arrow)" />
-                        <text x="244" y="46" font-size="15" fill="#455A64" text-anchor="middle" font-weight="bold">× 1000</text>
+                        <path d="M 275 60 L 350 60" stroke="#90A4AE" stroke-width="3" fill="none" stroke-dasharray="4" marker-end="url(#arrow)" />
+                        <text x="312" y="43" font-size="18" fill="#455A64" text-anchor="middle" font-weight="bold">× 1000</text>
                         
                         <defs>
                             <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -1855,34 +1677,35 @@
                     const numText = isDensity ? "分子: 1 g = 0.001 kg" : "分子: 1 km = 1000 m";
                     const denText = isDensity ? "分母: 1 cm³ = 10⁻⁶ m³" : "分母: 1 hr = 3600 s";
                     
+                    // LV.5 SVG 複合單位分數框
                     svgHtml = `
-                    <svg viewBox="0 0 400 120" width="100%" height="100%">
-                        <rect x="10" y="35" width="85" height="50" rx="8" fill="#ECEFF1" stroke="#455A64" stroke-width="3" />
-                        <text x="52.5" y="65" font-family="Fredoka" font-size="16" fill="#37474F" text-anchor="middle" font-weight="bold">${leftUnit}</text>
+                    <svg viewBox="0 0 500 130" width="100%" height="100%">
+                        <rect x="15" y="35" width="105" height="55" rx="8" fill="#ECEFF1" stroke="#455A64" stroke-width="3" />
+                        <text x="67.5" y="68" font-family="Fredoka" font-size="20" fill="#37474F" text-anchor="middle" font-weight="bold">${leftUnit}</text>
                         
-                        <text x="110" y="65" font-size="20" fill="#37474F" text-anchor="middle" font-weight="bold">➔</text>
+                        <text x="140" y="68" font-size="24" fill="#37474F" text-anchor="middle" font-weight="bold">➔</text>
                         
-                        <g transform="translate(130, 10)">
-                            <rect x="0" y="2" width="145" height="38" rx="6" fill="#E1F5FE" stroke="#0288D1" stroke-width="3"/>
-                            <text x="72.5" y="25" font-size="13" fill="#01579B" text-anchor="middle" font-weight="bold">${numText}</text>
+                        <g transform="translate(160, 10)">
+                            <rect x="0" y="2" width="170" height="42" rx="6" fill="#E1F5FE" stroke="#0288D1" stroke-width="3"/>
+                            <text x="85" y="28" font-size="15" fill="#01579B" text-anchor="middle" font-weight="bold">${numText}</text>
                             
-                            <line x1="0" y1="52" x2="145" y2="52" stroke="#37474F" stroke-width="3"/>
+                            <line x1="0" y1="56" x2="170" y2="56" stroke="#37474F" stroke-width="4"/>
                             
-                            <rect x="0" y="62" width="145" height="38" rx="6" fill="#FFF3E0" stroke="#F57C00" stroke-width="3"/>
-                            <text x="72.5" y="85" font-size="13" fill="#E65100" text-anchor="middle" font-weight="bold">${denText}</text>
+                            <rect x="0" y="68" width="170" height="42" rx="6" fill="#FFF3E0" stroke="#F57C00" stroke-width="3"/>
+                            <text x="85" y="94" font-size="15" fill="#E65100" text-anchor="middle" font-weight="bold">${denText}</text>
                         </g>
                         
-                        <text x="290" y="65" font-size="20" fill="#37474F" text-anchor="middle" font-weight="bold">➔</text>
+                        <text x="350" y="68" font-size="24" fill="#37474F" text-anchor="middle" font-weight="bold">➔</text>
                         
-                        <rect x="305" y="35" width="85" height="50" rx="8" fill="#E8F5E9" stroke="#2E7D32" stroke-width="3" />
-                        <text x="347.5" y="65" font-family="Fredoka" font-size="16" fill="#1B5E20" text-anchor="middle" font-weight="bold">${rightUnit}</text>
+                        <rect x="375" y="35" width="105" height="55" rx="8" fill="#E8F5E9" stroke="#2E7D32" stroke-width="3" />
+                        <text x="427.5" y="68" font-family="Fredoka" font-size="20" fill="#1B5E20" text-anchor="middle" font-weight="bold">${rightUnit}</text>
                     </svg>`;
                 }
 
                 container.innerHTML = svgHtml;
             },
 
-            // ------------------ 【加載新一題邏輯 (整合步驟一進度與 session 限制)】 ------------------
+            // ------------------ 【加載新一題邏輯】 ------------------
             loadNewQuestion() {
                 this.attemptsThisQuestion = 0;
                 this.hearts = 3; 
@@ -1911,7 +1734,7 @@
                     this.flipToA();
                 }
 
-                // 5. 【步驟一優化】：更新頂部進度文字 (questionsAnswered 索引為 0-based，故顯示加 1)
+                // 5. 更新頂部進度文字 (questionsAnswered 索引為 0-based，故顯示加 1)
                 const currentQuestionIndex = this.questionsAnswered + 1;
                 document.getElementById('display-progress').innerText = `${currentQuestionIndex} / ${this.totalQuestionsInSession}`;
 
@@ -1974,7 +1797,7 @@
                     if (this.attemptsThisQuestion < 3) {
                         retryBtn.innerText = `返回挑戰，我再試一次！(剩餘 ${3 - this.attemptsThisQuestion} 次機會)`;
                     } else {
-                        // 【步驟一修正】：如果這是 session 中最後一題且答錯，背面按鈕直接引導至結算
+                        // 如果這是 session 中最後一題且答錯，背面按鈕直接引導至結算
                         if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
                             retryBtn.innerText = `挑戰結束，查看最終成績 ➔`;
                         } else {
@@ -2066,7 +1889,7 @@
                     
                     titleEl.innerText = addedBonus > 0 ? "🔥 連擊加分成功！" : "🎉 答對了！太厲害了";
 
-                    // 【步驟一優化】：若已回答完當前 Session 的最後一題，慢按鈕直接導向結算
+                    // 若已回答完當前 Session 的最後一題，慢按鈕直接導向結算
                     if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
                         descEl.innerHTML = `本題獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！<br>
                                             ${addedBonus > 0 ? `<span style="color:#673AB7; font-weight:700;">連擊再賺 +${addedBonus} 分！</span>` : ''}`;
@@ -2080,7 +1903,7 @@
                 }, 400);
             },
 
-            // 【步驟一核心】：答對覆蓋層大按鈕的下一步分流
+            // 答對覆蓋層大按鈕的下一步分流
             proceedAfterResolution() {
                 if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
                     // 已回答完 Session 最後一題，前往結算
@@ -2118,7 +1941,7 @@
                 }, 800);
             },
 
-            // 【步驟一核心】：背面卡片返回/跳過按鈕動作分流
+            // 背面卡片返回/跳過按鈕動作分流
             handleBackAction() {
                 if (this.attemptsThisQuestion >= 3) {
                     // 三次嘗試失敗，本題得分 0
@@ -2190,7 +2013,7 @@
                     document.getElementById('perfect-badge').style.display = "none";
                 }
 
-                // 【步驟一優化】：依據單機與 Iframe 模式，動態調整結算底部的返回功能按鈕
+                // 依據單機與 Iframe 模式，動態調整結算底部的返回功能按鈕
                 const restartBtn = document.getElementById('btn-restart-game');
                 if (this.isIframeMode) {
                     restartBtn.innerText = "重新挑戰 ➔";
@@ -2218,7 +2041,7 @@
                 this.logToRemote(`【通訊廣播】GAME_OVER。總分: ${score}，一發全對: ${isPerfect}，連擊加分: ${comboBonus}`);
             },
 
-            // 【步驟一優化】：結算卡大按鈕返回機制分流
+            // 結算卡大按鈕返回機制分流
             handleEndgameRestart() {
                 document.getElementById('result-overlay').style.display = "none";
                 if (this.isIframeMode) {
