@@ -7,7 +7,6 @@
     <!-- 引入日系可愛圓體與英文 Fredoka 圓體 -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* 基礎重設，避免全域滾動條 */
         html, body {
             margin: 0;
             padding: 0;
@@ -52,7 +51,6 @@
             transition: background-color 0.4s ease, transform 0.1s ease;
         }
 
-        /* 輕量級 Confetti 畫布，用於噴發彩色小紙花效果 */
         #confetti-canvas {
             position: absolute;
             top: 0;
@@ -127,7 +125,6 @@
             position: relative;
         }
 
-        /* 3D 旋轉內膽 */
         #game-viewport .flip-card-inner {
             position: relative;
             width: 100%;
@@ -198,7 +195,6 @@
             letter-spacing: 1px;
         }
 
-        /* 答題互動控制區 (包含輸入顯示與控制鈕) */
         #game-viewport .input-and-controls {
             display: flex;
             align-items: center;
@@ -317,9 +313,6 @@
             box-shadow: 0 2px 0 #92D3BC;
         }
 
-        /* ==========================================================================
-           【自製馬卡龍專屬數字鍵盤】
-           ========================================================================== */
         #game-viewport .custom-keyboard {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -444,6 +437,32 @@
             align-items: center;
             box-sizing: border-box;
             padding: 5px;
+        }
+
+        #back-formula-container {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        #back-formula-clicker {
+            text-decoration: underline;
+            cursor: pointer;
+            color: #00796B;
+        }
+
+        #back-formula-reveal {
+            display: none;
+            color: #C62828;
+            background-color: #FFEBEE;
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid #FFCDD2;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 5px;
         }
 
         #game-viewport .btn-retry {
@@ -749,7 +768,8 @@
                     <span id="display-level">挑戰關卡：LV.1</span>
                 </div>
                 <div class="status-info">
-                    <span class="status-item">❤️ 生命值: <span id="display-hearts">3</span>/3</span>
+                    <!-- 【關鍵改造】：心跳生命值改為本題機會 -->
+                    <span class="status-item">❤️ 本題機會: <span id="display-hearts">3</span>/3</span>
                     <span class="status-item" id="combo-container">⭐ Combo: <span id="display-combo">0</span></span>
                 </div>
             </div>
@@ -933,7 +953,7 @@
             spawn() {
                 this.particles = [];
                 const colors = ['#FFB7B2', '#FFDAC1', '#FFE0B2', '#B5EAD7', '#C7CEEA', '#E8D7FF', '#FF9E96', '#92D3BC'];
-                // 在主卡片上方區域隨機散落 80 個拋射粒子
+                // 在主卡片上方區域隨機散落 90 個拋射粒子
                 for (let i = 0; i < 90; i++) {
                     this.particles.push({
                         x: 640 + (Math.random() - 0.5) * 300,
@@ -1118,16 +1138,17 @@
             
             // 核心賽局與狀態
             currentLevel: 1, // 對應關卡：1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 (全通關)
-            hearts: 3,
+            hearts: 3, // 用於記錄本題機會 (3次作答機會)
             combo: 0,
             isFlipped: false,
             
             // 測試遙控器收合狀態
             isRemoteMinimized: false,
             
-            // 賽局計分器
-            attemptsThisQuestion: 0,
-            totalWrongAttempts: 0, 
+            // 【步驟五核心】：正向積分制，各關卡獨立計分
+            levelScores: [0, 0, 0, 0, 0], // LV.1 ~ LV.5 分數預設為 0
+            attemptsThisQuestion: 0, // 單題錯誤嘗試計數
+            totalWrongAttempts: 0, // 統計整場答錯次數
 
             currentQuestion: {
                 questionText: "",
@@ -1160,7 +1181,6 @@
                 viewport.style.transform = `scale(${scale})`;
             },
 
-            // 雙向通訊合約
             setupCommunication() {
                 // 1. 子傳父：向上發送 GAME_READY
                 parent.postMessage({ type: 'GAME_READY', challengeId: 1 }, '*');
@@ -1269,7 +1289,7 @@
                             questionText = `${val} m<sup>3</sup> = ? cm<sup>3</sup>`;
                             correctAnswer = (val * 1000000).toString();
                             explanationHighlight = "長、寬、高各放大 100 倍！";
-                            explanationText = `三維體積（立方）換算時，長度、寬度與高度都要進行換算。<br>1 m<sup>3</sup> 先拆為 1,000 個中方塊（分米），1 個中方塊再拆為 1,000 個小方塊（公分）。<br>所以體積放大倍數為：100 × 100 × 100 = 1,000,000 倍（一百萬）。`;
+                            explanationText = `三維體積（立方）換算時，長度、寬度與高度都要進行換算。<br>1 m<sup>3</sup> 先拆為 1,000 個中方塊（分米）， 1 個中方塊再拆為 1,000 個小方塊（公分）。<br>所以體積放大倍數為：100 × 100 × 100 = 1,000,000 倍（一百萬）。`;
                             explanationFormula = `${val} × 1,000,000 = ${correctAnswer} cm<sup>3</sup>`;
                         } else {
                             const cmVal = val * 1000000;
@@ -1462,7 +1482,7 @@
                         <text x="65" y="65" font-family="Fredoka" font-size="14" fill="#5D4037" text-anchor="middle" font-weight="bold">1 m²</text>
                         
                         <path d="M 140 60 L 190 60 M 180 50 L 190 60 L 180 70" stroke="#FF9E96" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <text x="165" y="45" font-size="12" fill="#8D6E63" text-anchor="middle" font-weight="700">長寬皆 ×100</text>
+                        <text x="165" y="45" font-size="12" fill="#8D6E63" text-anchor="middle" font-weight="700">長與寬各放大 100 倍</text>
                         
                         <rect x="230" y="20" width="80" height="80" rx="8" fill="#E8D7FF" stroke="#D1B3FF" stroke-width="3" />
                         <text x="270" y="52" font-size="12" fill="#5D4037" text-anchor="middle" font-weight="700">100cm × 100cm</text>
@@ -1579,6 +1599,8 @@
             // ------------------ 【加載題目流程】 ------------------
             loadNewQuestion() {
                 this.attemptsThisQuestion = 0;
+                this.hearts = 3; // 每一道新關卡/題目皆提供完美的 3 次本題機會
+                document.getElementById('display-hearts').innerText = this.hearts;
                 
                 // 1. 隱藏正面覆蓋層
                 document.getElementById('success-overlay').style.display = 'none';
@@ -1656,20 +1678,33 @@
                 inputEl.focus();
             },
 
-            // ------------------ 【3D 雙面翻轉】 ------------------
+            // ------------------ 【3D 雙面字卡流】外層 ------------------
             flipToB(triggerType = 'hint') {
                 if (this.isFlipped) return;
                 
                 this.isFlipped = true;
                 const cardFlow = document.getElementById('main-card-flow');
                 const sourceEl = document.getElementById('explanation-source');
+                const retryBtn = document.getElementById('btn-retry-back');
 
                 if (triggerType === 'hint') {
                     sourceEl.innerText = "💡 查看提示";
+                    retryBtn.innerText = "返回挑戰，我再想想！";
                 } else if (triggerType === 'incorrect') {
-                    sourceEl.innerText = `❌ 答錯了！別氣餒`;
+                    sourceEl.innerText = `❌ 答錯了！第 ${this.attemptsThisQuestion} 次嘗試失敗`;
+                    
+                    if (this.attemptsThisQuestion < 3) {
+                        retryBtn.innerText = `返回挑戰，我再試一次！(剩餘 ${3 - this.attemptsThisQuestion} 次機會)`;
+                    } else {
+                        if (this.currentLevel === 5) {
+                            retryBtn.innerText = `挑戰結束，查看最終成績 ➔`;
+                        } else {
+                            retryBtn.innerText = `挑戰失敗，前往下一關 ➔`;
+                        }
+                    }
                 } else {
                     sourceEl.innerText = "⚙️ 測試遙控器翻面";
+                    retryBtn.innerText = "返回挑戰";
                 }
 
                 cardFlow.classList.add('flipped');
@@ -1711,20 +1746,32 @@
             handleCorrect() {
                 this.combo++;
                 
-                // 【步驟五核心】發光 Combo 累計器動畫觸發
+                // 發光 Combo 計數器動畫觸發
                 const comboContainer = document.getElementById('combo-container');
                 document.getElementById('display-combo').innerText = this.combo;
                 if (this.combo >= 2) {
                     comboContainer.classList.add('combo-glow');
                 }
 
-                // 【步驟五核心】觸發 Web Audio API 升調音效與 Confetti 粒子噴發
+                // 【步驟五：方案 A 分數累積制】
+                // 1st attempt: 20 pts, 2nd: 15 pts, 3rd: 10 pts, else: 0
+                let points = 0;
+                if (this.attemptsThisQuestion === 0) {
+                    points = 20;
+                } else if (this.attemptsThisQuestion === 1) {
+                    points = 15;
+                } else if (this.attemptsThisQuestion === 2) {
+                    points = 10;
+                }
+                this.levelScores[this.currentLevel - 1] = points;
+
+                // 觸發 Web Audio API 升調音效與 Confetti 粒子噴發
                 SoundEngine.playCorrect(this.combo);
                 ConfettiEngine.spawn();
 
                 this.flashFrontEffect('correct-flash');
                 
-                this.logToRemote(`答對了！當前 Combo：${this.combo}`);
+                this.logToRemote(`答對了！本關得分: ${points} 分。當前 Combo：${this.combo}`);
 
                 // 彈出答對下一題覆蓋層
                 setTimeout(() => {
@@ -1732,12 +1779,11 @@
                     const nextBtn = document.querySelector('#success-overlay .btn-next-level');
                     
                     if (this.currentLevel === 5) {
-                        descEl.innerHTML = `恭喜解答正確！這是最終大魔王關卡！`;
+                        descEl.innerHTML = `恭喜解答正確！本關獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！`;
                         nextBtn.innerHTML = `結算成績 ➔`;
-                        // 點擊後進入結算
                         nextBtn.onclick = () => this.triggerGameClear();
                     } else {
-                        descEl.innerHTML = `恭喜解答正確！當前連擊次數：<b style="color:#C62828; font-size:24px;">${this.combo} Combo</b>`;
+                        descEl.innerHTML = `恭喜解答正確！本關獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！連擊數：<b style="color:#C62828;">${this.combo} Combo</b>`;
                         nextBtn.innerHTML = `挑戰下一關 ➔`;
                         nextBtn.onclick = () => this.advanceToNextLevel();
                     }
@@ -1761,25 +1807,17 @@
                 document.getElementById('display-combo').innerText = this.combo;
                 comboContainer.classList.remove('combo-glow');
 
-                // 生命值扣除機制
+                // 本題剩餘可嘗試次數扣減
                 this.hearts = Math.max(0, this.hearts - 1);
                 document.getElementById('display-hearts').innerText = this.hearts;
 
-                // 【步驟五核心】觸發下行警示 Warning 音效
+                // 觸發下行警示 Warning 音效
                 SoundEngine.playError();
                 
                 this.flashFrontEffect('error-shake');
-                this.logToRemote(`答錯了！生命值扣 1。剩餘生命：${this.hearts}`);
+                this.logToRemote(`答錯了！第 ${this.attemptsThisQuestion} 次。剩餘機會：${this.hearts}`);
 
-                // 生命值歸零 ➔ 挑戰失敗
-                if (this.hearts <= 0) {
-                    setTimeout(() => {
-                        this.triggerGameOver();
-                    }, 800);
-                    return;
-                }
-
-                // 否則自動翻到背面原理說明卡 (狀態 B)
+                // 自動翻到背面原理說明卡 (狀態 B)
                 setTimeout(() => {
                     this.flipToB('incorrect');
                 }, 800);
@@ -1787,9 +1825,15 @@
 
             // 處理背面返回動作
             handleBackAction() {
-                if (this.attemptsThisQuestion >= 3 || this.hearts <= 0) {
-                    // 如果這題三次嘗試失敗（不扣光心但達次數，或者在背面心扣光），前進到下一題
-                    this.loadNewQuestion();
+                if (this.attemptsThisQuestion >= 3) {
+                    // 若這題三次都答錯，本題得分 0，強制跳過此題，前往下一關
+                    this.levelScores[this.currentLevel - 1] = 0;
+                    
+                    if (this.currentLevel === 5) {
+                        this.triggerGameClear();
+                    } else {
+                        this.advanceToNextLevel();
+                    }
                 } else {
                     // 翻回正面讓玩家重試
                     this.flipToA();
@@ -1803,57 +1847,38 @@
                 frontFace.classList.add(effectClass);
             },
 
-            // ==========================================================================
-            // 【步驟五技術核心之三】State C 破關係統與生命歸零結算
-            // ==========================================================================
-            
-            // 計算成績第一性原理：最高 100 分。每錯一次扣 10 分。最低 0 分。
+            // 計算最終得分 (加總 5 個關卡的分數，最精準正向累積)
             calculateFinalScore() {
-                const deduction = this.totalWrongAttempts * 10;
-                return Math.max(0, 100 - deduction);
+                return this.levelScores.reduce((sum, score) => sum + score, 0);
             },
 
             // 全部通關 ➔ 大捷結算
             triggerGameClear() {
                 const finalScore = this.calculateFinalScore();
-                const isPerfect = (this.totalWrongAttempts === 0 && this.hearts === 3);
+                // 完美通關定義：每一關都拿滿 20 分 (沒有任何重試，一發命中)
+                const isPerfect = this.levelScores.every(score => score === 20);
 
                 // 播放大捷琶音
                 SoundEngine.playClear();
                 ConfettiEngine.spawn();
 
                 // 顯示通關畫面
-                document.getElementById('result-emoji').innerText = "🏆";
-                document.getElementById('result-title').innerText = "全部挑戰通關！";
-                document.getElementById('result-subtitle').innerText = "恭喜你，完美解鎖空間維度大師勳章！";
-                document.getElementById('result-score').innerText = finalScore;
+                document.getElementById('result-emoji').innerText = finalScore >= 60 ? "🏆" : "👍";
+                document.getElementById('result-title').innerText = finalScore >= 60 ? "挑戰成功！" : "挑戰完成！";
                 
                 if (isPerfect) {
+                    document.getElementById('result-subtitle').innerText = "太完美了！你成功解鎖了完美維度大師勳章！";
                     document.getElementById('perfect-badge').style.display = "inline-block";
                 } else {
+                    document.getElementById('result-subtitle').innerText = "恭喜你順利完成了 5 大空間維度關卡！";
                     document.getElementById('perfect-badge').style.display = "none";
                 }
-
-                document.getElementById('result-overlay').style.display = "flex";
-
-                // 【微前端整合通訊機制】：子傳父 GAME_OVER
-                this.sendGameOverMessage(finalScore, isPerfect);
-            },
-
-            // 生命值歸零 ➔ 挑戰失敗
-            triggerGameOver() {
-                const finalScore = this.calculateFinalScore();
-
-                document.getElementById('result-emoji').innerText = "💀";
-                document.getElementById('result-title').innerText = "挑戰結束！";
-                document.getElementById('result-subtitle').innerText = "生命值已被變形蟲吞噬，再接再厲！";
-                document.getElementById('result-score').innerText = finalScore;
-                document.getElementById('perfect-badge').style.display = "none";
                 
+                document.getElementById('result-score').innerText = finalScore;
                 document.getElementById('result-overlay').style.display = "flex";
 
-                // 向上發送失敗 GAME_OVER
-                this.sendGameOverMessage(finalScore, false);
+                // 微前端數據外傳
+                this.sendGameOverMessage(finalScore, isPerfect);
             },
 
             // 向上發送通訊
@@ -1874,7 +1899,9 @@
                 document.getElementById('result-overlay').style.display = "none";
                 this.hearts = 3;
                 this.combo = 0;
+                this.levelScores = [0, 0, 0, 0, 0]; // 積分重設
                 this.totalWrongAttempts = 0;
+                
                 document.getElementById('display-hearts').innerText = this.hearts;
                 document.getElementById('display-combo').innerText = this.combo;
                 document.getElementById('combo-container').classList.remove('combo-glow');
