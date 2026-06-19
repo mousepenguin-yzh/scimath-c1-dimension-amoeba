@@ -34,7 +34,10 @@
            【CSS 隔離】所有遊戲核心樣式均在 #game-viewport 命名空間下
            ========================================================================= */
         #game-viewport {
-            position: relative;
+            /* 【核心修正】：改為絕對定位，徹底脫離瀏覽器排版流，防止被雙重捏扁！ */
+            position: absolute;
+            left: 50%;
+            top: 50%;
             width: 1280px;
             height: 720px;
             background-color: #FDFBF7; /* 馬卡龍舒壓奶油底色 */
@@ -1142,7 +1145,7 @@
                 <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(1)">LV.1 (模擬 Iframe)</button>
                 <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(2)">LV.2 (模擬 Iframe)</button>
                 <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(3)">LV.3 (模擬 Iframe)</button>
-                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(4)">LV.4 (模擬 Iframe)</button>
+                <button class="remote-btn" onclick="Module.changeLevelAndRestart(4)">LV.4 (模擬 Iframe)</button>
                 <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(5)">LV.5 (模擬 Iframe)</button>
                 <button class="remote-btn" style="background-color: #E65100; color:#fff;" onclick="GameModule.loadNewQuestion()">隨機換一題</button>
             </div>
@@ -1398,7 +1401,8 @@
                 const windowWidth = window.innerWidth;
                 const windowHeight = window.innerHeight;
                 const scale = Math.min(windowWidth / this.baseWidth, windowHeight / this.baseHeight);
-                viewport.style.transform = `scale(${scale})`;
+                // 【核心修正】：將 translate(-50%, -50%) 嵌入 transform 屬性中，確保卡片置中且絕對不被 Flex 擠壓變扁！
+                viewport.style.transform = `translate(-50%, -50%) scale(${scale})`;
             },
 
             // 狀態機：視覺檢視切換控制
@@ -1439,27 +1443,6 @@
             checkStandalone() {
                 if (window === top) {
                     document.getElementById('test-remote-panel').style.display = 'block';
-                }
-            },
-
-            toggleRemotePanel() {
-                const content = document.getElementById('remote-panel-content');
-                const btn = document.getElementById('remote-toggle-btn');
-                const panel = document.getElementById('test-remote-panel');
-                const title = document.getElementById('remote-panel-title');
-
-                this.isRemoteMinimized = !this.isRemoteMinimized;
-
-                if (this.isRemoteMinimized) {
-                    content.style.display = 'none';
-                    btn.innerText = '展開';
-                    title.innerText = '🔧 測試面板';
-                    panel.style.width = '120px';
-                } else {
-                    content.style.display = 'block';
-                    btn.innerText = '收合';
-                    title.innerText = '測試遙控器 (開發面板)';
-                    panel.style.width = '290px';
                 }
             },
 
@@ -1572,7 +1555,7 @@
                             questionText = `${cmVal} cm<sup>3</sup> = ? m<sup>3</sup>`;
                             correctAnswer = val.toString();
                             explanationHighlight = "逆向換算：從 cm<sup>3</sup> 換回 m³！";
-                            explanationText = `從小單位換算為大單位時，數值要除以一百萬（除以 1,000,000）。<br>because 1 m<sup>3</sup> = 1,000,000 cm<sup>3</sup>。`;
+                            explanationText = `從小單位換算為大單位時，數值要除以一百萬（除以 1,000,000）。<br>因為 1 m<sup>3</sup> = 1,000,000 cm<sup>3</sup>。`;
                             explanationFormula = `${cmVal} ÷ 1,000,000 = ${correctAnswer} m<sup>3</sup>`;
                         }
                         break;
@@ -1625,7 +1608,7 @@
                             questionText = `${val} m<sup>3</sup> = ? mL`;
                             correctAnswer = (val * 1000000).toString();
                             explanationHighlight = "立方米(m³) 跨級直通 毫升(mL)！";
-                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>so 連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
+                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
                             explanationFormula = `${val} × 1,000,000 = ${correctAnswer} mL`;
                         }
                         break;
@@ -1639,7 +1622,7 @@
                             questionText = `${val} mm = ? &mu;m`;
                             correctAnswer = (val * 1000).toString();
                             explanationHighlight = "公厘(mm) 換算為 微米(&mu;m)";
-                            explanationText = `微觀長度世界中，mm、&mu;m、nm 每個階梯都是 1,000 倍。<br>1 mm = 1,000 &mu;m（微米）。所以大單位換小單位乘以 1,000。`;
+                            explanationText = `微觀長度 world 中，mm、&mu;m、nm 每個階梯都是 1,000 倍。<br>1 mm = 1,000 &mu;m（微米）。所以大單位換小單位乘以 1,000。`;
                             explanationFormula = `${val} × 1,000 = ${correctAnswer} &mu;m`;
                         } else if (type === 1) {
                             questionText = `${val} &mu;m = ? nm`;
