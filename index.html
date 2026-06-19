@@ -500,14 +500,14 @@
             justify-content: center;
             align-items: center;
             z-index: 100;
-            padding: 40px;
+            padding: 30px;
             box-sizing: border-box;
             text-align: center;
         }
 
         #game-viewport .result-emoji {
-            font-size: 80px;
-            margin-bottom: 20px;
+            font-size: 70px;
+            margin-bottom: 10px;
             animation: bounce-loop 1s infinite alternate ease-in-out;
         }
 
@@ -517,48 +517,77 @@
         }
 
         #game-viewport .result-title {
-            font-size: 40px;
+            font-size: 38px;
             font-weight: 700;
             color: #5D4037;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
         #game-viewport .result-score-box {
             background-color: #FFF;
             border: 4px solid #FFDAC1;
             border-radius: 24px;
-            padding: 20px 50px;
-            margin-bottom: 30px;
+            padding: 15px 40px;
+            margin-bottom: 20px;
             box-shadow: 0 8px 0 #FCD1B4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
         }
 
         #game-viewport .result-score-text {
             font-family: 'Fredoka', sans-serif;
-            font-size: 64px;
+            font-size: 60px;
             font-weight: bold;
             color: #E65100;
+            line-height: 1;
         }
 
+        /* 完美通關徽章樣式 */
         #game-viewport .perfect-badge {
-            display: inline-block;
-            background-color: #B5EAD7;
-            color: #1B5E20;
-            padding: 6px 16px;
+            display: none;
+            background: linear-gradient(135deg, #FFF176 0%, #F57F17 100%);
+            color: #5D4037;
+            padding: 10px 24px;
             border-radius: 50px;
+            font-weight: 800;
+            font-size: 18px;
+            margin-top: 10px;
+            box-shadow: 0 6px 0 #E65100;
+            border: 3px solid #FFF;
+            animation: badge-shine 1s infinite alternate ease-in-out;
+        }
+        @keyframes badge-shine {
+            0% { transform: scale(0.95); box-shadow: 0 4px 15px rgba(245, 127, 23, 0.4); }
+            100% { transform: scale(1.05); box-shadow: 0 8px 25px rgba(245, 127, 23, 0.8); }
+        }
+
+        /* 分數拆解明細排版 */
+        #game-viewport .score-details-list {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
             font-weight: 700;
             font-size: 16px;
-            margin-top: 10px;
-            box-shadow: 0 4px 0 #92D3BC;
+            color: #8D6E63;
+        }
+
+        #game-viewport .score-detail-item {
+            background: #F5EBE6;
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 2px solid #E6D4CE;
         }
 
         #game-viewport .btn-restart-game {
-            height: 64px;
-            padding: 0 60px;
+            height: 60px;
+            padding: 0 50px;
             background-color: #B5EAD7;
             color: #2E5A44;
             border: none;
             border-radius: 20px;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 6px 0 #92D3BC;
@@ -687,7 +716,6 @@
             cursor: pointer;
         }
 
-        /* 遙控器內容包裝區 */
         #test-remote-panel .remote-content {
             display: block;
         }
@@ -752,50 +780,40 @@
 </head>
 <body>
 
-    <!-- 遊戲整體置中包裝 -->
     <div id="game-container-wrapper">
         
-        <!-- 【CSS隔離主容器】遊戲本體視界 (16:9 鎖定) -->
         <div id="game-viewport">
             
-            <!-- Confetti 噴發粒子專用畫布 -->
             <canvas id="confetti-canvas"></canvas>
 
-            <!-- 頂部資訊欄 -->
             <div class="header-bar">
                 <div class="level-badge" id="level-badge-container">
                     <span>🏆</span>
                     <span id="display-level">挑戰關卡：LV.1</span>
                 </div>
                 <div class="status-info">
-                    <!-- 【關鍵改造】：心跳生命值改為本題機會 -->
                     <span class="status-item">❤️ 本題機會: <span id="display-hearts">3</span>/3</span>
                     <span class="status-item" id="combo-container">⭐ Combo: <span id="display-combo">0</span></span>
                 </div>
             </div>
 
-            <!-- 【3D 雙面字卡流】 -->
             <div class="center-card-flow" id="main-card-flow">
                 <div class="flip-card-inner">
                     
-                    <!-- 【狀態 A】卡片正面：解題畫面 -->
                     <div class="card-face card-front" id="card-front-face">
                         
-                        <!-- 答對時彈出的「下一題」覆蓋層 -->
                         <div class="next-question-overlay" id="success-overlay">
-                            <div class="overlay-title">🎉 答對了！太厲害了</div>
+                            <div class="overlay-title" id="success-overlay-title">🎉 答對了！太厲害了</div>
                             <div class="overlay-desc" id="success-overlay-desc">完美完成此次空間維度轉換！</div>
                             <button class="btn-next-level" onclick="GameModule.loadNewQuestion()">挑戰下一題 ➔</button>
                         </div>
 
                         <div class="front-title">空間維度與單位變形蟲</div>
                         
-                        <!-- 隨機題目渲染區 -->
                         <div class="question-box" id="question-text">
                             載入題目中...
                         </div>
                         
-                        <!-- 輸入與操作按鈕 -->
                         <div class="input-and-controls">
                             <input type="text" class="answer-input" id="player-input" placeholder="請使用下方鍵盤作答" inputmode="none" readonly autocomplete="off">
                             <button class="btn-control btn-submit" onclick="GameModule.submitAnswer()">送出</button>
@@ -803,7 +821,6 @@
                             <button class="btn-control btn-hint" onclick="GameModule.flipToB('hint')">提示</button>
                         </div>
 
-                        <!-- 自製對稱馬卡龍 2 x 6 果凍鍵盤 -->
                         <div class="custom-keyboard">
                             <button class="key-btn" onclick="GameModule.pressKey('1')">1</button>
                             <button class="key-btn" onclick="GameModule.pressKey('2')">2</button>
@@ -820,14 +837,12 @@
                             <button class="key-btn decimal" onclick="GameModule.pressKey('.')">.</button>
                         </div>
 
-                        <!-- 正面測試解答開關 -->
                         <div style="font-size:13px; color:#A1887F; font-weight: 600; margin-top: 5px;">
                             <span id="cheat-clicker" onclick="GameModule.toggleCheatView()" style="text-decoration:underline; cursor:pointer;">[ 點擊查看測試解答 ]</span>
                             <span id="cheat-reveal" style="display:none; color:#C62828; margin-left:5px; background-color: #FFEBEE; padding: 2px 8px; border-radius: 4px;"></span>
                         </div>
                     </div>
                     
-                    <!-- 【狀態 B】卡片背面：原理說明畫面 -->
                     <div class="card-face card-back">
                         <div class="back-header">
                             <div class="back-title">
@@ -837,26 +852,22 @@
                             <div style="font-weight:700; color:#00796B;" id="explanation-source">由提示點擊觸發</div>
                         </div>
                         
-                        <!-- 依據當下隨機出題，自動生成的文字解說內容 -->
                         <div class="back-explanation-content">
                             <div class="back-highlight" id="explanation-highlight">載入原理中...</div>
                             <div class="back-text" id="explanation-body">
                                 載入解析中...
                             </div>
                             
-                            <!-- 背面專屬的解答算式遮罩控制區，不主動暴雷 -->
                             <div id="back-formula-container">
                                 <span id="back-formula-clicker" onclick="GameModule.toggleBackFormula()">[ 點擊看解答算式 ]</span>
                                 <div id="back-formula-reveal"></div>
                             </div>
 
-                            <!-- JavaScript 動態渲染 Native SVG 比例圖 -->
                             <div class="svg-illustration-placeholder" id="svg-container">
                                 <!-- 動態渲染幾何 SVG -->
                             </div>
                         </div>
                         
-                        <!-- Retry 賽局重試與強制前進按鈕 -->
                         <button class="btn-retry" id="btn-retry-back" onclick="GameModule.handleBackAction()">返回挑戰，我再想想！</button>
                     </div>
 
@@ -867,18 +878,32 @@
             <div class="game-result-overlay" id="result-overlay">
                 <div class="result-emoji" id="result-emoji">🏆</div>
                 <div class="result-title" id="result-title">全部通關！</div>
-                <div style="color: #8D6E63; font-size: 18px; font-weight: 600; margin-bottom: 15px;" id="result-subtitle">恭喜你，空間維度挑戰成功！</div>
+                <div style="color: #8D6E63; font-size: 18px; font-weight: 600; margin-bottom: 10px;" id="result-subtitle">恭喜你，空間維度挑戰成功！</div>
                 
+                <!-- 新增：分數拆解明細面板，讓學生一眼看出分數由來 -->
+                <div class="score-details-list">
+                    <div class="score-detail-item">關卡基礎分：<span id="display-base-score">0</span> 分</div>
+                    <div class="score-detail-item" style="color: #673AB7; background-color: #EDE7F6; border-color: #D1C4E9;">
+                        連擊加成：+<span id="display-bonus-score">0</span> 分
+                    </div>
+                </div>
+
                 <div class="result-score-box">
-                    <div style="font-size: 18px; font-weight: 700; color: #8D6E63;">你的最終成績</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #8D6E63;">最終實得總分 (上限 100 分)</div>
                     <div class="result-score-text" id="result-score">100</div>
-                    <div class="perfect-badge" id="perfect-badge" style="display: none;">🌟 完美大師 (Perfect Clear)</div>
+                    
+                    <!-- 【大師徽章】：點亮「一發命中一次全對徽章」 -->
+                    <div class="perfect-badge" id="perfect-badge">
+                        ✨ 👑 一發命中・完美大師勳章 👑 ✨
+                        <div style="font-size: 12px; font-weight: bold; margin-top: 4px; opacity: 0.9;">
+                            （全關卡第一次嘗試即解答正確）
+                        </div>
+                    </div>
                 </div>
 
                 <button class="btn-restart-game" onclick="GameModule.restartWholeGame()">重新挑戰 ➔</button>
             </div>
 
-            <!-- 底部裝飾與版權資訊 -->
             <div class="footer-tag">
                 SPACE DIMENSION & UNIT CHALLENGE v1.0
             </div>
@@ -887,7 +912,6 @@
 
     </div>
 
-    <!-- 直螢幕防呆警告遮罩 -->
     <div id="orientation-overlay">
         <div class="phone-icon-wrapper">
             <svg class="phone-svg" viewBox="0 0 24 24">
@@ -898,7 +922,6 @@
         <p>本挑戰賽專為橫螢幕大字卡模式設計</p>
     </div>
 
-    <!-- 獨立開發專用：橘色測試遙控器 (優化：迷你收合) -->
     <div id="test-remote-panel">
         <div class="panel-header">
             <h3 id="remote-panel-title">測試遙控器 (開發面板)</h3>
@@ -918,17 +941,14 @@
                 <button class="remote-btn" style="background-color: #E65100; color:#fff;" onclick="GameModule.loadNewQuestion()">隨機換一題</button>
             </div>
             <div class="log-box" id="remote-log">
-                步驟五動態音效與 Confetti 完全完工！
+                一次全對勳章與連擊補償加分部署就緒。
             </div>
         </div>
     </div>
 
-    <!-- ==========================================================================
-         【JS 隔離】所有遊戲變數與行為均在命名空間 GameModule 內
-         ========================================================================== -->
     <script>
         // ==========================================================================
-        // 【步驟五技術核心之一】輕量級 Canvas Confetti 粒子模擬器
+        // 輕量級 Canvas Confetti 粒子模擬器
         // ==========================================================================
         const ConfettiEngine = {
             canvas: null,
@@ -953,13 +973,12 @@
             spawn() {
                 this.particles = [];
                 const colors = ['#FFB7B2', '#FFDAC1', '#FFE0B2', '#B5EAD7', '#C7CEEA', '#E8D7FF', '#FF9E96', '#92D3BC'];
-                // 在主卡片上方區域隨機散落 90 個拋射粒子
                 for (let i = 0; i < 90; i++) {
                     this.particles.push({
                         x: 640 + (Math.random() - 0.5) * 300,
                         y: 250 + (Math.random() - 0.5) * 100,
                         vx: (Math.random() - 0.5) * 12,
-                        vy: -Math.random() * 10 - 6, // 向上噴射
+                        vy: -Math.random() * 10 - 6,
                         size: Math.random() * 10 + 6,
                         color: colors[Math.floor(Math.random() * colors.length)],
                         rotation: Math.random() * 360,
@@ -986,10 +1005,10 @@
                     const p = this.particles[i];
                     p.x += p.vx;
                     p.y += p.vy;
-                    p.vy += 0.4; // 重力加速度
-                    p.vx *= 0.97; // 空氣阻力
+                    p.vy += 0.4;
+                    p.vx *= 0.97;
                     p.rotation += p.rotationSpeed;
-                    p.opacity -= 0.012; // 漸進淡出
+                    p.opacity -= 0.012;
                     
                     if (p.opacity <= 0 || p.y > 720) {
                         this.particles.splice(i, 1);
@@ -1010,7 +1029,7 @@
         };
 
         // ==========================================================================
-        // 【步驟五技術核心之二】純 Web Audio API 合成器音效引擎 (無外部 MP3 依存)
+        // 純 Web Audio API 合成器音效引擎
         // ==========================================================================
         const SoundEngine = {
             audioCtx: null,
@@ -1024,17 +1043,14 @@
                 }
             },
             
-            // 答對音效：叮咚兩聲。頻率隨 Combo 遞增 (Chromatic Pitch Scaling)
             playCorrect(combo) {
                 try {
                     this.lazyInit();
                     const now = this.audioCtx.currentTime;
                     
-                    // 基礎 C5 頻率 = 523.25 Hz。每增加 1 Combo，音高往上遞增一個半音 (半音乘積因子 1.05946)
-                    const semitones = Math.min(combo, 12); // 最多升 12 個半音 (一個八度)
+                    const semitones = Math.min(combo, 12);
                     const baseFreq = 523.25 * Math.pow(1.059463, semitones);
                     
-                    // 第一聲：主音 (Triangle Wave，和緩可愛)
                     const osc1 = this.audioCtx.createOscillator();
                     const gain1 = this.audioCtx.createGain();
                     osc1.type = 'triangle';
@@ -1049,12 +1065,11 @@
                     osc1.start(now);
                     osc1.stop(now + 0.4);
                     
-                    // 第二聲：純淨屬音 (Sine Wave，稍微延遲並升到純五度，營造明亮寬廣的「叮咚」感)
                     setTimeout(() => {
                         const osc2 = this.audioCtx.createOscillator();
                         const gain2 = this.audioCtx.createGain();
                         osc2.type = 'sine';
-                        osc2.frequency.setValueAtTime(baseFreq * 1.5, this.audioCtx.currentTime); // 純五度
+                        osc2.frequency.setValueAtTime(baseFreq * 1.5, this.audioCtx.currentTime);
                         
                         gain2.gain.setValueAtTime(0, this.audioCtx.currentTime);
                         gain2.gain.linearRampToValueAtTime(0.18, this.audioCtx.currentTime + 0.04);
@@ -1071,7 +1086,6 @@
                 }
             },
             
-            // 答錯音效：沉悶下行雙弦警示音 (Sawtooth，電子電玩風)
             playError() {
                 try {
                     this.lazyInit();
@@ -1081,7 +1095,6 @@
                     const gain = this.audioCtx.createGain();
                     
                     osc.type = 'sawtooth';
-                    // 低沉下沉頻率 140Hz -> 90Hz
                     osc.frequency.setValueAtTime(140, now);
                     osc.frequency.linearRampToValueAtTime(90, now + 0.35);
                     
@@ -1098,12 +1111,11 @@
                 }
             },
 
-            // 破關大捷：琶音和弦
             playClear() {
                 try {
                     this.lazyInit();
                     const now = this.audioCtx.currentTime;
-                    const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 1046.50]; // C 和弦琶音大集結
+                    const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 1046.50];
                     
                     notes.forEach((freq, i) => {
                         const delay = i * 0.12;
@@ -1130,25 +1142,24 @@
         };
 
         // ==========================================================================
-        // 【主模組邏輯命名空間】
+        // 主模組邏輯
         // ==========================================================================
         const GameModule = {
             baseWidth: 1280,
             baseHeight: 720,
             
-            // 核心賽局與狀態
-            currentLevel: 1, // 對應關卡：1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 (全通關)
-            hearts: 3, // 用於記錄本題機會 (3次作答機會)
+            currentLevel: 1,
+            hearts: 3,
             combo: 0,
             isFlipped: false,
             
-            // 測試遙控器收合狀態
             isRemoteMinimized: false,
             
-            // 【步驟五核心】：正向積分制，各關卡獨立計分
-            levelScores: [0, 0, 0, 0, 0], // LV.1 ~ LV.5 分數預設為 0
-            attemptsThisQuestion: 0, // 單題錯誤嘗試計數
-            totalWrongAttempts: 0, // 統計整場答錯次數
+            // 【正向積分與連擊加分機制】
+            levelScores: [0, 0, 0, 0, 0], // 各關卡基本得分 (20 / 15 / 10 / 0)
+            comboBonusScore: 0,          // 連擊累積額外加分 (每次 combo >= 2 時，額外獎勵 +2 分)
+            attemptsThisQuestion: 0,     // 本題重試次數計數
+            totalWrongAttempts: 0,       // 統計整場累計答錯次數
 
             currentQuestion: {
                 questionText: "",
@@ -1169,7 +1180,6 @@
                     setTimeout(() => this.setupRWD(), 100);
                 });
 
-                // 首次加載隨機題目
                 this.loadNewQuestion();
             },
 
@@ -1182,10 +1192,8 @@
             },
 
             setupCommunication() {
-                // 1. 子傳父：向上發送 GAME_READY
                 parent.postMessage({ type: 'GAME_READY', challengeId: 1 }, '*');
                 
-                // 2. 父傳子：向下接收指令
                 window.addEventListener('message', (event) => {
                     const data = event.data;
                     if (data && data.type === 'START_GAME') {
@@ -1250,7 +1258,7 @@
                 }
             },
 
-            // ------------------ 【LV.1 ~ LV.5 隨機出題演算法】 ------------------
+            // ------------------ 【隨機出題演算法】 ------------------
             generateRandomQuestion(level) {
                 let questionText = "";
                 let correctAnswer = "";
@@ -1349,7 +1357,7 @@
                             questionText = `${val} m<sup>3</sup> = ? mL`;
                             correctAnswer = (val * 1000000).toString();
                             explanationHighlight = "立方米(m³) 跨級直通 毫升(mL)！";
-                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>所以連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
+                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>so 連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
                             explanationFormula = `${val} × 1,000,000 = ${correctAnswer} mL`;
                         }
                         break;
@@ -1599,7 +1607,7 @@
             // ------------------ 【加載題目流程】 ------------------
             loadNewQuestion() {
                 this.attemptsThisQuestion = 0;
-                this.hearts = 3; // 每一道新關卡/題目皆提供完美的 3 次本題機會
+                this.hearts = 3; // 每一道新關卡皆提供完美的 3 次本題機會
                 document.getElementById('display-hearts').innerText = this.hearts;
                 
                 // 1. 隱藏正面覆蓋層
@@ -1765,25 +1773,37 @@
                 }
                 this.levelScores[this.currentLevel - 1] = points;
 
+                // 【連擊額外加分機制】：當 Combo 累積達到 2 以上，每次答對額外獲得 2 分
+                let addedBonus = 0;
+                if (this.combo >= 2) {
+                    addedBonus = 2;
+                    this.comboBonusScore += addedBonus;
+                }
+
                 // 觸發 Web Audio API 升調音效與 Confetti 粒子噴發
                 SoundEngine.playCorrect(this.combo);
                 ConfettiEngine.spawn();
 
                 this.flashFrontEffect('correct-flash');
                 
-                this.logToRemote(`答對了！本關得分: ${points} 分。當前 Combo：${this.combo}`);
+                this.logToRemote(`答對了！本關得分: ${points} 分${addedBonus > 0 ? ` (連擊加分 +${addedBonus})` : ''}。當前 Combo：${this.combo}`);
 
                 // 彈出答對下一題覆蓋層
                 setTimeout(() => {
                     const descEl = document.getElementById('success-overlay-desc');
+                    const titleEl = document.getElementById('success-overlay-title');
                     const nextBtn = document.querySelector('#success-overlay .btn-next-level');
                     
+                    titleEl.innerText = addedBonus > 0 ? "🔥 連擊加分成功！" : "🎉 答對了！太厲害了";
+
                     if (this.currentLevel === 5) {
-                        descEl.innerHTML = `恭喜解答正確！本關獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！`;
+                        descEl.innerHTML = `本關獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！<br>
+                                            ${addedBonus > 0 ? `<span style="color:#673AB7; font-weight:700;">連擊再賺 +${addedBonus} 分！</span>` : ''}`;
                         nextBtn.innerHTML = `結算成績 ➔`;
                         nextBtn.onclick = () => this.triggerGameClear();
                     } else {
-                        descEl.innerHTML = `恭喜解答正確！本關獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！連擊數：<b style="color:#C62828;">${this.combo} Combo</b>`;
+                        descEl.innerHTML = `本關獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！連擊數：<b style="color:#C62828;">${this.combo} Combo</b><br>
+                                            ${addedBonus > 0 ? `<span style="color:#673AB7; font-weight:700;">連擊加分累積中 (+${addedBonus}分)！</span>` : ''}`;
                         nextBtn.innerHTML = `挑戰下一關 ➔`;
                         nextBtn.onclick = () => this.advanceToNextLevel();
                     }
@@ -1791,7 +1811,6 @@
                 }, 400);
             },
 
-            // 前往下一關 (1 -> 2 -> 3 -> 4 -> 5)
             advanceToNextLevel() {
                 const nextLvl = this.currentLevel + 1;
                 this.changeLevelAndRestart(nextLvl);
@@ -1823,7 +1842,6 @@
                 }, 800);
             },
 
-            // 處理背面返回動作
             handleBackAction() {
                 if (this.attemptsThisQuestion >= 3) {
                     // 若這題三次都答錯，本題得分 0，強制跳過此題，前往下一關
@@ -1835,7 +1853,6 @@
                         this.advanceToNextLevel();
                     }
                 } else {
-                    // 翻回正面讓玩家重試
                     this.flipToA();
                 }
             },
@@ -1847,70 +1864,82 @@
                 frontFace.classList.add(effectClass);
             },
 
-            // 計算最終得分 (加總 5 個關卡的分數，最精準正向累積)
+            // 計算最終得分 (基礎關卡分數 + 連擊加成，最高鎖定為 100 分)
             calculateFinalScore() {
-                return this.levelScores.reduce((sum, score) => sum + score, 0);
+                const baseScore = this.levelScores.reduce((sum, score) => sum + score, 0);
+                const totalWithBonus = baseScore + this.comboBonusScore;
+                return {
+                    baseScore: baseScore,
+                    bonusScore: this.comboBonusScore,
+                    finalScore: Math.min(100, totalWithBonus)
+                };
             },
 
             // 全部通關 ➔ 大捷結算
             triggerGameClear() {
-                const finalScore = this.calculateFinalScore();
-                // 完美通關定義：每一關都拿滿 20 分 (沒有任何重試，一發命中)
-                const isPerfect = this.levelScores.every(score => score === 20);
+                const scoreResult = this.calculateFinalScore();
+                
+                // 一發命中定義：每一關都拿滿 20 分 (沒有任何重試，一發即中，失誤次數為 0)
+                const isPerfect = this.levelScores.every(score => score === 20) && this.totalWrongAttempts === 0;
 
                 // 播放大捷琶音
                 SoundEngine.playClear();
                 ConfettiEngine.spawn();
 
+                // 渲染拆解明細與總分
+                document.getElementById('display-base-score').innerText = scoreResult.baseScore;
+                document.getElementById('display-bonus-score').innerText = scoreResult.bonusScore;
+                document.getElementById('result-score').innerText = scoreResult.finalScore;
+
                 // 顯示通關畫面
-                document.getElementById('result-emoji').innerText = finalScore >= 60 ? "🏆" : "👍";
-                document.getElementById('result-title').innerText = finalScore >= 60 ? "挑戰成功！" : "挑戰完成！";
+                document.getElementById('result-emoji').innerText = scoreResult.finalScore >= 60 ? "🏆" : "👍";
+                document.getElementById('result-title').innerText = scoreResult.finalScore >= 60 ? "挑戰成功！" : "挑戰完成！";
                 
                 if (isPerfect) {
-                    document.getElementById('result-subtitle').innerText = "太完美了！你成功解鎖了完美維度大師勳章！";
+                    document.getElementById('result-subtitle').innerText = "一次全對！你成功解鎖了終極大師神射手成就！";
                     document.getElementById('perfect-badge').style.display = "inline-block";
                 } else {
-                    document.getElementById('result-subtitle').innerText = "恭喜你順利完成了 5 大空間維度關卡！";
+                    document.getElementById('result-subtitle').innerText = "恭喜你完成全部 5 大維度轉換關卡！";
                     document.getElementById('perfect-badge').style.display = "none";
                 }
                 
-                document.getElementById('result-score').innerText = finalScore;
                 document.getElementById('result-overlay').style.display = "flex";
 
-                // 微前端數據外傳
-                this.sendGameOverMessage(finalScore, isPerfect);
+                // 【微前端整合通訊合約升級】：
+                // 傳遞 totalScore、isPerfect 標記，以及專屬 hasPerfectBadge 來讓主網頁發放獎勵！
+                this.sendGameOverMessage(scoreResult.finalScore, isPerfect, scoreResult.bonusScore);
             },
 
             // 向上發送通訊
-            sendGameOverMessage(score, isPerfect) {
+            sendGameOverMessage(score, isPerfect, comboBonus) {
                 const payload = {
                     type: 'GAME_OVER',
                     challengeId: 1,
                     currentLevel: this.currentLevel,
-                    isPerfect: isPerfect,
-                    score: score
+                    isPerfect: isPerfect, // 標示是否一發全對
+                    hasPerfectBadge: isPerfect, // 專屬完美通關徽章標記，以便主網頁發送獎勵
+                    score: score, // 最終總分 (上限 100)
+                    comboBonus: comboBonus // 傳遞連擊加分給大網頁分析
                 };
                 parent.postMessage(payload, '*');
-                this.logToRemote(`【通訊廣播】向上發送 GAME_OVER。成績: ${score}，Perfect: ${isPerfect}`);
+                this.logToRemote(`【通訊廣播】GAME_OVER。總分: ${score}，一發全對徽章: ${isPerfect}，連擊加分: ${comboBonus}`);
             },
 
-            // 重新挑戰
             restartWholeGame() {
                 document.getElementById('result-overlay').style.display = "none";
                 this.hearts = 3;
                 this.combo = 0;
-                this.levelScores = [0, 0, 0, 0, 0]; // 積分重設
+                this.levelScores = [0, 0, 0, 0, 0]; 
+                this.comboBonusScore = 0; // 重設加分
                 this.totalWrongAttempts = 0;
                 
                 document.getElementById('display-hearts').innerText = this.hearts;
                 document.getElementById('display-combo').innerText = this.combo;
                 document.getElementById('combo-container').classList.remove('combo-glow');
                 
-                // 重設回第一關
                 this.changeLevelAndRestart(1);
             },
 
-            // ------------------ 【測試面板輔助】 ------------------
             logToRemote(message) {
                 const logBox = document.getElementById('remote-log');
                 if (logBox) {
