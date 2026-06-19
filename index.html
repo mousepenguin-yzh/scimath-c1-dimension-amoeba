@@ -977,7 +977,7 @@
                 </div>
             </div>
 
-            <!-- 答對時彈出的「下一題」覆蓋層 (解耦移出 3D 容器，改為平鋪 2D 置頂，完美防觸控阻斷) -->
+            <!-- 【核心修復】：答對時彈出的「下一題」覆蓋層 (解耦移出 3D 容器，改為平鋪 2D 置頂，完美防觸控阻斷) -->
             <div class="next-question-overlay" id="success-overlay">
                 <div class="overlay-title" id="success-overlay-title">🎉 答對了！太厲害了</div>
                 <div class="overlay-desc" id="success-overlay-desc">完美完成此次空間維度轉換！</div>
@@ -1624,7 +1624,7 @@
                             questionText = `${val} mm = ? &mu;m`;
                             correctAnswer = (val * 1000).toString();
                             explanationHighlight = "公厘(mm) 換算為 微米(&mu;m)";
-                            explanationText = `微觀長度 world 中，mm、&mu;m、nm 每個階梯都是 1,000 倍。<br>1 mm = 1,000 &mu;m（微米）。所以大單位換小單位乘以 1,000。`;
+                            explanationText = `微觀長度世界中，mm、&mu;m、nm 每個階梯都是 1,000 倍。<br>1 mm = 1,000 &mu;m（微米）。所以大單位換小單位乘以 1,000。`;
                             explanationFormula = `${val} × 1,000 = ${correctAnswer} &mu;m`;
                         } else if (type === 1) {
                             questionText = `${val} &mu;m = ? nm`;
@@ -1743,10 +1743,10 @@
                         <text x="65" y="62" font-family="Fredoka" font-size="22" fill="#5D4037" text-anchor="middle" font-weight="bold">1 m²</text>
                         
                         <path d="M 140 55 L 190 55 M 180 45 L 190 55 L 180 65" stroke="#FF9E96" stroke-width="4" fill="none" stroke-linecap="round"/>
-                        <text x="165" y="38" font-size="16" fill="#8D6E63" text-anchor="middle" font-weight="700">長寬皆 ×100</text>
+                        <text x="165" y="38" font-size="16" fill="#8D6E63" text-anchor="middle" font-weight="700">長與寬各放大 100 倍</text>
                         
                         <rect x="230" y="15" width="105" height="80" rx="12" fill="#E8D7FF" stroke="#D1B3FF" stroke-width="4" />
-                        <text x="282.5" y="48" font-size="15" fill="#5D4037" text-anchor="middle" font-weight="700">100cm × 100cm</text>
+                        <text x="282.5" y="48" font-size="15" fill="#5D4037" text-anchor="middle" font-weight="700">100cm×100cm</text>
                         <text x="282.5" y="74" font-family="Fredoka" font-size="18" fill="#5E35B1" text-anchor="middle" font-weight="bold">= 10,000 cm²</text>
                     </svg>`;
                 } else if (lvl === 2) {
@@ -2081,7 +2081,7 @@
             },
 
             // ==========================================================================
-            // 【步驟二：LocalStorage 本地歷史紀錄寫入】
+            // 【步驟二：SafeStorage 本地歷史紀錄寫入】
             // ==========================================================================
             triggerGameClear() {
                 const scoreResult = this.calculateFinalScore();
