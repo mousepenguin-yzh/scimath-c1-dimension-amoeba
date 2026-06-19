@@ -413,20 +413,24 @@
             box-shadow: 0 2px 0 #F5C68A;
         }
 
-        /* 答對時的「下一題」覆蓋彈出層 */
+        /* 【核心修復】：答對時彈出的「下一題」覆蓋層 (解耦移出 3D 容器，改為平鋪 2D 置頂，完美防觸控阻斷) */
         #game-viewport .next-question-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 28px;
+            top: 110px; /* 精準重合 .center-card-flow 的 Y 座標 */
+            left: 5%;   /* 與 .center-card-flow 同步寬度比例 90% */
+            width: 90%;
+            height: 440px; /* 與 .center-card-flow 高度完全一致 */
+            background-color: rgba(255, 255, 255, 0.96);
+            border-radius: 32px;
+            border: 4px solid #B5EAD7; /* 醒目的馬卡龍薄荷綠外邊框 */
+            box-shadow: 0 12px 0 #92D3BC, 0 16px 30px rgba(0, 0, 0, 0.05);
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 20;
+            z-index: 150; /* 設在 3D 渲染樹與 Confetti 畫布之上，確保 100% 可觸控 */
+            box-sizing: border-box;
+            padding: 30px;
             animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -620,6 +624,11 @@
             transition: all 0.1s ease;
         }
 
+        #game-viewport .btn-retry:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #FF9E96;
+        }
+
         /* ==========================================================================
            【狀態 C】終局狀態結算覆蓋層
            ========================================================================== */
@@ -737,11 +746,11 @@
             width: 290px;
             background: linear-gradient(135deg, #FF9E2A 0%, #E65100 100%);
             border: 3px solid #FFF;
-            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
             border-radius: 20px;
             padding: 12px;
             box-sizing: border-box;
-            z-index: 10000;
+            z-index: 10000; /* 高於所有 viewport 層，確保在任何模式下均有極高的事件響應權限 */
             color: #FFFFFF;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             display: none; /* 【步驟三】：預設徹底隱藏，杜絕正式生產環境洩漏 */
@@ -917,13 +926,6 @@
                 <div class="flip-card-inner">
                     
                     <div class="card-face card-front" id="card-front-face">
-                        
-                        <div class="next-question-overlay" id="success-overlay">
-                            <div class="overlay-title" id="success-overlay-title">🎉 答對了！太厲害了</div>
-                            <div class="overlay-desc" id="success-overlay-desc">完美完成此次空間維度轉換！</div>
-                            <button class="btn-next-level" id="success-overlay-btn" onclick="GameModule.proceedAfterResolution()">挑戰下一題 ➔</button>
-                        </div>
-
                         <div class="front-title">空間維度與單位變形蟲</div>
                         
                         <div class="question-box" id="question-text">
@@ -973,6 +975,13 @@
                     </div>
 
                 </div>
+            </div>
+
+            <!-- 答對時彈出的「下一題」覆蓋層 (解耦移出 3D 容器，改為平鋪 2D 置頂，完美防觸控阻斷) -->
+            <div class="next-question-overlay" id="success-overlay">
+                <div class="overlay-title" id="success-overlay-title">🎉 答對了！太厲害了</div>
+                <div class="overlay-desc" id="success-overlay-desc">完美完成此次空間維度轉換！</div>
+                <button class="btn-next-level" id="success-overlay-btn" onclick="GameModule.proceedAfterResolution()">挑戰下一題 ➔</button>
             </div>
 
             <!-- 自製果凍鍵盤 -->
@@ -1356,6 +1365,9 @@
                 document.getElementById('custom-keyboard').style.display = viewName === 'gameplay' ? 'grid' : 'none';
                 document.getElementById('game-header-bar').style.display = viewName === 'gameplay' ? 'flex' : 'none';
                 document.getElementById('result-overlay').style.display = viewName === 'result' ? 'flex' : 'none';
+                
+                // 每次切換檢視時，確保「下一題覆蓋層」安全隱藏
+                document.getElementById('success-overlay').style.display = 'none';
             },
 
             // 判定初始顯示 View
@@ -1716,7 +1728,7 @@
                 };
             },
 
-            // ------------------ 【步驟四核心：互動式 SVG 動態生成引擎 (寬幅超大字體重塑，完全避開字圖重疊)】 ------------------
+            // ------------------ 【步驟四：互動式 SVG 動態生成引擎】 ------------------
             renderStateBSVG() {
                 const container = document.getElementById('svg-container');
                 const lvl = this.currentLevel;
@@ -1850,7 +1862,7 @@
                 container.innerHTML = svgHtml;
             },
 
-            // ------------------ 【加載新一題邏輯 (整合進度與 session 限制)】 ------------------
+            // ------------------ 【加載新一題邏輯】 ------------------
             loadNewQuestion() {
                 this.attemptsThisQuestion = 0;
                 this.hearts = 3; 
@@ -2002,7 +2014,10 @@
                 } else if (this.attemptsThisQuestion === 2) {
                     points = 10;
                 }
-                this.levelScores[this.questionsAnswered] = points;
+                
+                if (this.levelScores && this.levelScores.length > this.questionsAnswered) {
+                    this.levelScores[this.questionsAnswered] = points;
+                }
 
                 let addedBonus = 0;
                 if (this.combo >= 2) {
@@ -2058,9 +2073,11 @@
 
             flashFrontEffect(effectClass) {
                 const frontFace = document.getElementById('card-front-face');
-                frontFace.classList.remove('correct-flash', 'error-shake');
-                void frontFace.offsetWidth; 
-                frontFace.classList.add(effectClass);
+                if (frontFace) {
+                    frontFace.classList.remove('correct-flash', 'error-shake');
+                    void frontFace.offsetWidth; 
+                    frontFace.classList.add(effectClass);
+                }
             },
 
             // ==========================================================================
