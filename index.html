@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>國二理化挑戰 - 獨立遊戲模組 (步驟五完工版)</title>
+    <title>國二理化挑戰 - 獨立遊戲模組 (步驟五完工步驟一重構)</title>
     <!-- 引入日系可愛圓體與英文 Fredoka 圓體 -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -64,7 +64,7 @@
         /* 頂部資訊區 */
         #game-viewport .header-bar {
             width: 100%;
-            display: flex;
+            display: none; /* 預設隱藏，進入解題畫面才由狀態機開啟 */
             justify-content: space-between;
             align-items: center;
             z-index: 10;
@@ -115,6 +115,154 @@
         }
 
         /* ==========================================================================
+           【主選單狀態檢視 (State M)】
+           ========================================================================== */
+        #game-viewport .menu-view-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+
+        #game-viewport .menu-title {
+            font-size: 42px;
+            font-weight: 700;
+            color: #5D4037;
+            margin: 0 0 15px 0;
+            text-shadow: 0 4px 0 rgba(0,0,0,0.05);
+        }
+
+        #game-viewport .menu-subtitle {
+            font-size: 18px;
+            color: #8D6E63;
+            max-width: 800px;
+            line-height: 1.6;
+            margin: 0 0 35px 0;
+            font-weight: 600;
+        }
+
+        #game-viewport .level-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 20px;
+        }
+
+        #game-viewport .level-card-btn {
+            background-color: #FFFFFF;
+            border: 4px solid #FFDAC1;
+            border-radius: 24px;
+            padding: 20px 10px;
+            box-sizing: border-box;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #FCD1B4, 0 12px 25px rgba(0,0,0,0.05);
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 250px;
+            text-align: center;
+        }
+
+        #game-viewport .level-card-btn:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 18px 0 #FCD1B4, 0 20px 30px rgba(0,0,0,0.1);
+        }
+
+        #game-viewport .level-card-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #FCD1B4;
+        }
+
+        /* 5 個關卡卡片個別配色 */
+        #game-viewport .level-card-btn.lvl-1 { border-color: #FFB7B2; box-shadow: 0 10px 0 #FFA6A0, 0 12px 25px rgba(0,0,0,0.05); }
+        #game-viewport .level-card-btn.lvl-1:hover { box-shadow: 0 18px 0 #FFA6A0, 0 20px 30px rgba(0,0,0,0.1); }
+        #game-viewport .level-card-btn.lvl-1:active { box-shadow: 0 4px 0 #FFA6A0; }
+
+        #game-viewport .level-card-btn.lvl-2 { border-color: #FFDAC1; box-shadow: 0 10px 0 #FCD1B4, 0 12px 25px rgba(0,0,0,0.05); }
+        #game-viewport .level-card-btn.lvl-2:hover { box-shadow: 0 18px 0 #FCD1B4, 0 20px 30px rgba(0,0,0,0.1); }
+        #game-viewport .level-card-btn.lvl-2:active { box-shadow: 0 4px 0 #FCD1B4; }
+
+        #game-viewport .level-card-btn.lvl-3 { border-color: #E2F0CB; box-shadow: 0 10px 0 #D3E7B2, 0 12px 25px rgba(0,0,0,0.05); }
+        #game-viewport .level-card-btn.lvl-3:hover { box-shadow: 0 18px 0 #D3E7B2, 0 20px 30px rgba(0,0,0,0.1); }
+        #game-viewport .level-card-btn.lvl-3:active { box-shadow: 0 4px 0 #D3E7B2; }
+
+        #game-viewport .level-card-btn.lvl-4 { border-color: #E8D7FF; box-shadow: 0 10px 0 #D1B3FF, 0 12px 25px rgba(0,0,0,0.05); }
+        #game-viewport .level-card-btn.lvl-4:hover { box-shadow: 0 18px 0 #D1B3FF, 0 20px 30px rgba(0,0,0,0.1); }
+        #game-viewport .level-card-btn.lvl-4:active { box-shadow: 0 4px 0 #D1B3FF; }
+
+        #game-viewport .level-card-btn.lvl-5 { border-color: #B5EAD7; box-shadow: 0 10px 0 #92D3BC, 0 12px 25px rgba(0,0,0,0.05); }
+        #game-viewport .level-card-btn.lvl-5:hover { box-shadow: 0 18px 0 #92D3BC, 0 20px 30px rgba(0,0,0,0.1); }
+        #game-viewport .level-card-btn.lvl-5:active { box-shadow: 0 4px 0 #92D3BC; }
+
+        #game-viewport .lvl-card-num {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 26px;
+            font-weight: bold;
+            color: #5D4037;
+        }
+
+        #game-viewport .lvl-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #5D4037;
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+
+        /* 預留給步驟二：最高分紀錄與完美勳章的外觀排版 */
+        #game-viewport .lvl-card-record {
+            font-size: 13px;
+            color: #8D6E63;
+            background-color: #FDFBF7;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+            border: 1px dashed #E0D7D3;
+        }
+
+        #game-viewport .lvl-card-perfect-icon {
+            display: inline-block;
+            font-size: 14px;
+            margin-left: 3px;
+        }
+
+        /* ------------------ 【Iframe 嵌入等待檢視】 ------------------ */
+        #game-viewport .iframe-waiting-view {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+        }
+
+        #game-viewport .iframe-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #FFDAC1;
+            border-top: 6px solid #FF9E96;
+            border-radius: 50%;
+            animation: spin 1.2s infinite linear;
+            margin-bottom: 25px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ==========================================================================
            【3D 雙面字卡流】外層
            ========================================================================== */
         #game-viewport .center-card-flow {
@@ -123,6 +271,7 @@
             margin: 15px 0;
             perspective: 1500px;
             position: relative;
+            display: none; /* 進入解題畫面才由狀態機開啟 */
         }
 
         #game-viewport .flip-card-inner {
@@ -314,12 +463,13 @@
         }
 
         #game-viewport .custom-keyboard {
-            display: grid;
+            display: none; /* 進入解題畫面才由狀態機開啟 */
             grid-template-columns: repeat(6, 1fr);
             gap: 8px;
             width: 100%;
             max-width: 540px;
             margin-top: 5px;
+            z-index: 10;
         }
 
         #game-viewport .key-btn {
@@ -786,17 +936,71 @@
             
             <canvas id="confetti-canvas"></canvas>
 
-            <div class="header-bar">
+            <!-- ==========================================================================
+               【主選單檢視區 (State M)】
+               ========================================================================== -->
+            <div class="menu-view-container" id="menu-view">
+                <h1 class="menu-title">空間維度與單位變形蟲</h1>
+                <p class="menu-subtitle">歡迎來到維度物理訓練大廳！請自由挑選以下關卡進行 10 題精準實戰訓練。每題皆有 3 次機會，連對（Combo）還能獲得額外 Bonus 補償分喔！</p>
+                
+                <div class="level-grid">
+                    <button class="level-card-btn lvl-1" onclick="GameModule.startSession(1, false)">
+                        <span class="lvl-card-num">LV.1</span>
+                        <span class="lvl-card-title">二維面積的對比<br>(m² ↔ cm²)</span>
+                        <div class="lvl-card-record" id="record-lvl-1">最高分: -- <span class="lvl-card-perfect-icon"></span></div>
+                    </button>
+                    <button class="level-card-btn lvl-2" onclick="GameModule.startSession(2, false)">
+                        <span class="lvl-card-num">LV.2</span>
+                        <span class="lvl-card-title">三維體積的拆解<br>(m³ ↔ cm³)</span>
+                        <div class="lvl-card-record" id="record-lvl-2">最高分: -- <span class="lvl-card-perfect-icon"></span></div>
+                    </button>
+                    <button class="level-card-btn lvl-3" onclick="GameModule.startSession(3, false)">
+                        <span class="lvl-card-num">LV.3</span>
+                        <span class="lvl-card-title">容積與體積的橋梁<br>(L ↔ mL ↔ m³ ↔ cm³)</span>
+                        <div class="lvl-card-record" id="record-lvl-3">最高分: -- <span class="lvl-card-perfect-icon"></span></div>
+                    </button>
+                    <button class="level-card-btn lvl-4" onclick="GameModule.startSession(4, false)">
+                        <span class="lvl-card-num">LV.4</span>
+                        <span class="lvl-card-title">微觀尺度的階梯<br>(mm ↔ µm ↔ nm)</span>
+                        <div class="lvl-card-record" id="record-lvl-4">最高分: -- <span class="lvl-card-perfect-icon"></span></div>
+                    </button>
+                    <button class="level-card-btn lvl-5" onclick="GameModule.startSession(5, false)">
+                        <span class="lvl-card-num">LV.5</span>
+                        <span class="lvl-card-title">複合單位的拆解<br>(g/cm³ ↔ km/hr)</span>
+                        <div class="lvl-card-record" id="record-lvl-5">最高分: -- <span class="lvl-card-perfect-icon"></span></div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ==========================================================================
+               【Iframe 嵌入等待畫面】
+               ========================================================================== -->
+            <div class="iframe-waiting-view" id="iframe-waiting-view">
+                <div class="iframe-spinner"></div>
+                <h1 style="color:#5D4037; margin-bottom: 10px;">對接主系統中...</h1>
+                <p style="color:#8D6E63; font-weight: 600;">已成功嵌入 Iframe 通訊管道。請在主網頁中下達啟動指令。</p>
+            </div>
+
+            <!-- ==========================================================================
+               頂部資訊欄 (進入遊戲時才顯示)
+               ========================================================================== -->
+            <div class="header-bar" id="game-header-bar">
                 <div class="level-badge" id="level-badge-container">
                     <span>🏆</span>
                     <span id="display-level">挑戰關卡：LV.1</span>
                 </div>
                 <div class="status-info">
+                    <span class="status-item" style="background-color: #E8D7FF; color: #5E35B1; box-shadow: 0 6px 0 #D1B3FF;">
+                        📝 進度: <span id="display-progress">1 / 10</span>
+                    </span>
                     <span class="status-item">❤️ 本題機會: <span id="display-hearts">3</span>/3</span>
                     <span class="status-item" id="combo-container">⭐ Combo: <span id="display-combo">0</span></span>
                 </div>
             </div>
 
+            <!-- ==========================================================================
+               【3D 雙面字卡流】(進入遊戲時才顯示)
+               ========================================================================== -->
             <div class="center-card-flow" id="main-card-flow">
                 <div class="flip-card-inner">
                     
@@ -805,7 +1009,7 @@
                         <div class="next-question-overlay" id="success-overlay">
                             <div class="overlay-title" id="success-overlay-title">🎉 答對了！太厲害了</div>
                             <div class="overlay-desc" id="success-overlay-desc">完美完成此次空間維度轉換！</div>
-                            <button class="btn-next-level" onclick="GameModule.loadNewQuestion()">挑戰下一題 ➔</button>
+                            <button class="btn-next-level" id="success-overlay-btn" onclick="GameModule.proceedAfterResolution()">挑戰下一題 ➔</button>
                         </div>
 
                         <div class="front-title">空間維度與單位變形蟲</div>
@@ -821,22 +1025,7 @@
                             <button class="btn-control btn-hint" onclick="GameModule.flipToB('hint')">提示</button>
                         </div>
 
-                        <div class="custom-keyboard">
-                            <button class="key-btn" onclick="GameModule.pressKey('1')">1</button>
-                            <button class="key-btn" onclick="GameModule.pressKey('2')">2</button>
-                            <button class="key-btn" onclick="GameModule.pressKey('3')">3</button>
-                            <button class="key-btn" onclick="GameModule.pressKey('4')">4</button>
-                            <button class="key-btn" onclick="GameModule.pressKey('5')">5</button>
-                            <button class="key-btn backspace" onclick="GameModule.pressKey('⌫')">⌫</button>
-
-                            <button class="key-btn" onclick="GameModule.pressKey('6')">6</button>
-                            <button class="key-btn" onclick="GameModule.pressKey('7')">7</button>
-                            <button class="key-btn" onclick="GameModule.pressKey('8')">8</button>
-                            <button class="key-btn" onclick="GameModule.pressKey('9')">9</button>
-                            <button class="key-btn" onclick="GameModule.pressKey('0')">0</button>
-                            <button class="key-btn decimal" onclick="GameModule.pressKey('.')">.</button>
-                        </div>
-
+                        <!-- 正面測試解答開關 -->
                         <div style="font-size:13px; color:#A1887F; font-weight: 600; margin-top: 5px;">
                             <span id="cheat-clicker" onclick="GameModule.toggleCheatView()" style="text-decoration:underline; cursor:pointer;">[ 點擊查看測試解答 ]</span>
                             <span id="cheat-reveal" style="display:none; color:#C62828; margin-left:5px; background-color: #FFEBEE; padding: 2px 8px; border-radius: 4px;"></span>
@@ -874,13 +1063,30 @@
                 </div>
             </div>
 
+            <!-- 自製果凍鍵盤 -->
+            <div class="custom-keyboard" id="custom-keyboard">
+                <button class="key-btn" onclick="GameModule.pressKey('1')">1</button>
+                <button class="key-btn" onclick="GameModule.pressKey('2')">2</button>
+                <button class="key-btn" onclick="GameModule.pressKey('3')">3</button>
+                <button class="key-btn" onclick="GameModule.pressKey('4')">4</button>
+                <button class="key-btn" onclick="GameModule.pressKey('5')">5</button>
+                <button class="key-btn backspace" onclick="GameModule.pressKey('⌫')">⌫</button>
+
+                <button class="key-btn" onclick="GameModule.pressKey('6')">6</button>
+                <button class="key-btn" onclick="GameModule.pressKey('7')">7</button>
+                <button class="key-btn" onclick="GameModule.pressKey('8')">8</button>
+                <button class="key-btn" onclick="GameModule.pressKey('9')">9</button>
+                <button class="key-btn" onclick="GameModule.pressKey('0')">0</button>
+                <button class="key-btn decimal" onclick="GameModule.pressKey('.')">.</button>
+            </div>
+
             <!-- 【狀態 C】終局狀態結算覆蓋層 -->
             <div class="game-result-overlay" id="result-overlay">
                 <div class="result-emoji" id="result-emoji">🏆</div>
                 <div class="result-title" id="result-title">全部通關！</div>
                 <div style="color: #8D6E63; font-size: 18px; font-weight: 600; margin-bottom: 10px;" id="result-subtitle">恭喜你，空間維度挑戰成功！</div>
                 
-                <!-- 新增：分數拆解明細面板，讓學生一眼看出分數由來 -->
+                <!-- 分數拆解明細面板 -->
                 <div class="score-details-list">
                     <div class="score-detail-item">關卡基礎分：<span id="display-base-score">0</span> 分</div>
                     <div class="score-detail-item" style="color: #673AB7; background-color: #EDE7F6; border-color: #D1C4E9;">
@@ -892,7 +1098,6 @@
                     <div style="font-size: 18px; font-weight: 700; color: #8D6E63;">最終實得總分 (上限 100 分)</div>
                     <div class="result-score-text" id="result-score">100</div>
                     
-                    <!-- 【大師徽章】：點亮「一發命中一次全對徽章」 -->
                     <div class="perfect-badge" id="perfect-badge">
                         ✨ 👑 一發命中・完美大師勳章 👑 ✨
                         <div style="font-size: 12px; font-weight: bold; margin-top: 4px; opacity: 0.9;">
@@ -901,7 +1106,7 @@
                     </div>
                 </div>
 
-                <button class="btn-restart-game" onclick="GameModule.restartWholeGame()">重新挑戰 ➔</button>
+                <button class="btn-restart-game" id="btn-restart-game" onclick="GameModule.handleEndgameRestart()">重新挑戰 ➔</button>
             </div>
 
             <div class="footer-tag">
@@ -933,11 +1138,12 @@
                 <div class="led-light"></div>
             </div>
             <div class="btn-grid">
-                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(1)">LV.1 平方面積</button>
-                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(2)">LV.2 立方體積</button>
-                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(3)">LV.3 容體大跨界</button>
-                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(4)">LV.4 微觀階梯</button>
-                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(5)">LV.5 複合拆解</button>
+                <!-- 測試面板的 LV 按鈕模擬 Iframe 載入 5 題測驗，完美的單機/Iframe雙分流測試 -->
+                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(1)">LV.1 (模擬 Iframe)</button>
+                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(2)">LV.2 (模擬 Iframe)</button>
+                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(3)">LV.3 (模擬 Iframe)</button>
+                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(4)">LV.4 (模擬 Iframe)</button>
+                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(5)">LV.5 (模擬 Iframe)</button>
                 <button class="remote-btn" style="background-color: #E65100; color:#fff;" onclick="GameModule.loadNewQuestion()">隨機換一題</button>
             </div>
             <div class="log-box" id="remote-log">
@@ -1029,7 +1235,7 @@
         };
 
         // ==========================================================================
-        // 純 Web Audio API 合成器音效引擎
+        // 純 Web Audio API 音效合成引擎
         // ==========================================================================
         const SoundEngine = {
             audioCtx: null,
@@ -1142,24 +1348,27 @@
         };
 
         // ==========================================================================
-        // 主模組邏輯
+        // 核心主模組
         // ==========================================================================
         const GameModule = {
             baseWidth: 1280,
             baseHeight: 720,
             
+            // 核心賽局狀態機變數
             currentLevel: 1,
             hearts: 3,
             combo: 0,
             isFlipped: false,
-            
             isRemoteMinimized: false,
             
-            // 【正向積分與連擊加分機制】
-            levelScores: [0, 0, 0, 0, 0], // 各關卡基本得分 (20 / 15 / 10 / 0)
-            comboBonusScore: 0,          // 連擊累積額外加分 (每次 combo >= 2 時，額外獎勵 +2 分)
-            attemptsThisQuestion: 0,     // 本題重試次數計數
-            totalWrongAttempts: 0,       // 統計整場累計答錯次數
+            // 【產品化與 10 題循環機制狀態】
+            isIframeMode: false,         // 當前是否處於 Iframe 嵌入中
+            totalQuestionsInSession: 10, // 單次循環題數：單機 10 題，Iframe 5 題
+            questionsAnswered: 0,        // 目前已解答題數
+            levelScores: [],             // 各關卡每題基礎得分紀錄
+            comboBonusScore: 0,          // 額外連對補償加分
+            attemptsThisQuestion: 0,     // 單題重試次數
+            totalWrongAttempts: 0,       // 累計答錯次數
 
             currentQuestion: {
                 questionText: "",
@@ -1180,7 +1389,8 @@
                     setTimeout(() => this.setupRWD(), 100);
                 });
 
-                this.loadNewQuestion();
+                // 初始化選單狀態機
+                this.initAppView();
             },
 
             setupRWD() {
@@ -1191,14 +1401,37 @@
                 viewport.style.transform = `scale(${scale})`;
             },
 
+            // 狀態機：視覺檢視切換控制
+            switchView(viewName) {
+                // views: 'menu', 'iframe-waiting', 'gameplay', 'result'
+                document.getElementById('menu-view').style.display = viewName === 'menu' ? 'flex' : 'none';
+                document.getElementById('iframe-waiting-view').style.display = viewName === 'iframe-waiting' ? 'flex' : 'none';
+                document.getElementById('main-card-flow').style.display = viewName === 'gameplay' ? 'block' : 'none';
+                document.getElementById('custom-keyboard').style.display = viewName === 'gameplay' ? 'grid' : 'none';
+                document.getElementById('game-header-bar').style.display = viewName === 'gameplay' ? 'flex' : 'none';
+                document.getElementById('result-overlay').style.display = viewName === 'result' ? 'flex' : 'none';
+            },
+
+            // 判定初始顯示 View
+            initAppView() {
+                if (window === top) {
+                    this.isIframeMode = false;
+                    this.switchView('menu');
+                } else {
+                    this.isIframeMode = true;
+                    this.switchView('iframe-waiting');
+                }
+            },
+
             setupCommunication() {
                 parent.postMessage({ type: 'GAME_READY', challengeId: 1 }, '*');
                 
                 window.addEventListener('message', (event) => {
                     const data = event.data;
                     if (data && data.type === 'START_GAME') {
-                        this.logToRemote(`接收父視窗指令: 開啟 LV.${data.config.level}`);
-                        this.changeLevelAndRestart(data.config.level);
+                        this.logToRemote(`接收外部 Iframe 指令: 切換並啟動關卡 LV.${data.config.level}`);
+                        // 收到父指令，強制跳過選單，進入指定關卡，開啟 5 題 Iframe 賽局
+                        this.startSession(data.config.level, true);
                     }
                 });
             },
@@ -1258,6 +1491,41 @@
                 }
             },
 
+            // ==========================================================================
+            // 【步驟一全新架構】：進入指定關卡的題目循環 Session
+            // ==========================================================================
+            startSession(level, isIframe = false) {
+                this.currentLevel = level;
+                this.isIframeMode = isIframe;
+                
+                // 設定總題數限制：單機 10 題，Iframe 5 題
+                this.totalQuestionsInSession = isIframe ? 5 : 10;
+                
+                this.questionsAnswered = 0;
+                this.levelScores = Array(this.totalQuestionsInSession).fill(0);
+                this.comboBonusScore = 0;
+                this.combo = 0;
+                this.totalWrongAttempts = 0;
+
+                // 更新頂部卡片與底色
+                document.getElementById('display-level').innerText = `挑戰關卡：LV.${level}`;
+                
+                const colors = {
+                    1: '#FFF0F0',
+                    2: '#FFF9E6',
+                    3: '#E6FFFA',
+                    4: '#F0E6FF',
+                    5: '#FFF0E6'
+                };
+                document.getElementById('game-viewport').style.backgroundColor = colors[level] || '#FDFBF7';
+
+                // 載入當前 session 的第一題
+                this.loadNewQuestion();
+                
+                // 狀態機切換至解題畫面
+                this.switchView('gameplay');
+            },
+
             // ------------------ 【隨機出題演算法】 ------------------
             generateRandomQuestion(level) {
                 let questionText = "";
@@ -1297,13 +1565,13 @@
                             questionText = `${val} m<sup>3</sup> = ? cm<sup>3</sup>`;
                             correctAnswer = (val * 1000000).toString();
                             explanationHighlight = "長、寬、高各放大 100 倍！";
-                            explanationText = `三維體積（立方）換算時，長度、寬度與高度都要進行換算。<br>1 m<sup>3</sup> 先拆為 1,000 個中方塊（分米）， 1 個中方塊再拆為 1,000 個小方塊（公分）。<br>所以體積放大倍數為：100 × 100 × 100 = 1,000,000 倍（一百萬）。`;
+                            explanationText = `三維體積（立方）換算時，長度、寬度與高度都要進行換算。<br>1 m<sup>3</sup> 先拆為 1,000 個中方塊（分米），1 個中方塊再拆為 1,000 個小方塊（公分）。<br>所以體積放大倍數為：100 × 100 × 100 = 1,000,000 倍（一百萬）。`;
                             explanationFormula = `${val} × 1,000,000 = ${correctAnswer} cm<sup>3</sup>`;
                         } else {
                             const cmVal = val * 1000000;
                             questionText = `${cmVal} cm<sup>3</sup> = ? m<sup>3</sup>`;
                             correctAnswer = val.toString();
-                            explanationHighlight = "逆向換算：從 cm<sup>3</sup> 換回 m<sup>3</sup>！";
+                            explanationHighlight = "逆向換算：從 cm<sup>3</sup> 換回 m³！";
                             explanationText = `從小單位換算為大單位時，數值要除以一百萬（除以 1,000,000）。<br>因為 1 m<sup>3</sup> = 1,000,000 cm<sup>3</sup>。`;
                             explanationFormula = `${cmVal} ÷ 1,000,000 = ${correctAnswer} m<sup>3</sup>`;
                         }
@@ -1357,7 +1625,7 @@
                             questionText = `${val} m<sup>3</sup> = ? mL`;
                             correctAnswer = (val * 1000000).toString();
                             explanationHighlight = "立方米(m³) 跨級直通 毫升(mL)！";
-                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>so 連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
+                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
                             explanationFormula = `${val} × 1,000,000 = ${correctAnswer} mL`;
                         }
                         break;
@@ -1421,9 +1689,9 @@
                                 explanationHighlight = "密度換算：分子與分母獨立拆開！";
                                 explanationText = `<b>g/cm<sup>3</sup> 換算為 kg/m<sup>3</sup> 時，數值會放大 1,000 倍。</b><br>
                                 拆解原理分析：<br>
-                                分子：1 g = 0.001 kg<br>
-                                分母：1 cm<sup>3</sup> = 0.000001 m<sup>3</sup><br>
-                                相除得到：0.001 ÷ 0.000001 = 1,000 倍。`;
+                                分子: 1 g = 0.001 kg<br>
+                                分母: 1 cm<sup>3</sup> = 0.000001 m<sup>3</sup><br>
+                                相除得到: 0.001 ÷ 0.000001 = 1,000 倍。`;
                                 explanationFormula = `${item.g} × 1,000 = ${correctAnswer} kg/m<sup>3</sup> （這代表${item.name}的密度）`;
                             } else {
                                 questionText = `${item.kg} kg/m<sup>3</sup> = ? g/cm<sup>3</sup>`;
@@ -1475,7 +1743,7 @@
                 };
             },
 
-            // ------------------ 【動態 SVG 圖解生成】 ------------------
+            // ------------------ 【步驟四：互動式 SVG 動態生成引擎】 ------------------
             renderStateBSVG() {
                 const container = document.getElementById('svg-container');
                 const lvl = this.currentLevel;
@@ -1488,10 +1756,8 @@
                     <svg viewBox="0 0 400 120" width="100%" height="100%">
                         <rect x="25" y="20" width="80" height="80" rx="8" fill="#FFF0F0" stroke="#FFB7B2" stroke-width="3" />
                         <text x="65" y="65" font-family="Fredoka" font-size="14" fill="#5D4037" text-anchor="middle" font-weight="bold">1 m²</text>
-                        
                         <path d="M 140 60 L 190 60 M 180 50 L 190 60 L 180 70" stroke="#FF9E96" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <text x="165" y="45" font-size="12" fill="#8D6E63" text-anchor="middle" font-weight="700">長與寬各放大 100 倍</text>
-                        
+                        <text x="165" y="45" font-size="12" fill="#8D6E63" text-anchor="middle" font-weight="700">長寬皆 ×100</text>
                         <rect x="230" y="20" width="80" height="80" rx="8" fill="#E8D7FF" stroke="#D1B3FF" stroke-width="3" />
                         <text x="270" y="52" font-size="12" fill="#5D4037" text-anchor="middle" font-weight="700">100cm × 100cm</text>
                         <text x="270" y="75" font-family="Fredoka" font-size="14" fill="#5E35B1" text-anchor="middle" font-weight="bold">= 10,000 cm²</text>
@@ -1505,10 +1771,8 @@
                             <polygon points="50,50 100,25 100,75 50,100" fill="#FFA726" stroke="#EF6C00" stroke-width="2"/>
                             <text x="50" y="65" font-family="Fredoka" font-size="16" fill="#5D4037" text-anchor="middle" font-weight="bold">1 m³</text>
                         </g>
-                        
                         <path d="M 145 60 L 195 60 M 185 50 L 195 60 L 185 70" stroke="#EF6C00" stroke-width="3" fill="none" />
                         <text x="170" y="45" font-size="11" fill="#8D6E63" text-anchor="middle" font-weight="700">長寬高皆 ×100</text>
-                        
                         <g transform="translate(235, 25) scale(0.65)">
                             <polygon points="50,0 100,25 50,50 0,25" fill="#E1F5FE" stroke="#0288D1" stroke-width="2"/>
                             <polygon points="0,25 50,50 50,100 0,75" fill="#B3E5FC" stroke="#0288D1" stroke-width="2"/>
@@ -1523,23 +1787,17 @@
                     <svg viewBox="0 0 400 120" width="100%" height="100%">
                         <rect x="15" y="45" width="45" height="45" rx="5" fill="#E0F7FA" stroke="#00ACC1" stroke-width="2" />
                         <text x="37.5" y="72" font-size="11" fill="#006064" text-anchor="middle" font-weight="bold">1 m³</text>
-                        
                         <text x="75" y="72" font-size="12" fill="#00ACC1" text-anchor="middle" font-weight="bold">=(1000×)</text>
-                        
                         <rect x="105" y="42" width="35" height="48" rx="3" fill="#E8F5E9" stroke="#43A047" stroke-width="2" />
                         <path d="M 105 42 L 122.5 28 L 140 42 Z" fill="#C8E6C9" stroke="#43A047" stroke-width="2"/>
                         <text x="122.5" y="70" font-size="11" fill="#1B5E20" text-anchor="middle" font-weight="bold">1 L</text>
-                        
                         <text x="160" y="72" font-size="12" fill="#43A047" text-anchor="middle" font-weight="bold">=(1000×)</text>
-                        
                         <rect x="190" y="55" width="25" height="35" rx="2" fill="#FFFDE7" stroke="#FBC02D" stroke-width="2" />
                         <line x1="190" y1="65" x2="200" y2="65" stroke="#FBC02D" stroke-width="1.5" />
                         <line x1="190" y1="75" x2="200" y2="75" stroke="#FBC02D" stroke-width="1.5" />
                         <text x="202.5" y="76" font-size="10" fill="#F57F17" text-anchor="middle" font-weight="bold">1 mL</text>
-                        
                         <text x="240" y="72" font-size="20" fill="#FF8F00" text-anchor="middle" font-weight="bold">≡</text>
                         <text x="240" y="92" font-size="9" fill="#FF8F00" text-anchor="middle" font-weight="700">完全等值</text>
-                        
                         <rect x="270" y="55" width="30" height="30" rx="4" fill="#FFF0F5" stroke="#E91E63" stroke-width="2" />
                         <text x="285" y="74" font-size="9" fill="#880E4F" text-anchor="middle" font-weight="bold">1 cm³</text>
                     </svg>`;
@@ -1558,13 +1816,10 @@
                             <circle cx="25" cy="25" r="22" fill="#EDE7F6" stroke="#673AB7" stroke-width="2" />
                             <text x="25" y="29" font-family="Fredoka" font-size="12" fill="#311B92" text-anchor="middle" font-weight="bold">nm</text>
                         </g>
-                        
                         <path d="M 68 60 L 142 60" stroke="#90A4AE" stroke-width="2" fill="none" stroke-dasharray="4" marker-end="url(#arrow)" />
                         <text x="105" y="48" font-size="11" fill="#455A64" text-anchor="middle" font-weight="bold">× 1000</text>
-                        
                         <path d="M 203 60 L 277 60" stroke="#90A4AE" stroke-width="2" fill="none" stroke-dasharray="4" marker-end="url(#arrow)" />
                         <text x="240" y="48" font-size="11" fill="#455A64" text-anchor="middle" font-weight="bold">× 1000</text>
-                        
                         <defs>
                             <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                               <path d="M 0 1 L 10 5 L 0 9 z" fill="#90A4AE" />
@@ -1581,21 +1836,15 @@
                     <svg viewBox="0 0 400 120" width="100%" height="100%">
                         <rect x="10" y="35" width="80" height="50" rx="8" fill="#ECEFF1" stroke="#455A64" stroke-width="2" />
                         <text x="50" y="65" font-family="Fredoka" font-size="14" fill="#37474F" text-anchor="middle" font-weight="bold">${leftUnit}</text>
-                        
                         <text x="105" y="65" font-size="18" fill="#37474F" text-anchor="middle" font-weight="bold">➔</text>
-                        
                         <g transform="translate(125, 10)">
                             <rect x="0" y="2" width="145" height="38" rx="6" fill="#E1F5FE" stroke="#0288D1" stroke-width="2"/>
                             <text x="72.5" y="25" font-size="11" fill="#01579B" text-anchor="middle" font-weight="bold">${numText}</text>
-                            
                             <line x1="0" y1="52" x2="145" y2="52" stroke="#37474F" stroke-width="3"/>
-                            
                             <rect x="0" y="62" width="145" height="38" rx="6" fill="#FFF3E0" stroke="#F57C00" stroke-width="2"/>
                             <text x="72.5" y="85" font-size="11" fill="#E65100" text-anchor="middle" font-weight="bold">${denText}</text>
                         </g>
-                        
                         <text x="285" y="65" font-size="18" fill="#37474F" text-anchor="middle" font-weight="bold">➔</text>
-                        
                         <rect x="305" y="35" width="85" height="50" rx="8" fill="#E8F5E9" stroke="#2E7D32" stroke-width="2" />
                         <text x="347.5" y="65" font-family="Fredoka" font-size="14" fill="#1B5E20" text-anchor="middle" font-weight="bold">${rightUnit}</text>
                     </svg>`;
@@ -1604,19 +1853,21 @@
                 container.innerHTML = svgHtml;
             },
 
-            // ------------------ 【加載題目流程】 ------------------
+            // ------------------ 【加載新一題邏輯 (整合步驟一進度與 session 限制)】 ------------------
             loadNewQuestion() {
                 this.attemptsThisQuestion = 0;
-                this.hearts = 3; // 每一道新關卡皆提供完美的 3 次本題機會
+                this.hearts = 3; 
                 document.getElementById('display-hearts').innerText = this.hearts;
                 
-                // 1. 隱藏正面覆蓋層
+                // 1. 隱藏解題正面覆蓋層
                 document.getElementById('success-overlay').style.display = 'none';
                 
-                // 2. 清空輸入框
+                // 2. 清空輸入
                 document.getElementById('player-input').value = "";
+                document.getElementById('cheat-reveal').style.display = 'none';
+                document.getElementById('cheat-clicker').innerText = '[ 點擊查看測試解答 ]';
                 
-                // 3. 重設背面折疊解答算式
+                // 3. 重設背面算式
                 const backFormulaReveal = document.getElementById('back-formula-reveal');
                 const backFormulaClicker = document.getElementById('back-formula-clicker');
                 if (backFormulaReveal && backFormulaClicker) {
@@ -1631,35 +1882,25 @@
                     this.flipToA();
                 }
 
-                // 5. 調用演算法產生對應難度關卡的題目
-                this.currentQuestion = this.generateRandomQuestion(this.currentLevel);
+                // 5. 【步驟一優化】：更新頂部進度文字 (questionsAnswered 索引為 0-based，故顯示加 1)
+                const currentQuestionIndex = this.questionsAnswered + 1;
+                document.getElementById('display-progress').innerText = `${currentQuestionIndex} / ${this.totalQuestionsInSession}`;
 
-                // 6. 渲染正反面
+                // 6. 產生隨機題並渲染
+                this.currentQuestion = this.generateRandomQuestion(this.currentLevel);
                 document.getElementById('question-text').innerHTML = this.currentQuestion.questionText;
                 document.getElementById('explanation-highlight').innerHTML = this.currentQuestion.explanationHighlight;
                 document.getElementById('explanation-body').innerHTML = this.currentQuestion.explanationText;
 
-                // 7. 繪製動態 SVG
                 this.renderStateBSVG();
 
-                this.logToRemote(`載入關卡 LV.${this.currentLevel} 隨機題目。正確答案：${this.currentQuestion.correctAnswer}`);
+                this.logToRemote(`載入第 ${currentQuestionIndex} 題。正確答案：${this.currentQuestion.correctAnswer}`);
             },
 
-            // 關卡跳躍
+            // 測試面板專用跳關
             changeLevelAndRestart(level) {
-                this.currentLevel = level;
-                document.getElementById('display-level').innerText = `挑戰關卡：LV.${level}`;
-                
-                const colors = {
-                    1: '#FFF0F0',
-                    2: '#FFF9E6',
-                    3: '#E6FFFA',
-                    4: '#F0E6FF',
-                    5: '#FFF0E6'
-                };
-                document.getElementById('game-viewport').style.backgroundColor = colors[level] || '#FDFBF7';
-                
-                this.loadNewQuestion();
+                // 測試面板的 LV 按鈕模擬 Iframe 載入 5 題測驗，完美的單機/Iframe雙分流測試
+                this.startSession(level, true);
             },
 
             // ------------------ 【自製果凍鍵盤輸入】 ------------------
@@ -1704,10 +1945,11 @@
                     if (this.attemptsThisQuestion < 3) {
                         retryBtn.innerText = `返回挑戰，我再試一次！(剩餘 ${3 - this.attemptsThisQuestion} 次機會)`;
                     } else {
-                        if (this.currentLevel === 5) {
+                        // 【步驟一修正】：如果這是 session 中最後一題且答錯，背面按鈕直接引導至結算
+                        if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
                             retryBtn.innerText = `挑戰結束，查看最終成績 ➔`;
                         } else {
-                            retryBtn.innerText = `挑戰失敗，前往下一關 ➔`;
+                            retryBtn.innerText = `挑戰失敗，前往下一題 ➔`;
                         }
                     }
                 } else {
@@ -1761,8 +2003,7 @@
                     comboContainer.classList.add('combo-glow');
                 }
 
-                // 【步驟五：方案 A 分數累積制】
-                // 1st attempt: 20 pts, 2nd: 15 pts, 3rd: 10 pts, else: 0
+                // 計算當前題目積分
                 let points = 0;
                 if (this.attemptsThisQuestion === 0) {
                     points = 20;
@@ -1771,49 +2012,55 @@
                 } else if (this.attemptsThisQuestion === 2) {
                     points = 10;
                 }
-                this.levelScores[this.currentLevel - 1] = points;
+                this.levelScores[this.questionsAnswered] = points;
 
-                // 【連擊額外加分機制】：當 Combo 累積達到 2 以上，每次答對額外獲得 2 分
+                // 連擊額外加分累積
                 let addedBonus = 0;
                 if (this.combo >= 2) {
                     addedBonus = 2;
                     this.comboBonusScore += addedBonus;
                 }
 
-                // 觸發 Web Audio API 升調音效與 Confetti 粒子噴發
+                // 觸發音效與紙花
                 SoundEngine.playCorrect(this.combo);
                 ConfettiEngine.spawn();
 
                 this.flashFrontEffect('correct-flash');
                 
-                this.logToRemote(`答對了！本關得分: ${points} 分${addedBonus > 0 ? ` (連擊加分 +${addedBonus})` : ''}。當前 Combo：${this.combo}`);
+                this.logToRemote(`答對了！本題得分: ${points} 分。當前 Combo：${this.combo}`);
 
                 // 彈出答對下一題覆蓋層
                 setTimeout(() => {
                     const descEl = document.getElementById('success-overlay-desc');
                     const titleEl = document.getElementById('success-overlay-title');
-                    const nextBtn = document.querySelector('#success-overlay .btn-next-level');
+                    const nextBtn = document.getElementById('success-overlay-btn');
                     
                     titleEl.innerText = addedBonus > 0 ? "🔥 連擊加分成功！" : "🎉 答對了！太厲害了";
 
-                    if (this.currentLevel === 5) {
-                        descEl.innerHTML = `本關獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！<br>
+                    // 【步驟一優化】：若已回答完當前 Session 的最後一題，按鈕直接導向結算
+                    if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
+                        descEl.innerHTML = `本題獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！<br>
                                             ${addedBonus > 0 ? `<span style="color:#673AB7; font-weight:700;">連擊再賺 +${addedBonus} 分！</span>` : ''}`;
                         nextBtn.innerHTML = `結算成績 ➔`;
-                        nextBtn.onclick = () => this.triggerGameClear();
                     } else {
-                        descEl.innerHTML = `本關獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！連擊數：<b style="color:#C62828;">${this.combo} Combo</b><br>
+                        descEl.innerHTML = `本題獲得 <b style="color:#2E5A44; font-size:24px;">${points} 分</b>！連擊數：<b style="color:#C62828;">${this.combo} Combo</b><br>
                                             ${addedBonus > 0 ? `<span style="color:#673AB7; font-weight:700;">連擊加分累積中 (+${addedBonus}分)！</span>` : ''}`;
-                        nextBtn.innerHTML = `挑戰下一關 ➔`;
-                        nextBtn.onclick = () => this.advanceToNextLevel();
+                        nextBtn.innerHTML = `挑戰下一題 ➔`;
                     }
                     document.getElementById('success-overlay').style.display = 'flex';
                 }, 400);
             },
 
-            advanceToNextLevel() {
-                const nextLvl = this.currentLevel + 1;
-                this.changeLevelAndRestart(nextLvl);
+            // 【步驟一核心】：答對覆蓋層大按鈕的下一步分流
+            proceedAfterResolution() {
+                if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
+                    // 已回答完 Session 最後一題，前往結算
+                    this.triggerGameClear();
+                } else {
+                    // 還有下一題，累積題數並洗牌
+                    this.questionsAnswered++;
+                    this.loadNewQuestion();
+                }
             },
 
             handleIncorrect() {
@@ -1826,7 +2073,7 @@
                 document.getElementById('display-combo').innerText = this.combo;
                 comboContainer.classList.remove('combo-glow');
 
-                // 本題剩餘可嘗試次數扣減
+                // 本題剩餘機會扣減
                 this.hearts = Math.max(0, this.hearts - 1);
                 document.getElementById('display-hearts').innerText = this.hearts;
 
@@ -1836,23 +2083,28 @@
                 this.flashFrontEffect('error-shake');
                 this.logToRemote(`答錯了！第 ${this.attemptsThisQuestion} 次。剩餘機會：${this.hearts}`);
 
-                // 自動翻到背面原理說明卡 (狀態 B)
+                // 自動翻到背面原理說明卡
                 setTimeout(() => {
                     this.flipToB('incorrect');
                 }, 800);
             },
 
+            // 【步驟一核心】：背面卡片返回/跳過按鈕動作分流
             handleBackAction() {
                 if (this.attemptsThisQuestion >= 3) {
-                    // 若這題三次都答錯，本題得分 0，強制跳過此題，前往下一關
-                    this.levelScores[this.currentLevel - 1] = 0;
+                    // 三次嘗試失敗，本題得分 0
+                    this.levelScores[this.questionsAnswered] = 0;
                     
-                    if (this.currentLevel === 5) {
+                    if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
+                        // 已經是最後一題，直接結算
                         this.triggerGameClear();
                     } else {
-                        this.advanceToNextLevel();
+                        // 前往下一題
+                        this.questionsAnswered++;
+                        this.loadNewQuestion();
                     }
                 } else {
+                    // 還能重試，翻回正面
                     this.flipToA();
                 }
             },
@@ -1864,34 +2116,40 @@
                 frontFace.classList.add(effectClass);
             },
 
-            // 計算最終得分 (基礎關卡分數 + 連擊加成，最高鎖定為 100 分)
+            // ------------------ 【正向積分結算邏輯】 ------------------
             calculateFinalScore() {
                 const baseScore = this.levelScores.reduce((sum, score) => sum + score, 0);
-                const totalWithBonus = baseScore + this.comboBonusScore;
+                
+                // 為了將 10 題（最高 200 分）和 5 題（最高 100 分）統一折算為 100 分制
+                // 單機模式：10 題總分 200，除以 2 折算為 100 分制
+                const divider = this.totalQuestionsInSession === 10 ? 2 : 1;
+                
+                const finalBase = Math.round(baseScore / divider);
+                const finalBonus = Math.round(this.comboBonusScore / divider);
+                const totalWithBonus = finalBase + finalBonus;
+                
                 return {
-                    baseScore: baseScore,
-                    bonusScore: this.comboBonusScore,
+                    baseScore: finalBase,
+                    bonusScore: finalBonus,
                     finalScore: Math.min(100, totalWithBonus)
                 };
             },
 
-            // 全部通關 ➔ 大捷結算
+            // 結算大畫布切換
             triggerGameClear() {
                 const scoreResult = this.calculateFinalScore();
                 
-                // 一發命中定義：每一關都拿滿 20 分 (沒有任何重試，一發即中，失誤次數為 0)
+                // 一發全對定義：Session 內所有題目都拿滿 20 分
                 const isPerfect = this.levelScores.every(score => score === 20) && this.totalWrongAttempts === 0;
 
-                // 播放大捷琶音
                 SoundEngine.playClear();
                 ConfettiEngine.spawn();
 
-                // 渲染拆解明細與總分
+                // 渲染明細
                 document.getElementById('display-base-score').innerText = scoreResult.baseScore;
                 document.getElementById('display-bonus-score').innerText = scoreResult.bonusScore;
                 document.getElementById('result-score').innerText = scoreResult.finalScore;
 
-                // 顯示通關畫面
                 document.getElementById('result-emoji').innerText = scoreResult.finalScore >= 60 ? "🏆" : "👍";
                 document.getElementById('result-title').innerText = scoreResult.finalScore >= 60 ? "挑戰成功！" : "挑戰完成！";
                 
@@ -1899,45 +2157,48 @@
                     document.getElementById('result-subtitle').innerText = "一次全對！你成功解鎖了終極大師神射手成就！";
                     document.getElementById('perfect-badge').style.display = "inline-block";
                 } else {
-                    document.getElementById('result-subtitle').innerText = "恭喜你完成全部 5 大維度轉換關卡！";
+                    document.getElementById('result-subtitle').innerText = "恭喜你完成了本次空間維度轉換精準練習！";
                     document.getElementById('perfect-badge').style.display = "none";
                 }
-                
-                document.getElementById('result-overlay').style.display = "flex";
 
-                // 【微前端整合通訊合約升級】：
-                // 傳遞 totalScore、isPerfect 標記，以及專屬 hasPerfectBadge 來讓主網頁發放獎勵！
+                // 【步驟一優化】：依據單機與 Iframe 模式，動態調整結算底部的返回功能按鈕
+                const restartBtn = document.getElementById('btn-restart-game');
+                if (this.isIframeMode) {
+                    restartBtn.innerText = "重新挑戰 ➔";
+                } else {
+                    restartBtn.innerText = "返回主選單 ➔";
+                }
+                
+                this.switchView('result');
+
+                // 向上發送數據合約
                 this.sendGameOverMessage(scoreResult.finalScore, isPerfect, scoreResult.bonusScore);
             },
 
-            // 向上發送通訊
             sendGameOverMessage(score, isPerfect, comboBonus) {
                 const payload = {
                     type: 'GAME_OVER',
                     challengeId: 1,
                     currentLevel: this.currentLevel,
-                    isPerfect: isPerfect, // 標示是否一發全對
-                    hasPerfectBadge: isPerfect, // 專屬完美通關徽章標記，以便主網頁發送獎勵
-                    score: score, // 最終總分 (上限 100)
-                    comboBonus: comboBonus // 傳遞連擊加分給大網頁分析
+                    isPerfect: isPerfect,
+                    hasPerfectBadge: isPerfect,
+                    score: score,
+                    comboBonus: comboBonus
                 };
                 parent.postMessage(payload, '*');
-                this.logToRemote(`【通訊廣播】GAME_OVER。總分: ${score}，一發全對徽章: ${isPerfect}，連擊加分: ${comboBonus}`);
+                this.logToRemote(`【通訊廣播】GAME_OVER。總分: ${score}，一發全對: ${isPerfect}，連擊加分: ${comboBonus}`);
             },
 
-            restartWholeGame() {
+            // 【步驟一優化】：結算卡大按鈕返回機制分流
+            handleEndgameRestart() {
                 document.getElementById('result-overlay').style.display = "none";
-                this.hearts = 3;
-                this.combo = 0;
-                this.levelScores = [0, 0, 0, 0, 0]; 
-                this.comboBonusScore = 0; // 重設加分
-                this.totalWrongAttempts = 0;
-                
-                document.getElementById('display-hearts').innerText = this.hearts;
-                document.getElementById('display-combo').innerText = this.combo;
-                document.getElementById('combo-container').classList.remove('combo-glow');
-                
-                this.changeLevelAndRestart(1);
+                if (this.isIframeMode) {
+                    // Iframe 模式：直接重新挑戰當前指定關卡 (5 題)
+                    this.startSession(this.currentLevel, true);
+                } else {
+                    // 單機模式：狀態機切換回主選單，供自由重新挑選
+                    this.switchView('menu');
+                }
             },
 
             logToRemote(message) {
