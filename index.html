@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>國二理化挑戰 - 獨立遊戲模組 (手機高 legibility 優化版)</title>
+    <title>國二理化挑戰 - 獨立遊戲模組 (安全防禦高 Legibility 版)</title>
     <!-- 引入日系可愛圓體與英文 Fredoka 圓體 -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -1067,6 +1067,31 @@
 
     <script>
         // ==========================================================================
+        // 【核心修正】：阻斷瀏覽器 LocalStorage 安全錯誤的極簡降級沙盒
+        // ==========================================================================
+        const SafeStorage = {
+            getItem(key) {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn("[Storage Sandbox] 瀏覽器安全防護阻擋 LocalStorage 讀取，已降級為虛擬記憶體模式。");
+                    return this.mockStore[key] !== undefined ? this.mockStore[key] : null;
+                }
+            },
+            setItem(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                    return true;
+                } catch (e) {
+                    console.warn("[Storage Sandbox] 瀏覽器安全防護阻擋 LocalStorage 寫入，已降級為虛擬記憶體模式。");
+                    this.mockStore[key] = String(value);
+                    return false;
+                }
+            },
+            mockStore: {} // 當瀏覽器阻擋 LocalStorage 時（例如 sandbox iframe、私密模式），自動啟動暫存沙盒
+        };
+
+        // ==========================================================================
         // 輕量級 Canvas Confetti 粒子模擬器
         // ==========================================================================
         const ConfettiEngine = {
@@ -1318,10 +1343,13 @@
                 const windowWidth = window.innerWidth;
                 const windowHeight = window.innerHeight;
                 const scale = Math.min(windowWidth / this.baseWidth, windowHeight / this.baseHeight);
+                // 【核心修正】：將 translate(-50%, -50%) 嵌入 transform 屬性中，確保卡片置中且絕對不被 Flex 擠壓變扁！
                 viewport.style.transform = `translate(-50%, -50%) scale(${scale})`;
             },
 
+            // 狀態機：視覺檢視切換控制
             switchView(viewName) {
+                // views: 'menu', 'iframe-waiting', 'gameplay', 'result'
                 document.getElementById('menu-view').style.display = viewName === 'menu' ? 'flex' : 'none';
                 document.getElementById('iframe-waiting-view').style.display = viewName === 'iframe-waiting' ? 'flex' : 'none';
                 document.getElementById('main-card-flow').style.display = viewName === 'gameplay' ? 'block' : 'none';
@@ -1330,8 +1358,9 @@
                 document.getElementById('result-overlay').style.display = viewName === 'result' ? 'flex' : 'none';
             },
 
+            // 判定初始顯示 View
             initAppView() {
-                // 【步驟二】：初始化時，自動更新主選單的 LocalStorage 歷史紀錄
+                // 【步驟二】：初始化時，自動更新主選單的 LocalStorage 歷史紀錄（已重構為 SafeStorage，永不崩潰）
                 this.updateMenuRecords();
 
                 if (window === top) {
@@ -1350,6 +1379,7 @@
                     const data = event.data;
                     if (data && data.type === 'START_GAME') {
                         this.logToRemote(`接收外部 Iframe 指令: 切換並啟動關卡 LV.${data.config.level}`);
+                        // 收到父指令，強制跳過選單，進入指定關卡，開啟 5 題 Iframe 賽局
                         this.startSession(data.config.level, true);
                     }
                 });
@@ -1399,12 +1429,12 @@
             },
 
             // ==========================================================================
-            // 【步驟二：LocalStorage 本地歷史紀錄載入與渲染】
+            // 【步驟二：SafeStorage 本地歷史紀錄載入與渲染】
             // ==========================================================================
             updateMenuRecords() {
                 for (let i = 1; i <= 5; i++) {
-                    const highscore = localStorage.getItem(`scimath_amoeba_highscore_lvl_${i}`);
-                    const isPerfect = localStorage.getItem(`scimath_amoeba_perfect_lvl_${i}`) === 'true';
+                    const highscore = SafeStorage.getItem(`scimath_amoeba_highscore_lvl_${i}`);
+                    const isPerfect = SafeStorage.getItem(`scimath_amoeba_perfect_lvl_${i}`) === 'true';
                     
                     const recordEl = document.getElementById(`record-lvl-${i}`);
                     if (recordEl) {
@@ -1420,6 +1450,8 @@
             startSession(level, isIframe = false) {
                 this.currentLevel = level;
                 this.isIframeMode = isIframe;
+                
+                // 設定總題數限制：單機 10 題，Iframe 5 題
                 this.totalQuestionsInSession = isIframe ? 5 : 10;
                 
                 this.questionsAnswered = 0;
@@ -1428,6 +1460,7 @@
                 this.combo = 0;
                 this.totalWrongAttempts = 0;
 
+                // 更新頂部卡片與底色
                 document.getElementById('display-level').innerText = `挑戰關卡：LV.${level}`;
                 
                 const colors = {
@@ -1439,6 +1472,7 @@
                 };
                 document.getElementById('game-viewport').style.backgroundColor = colors[level] || '#FDFBF7';
 
+                // 【退出按鈕控制】：Iframe模式下不顯示退出主選單按鈕
                 const exitBtn = document.getElementById('btn-exit-game');
                 if (isIframe) {
                     exitBtn.style.display = 'none';
@@ -1446,10 +1480,14 @@
                     exitBtn.style.display = 'inline-block';
                 }
 
+                // 載入當前 session 的第一題
                 this.loadNewQuestion();
+                
+                // 狀態機切換至解題畫面
                 this.switchView('gameplay');
             },
 
+            // 退出挑戰按鈕
             exitToMenu() {
                 if (this.isIframeMode) {
                     parent.postMessage({ type: 'EXIT_CHALLENGE', challengeId: 1 }, '*');
@@ -1461,15 +1499,372 @@
                 }
             },
 
+            // ------------------ 【隨機出題演算法】 ------------------
+            generateRandomQuestion(level) {
+                let questionText = "";
+                let correctAnswer = "";
+                let explanationHighlight = "";
+                let explanationText = "";
+                let explanationFormula = "";
+
+                switch(level) {
+                    case 1: {
+                        const isForward = Math.random() < 0.5;
+                        const vals = [0.5, 1, 1.5, 2, 4, 5, 8, 10, 12, 0.05];
+                        const val = vals[Math.floor(Math.random() * vals.length)];
+                        
+                        if (isForward) {
+                            questionText = `${val} m<sup>2</sup> = ? cm<sup>2</sup>`;
+                            correctAnswer = (val * 10000).toString();
+                            explanationHighlight = "長與寬各放大 100 倍！";
+                            explanationText = `二維面積（平方）換算時，長度和寬度都要進行換算。<br>因為 1 m = 100 cm，所以面積放大倍數為：100 × 100 = 10,000 倍。`;
+                            explanationFormula = `${val} × 10,000 = ${correctAnswer} cm<sup>2</sup>`;
+                        } else {
+                            const cmVal = val * 10000;
+                            questionText = `${cmVal} cm<sup>2</sup> = ? m<sup>2</sup>`;
+                            correctAnswer = val.toString();
+                            explanationHighlight = "逆向換算：從 cm<sup>2</sup> 換回 m<sup>2</sup>！";
+                            explanationText = `從小單位（cm<sup>2</sup>）換算為大單位（m<sup>2</sup>）時，數值要除以換算倍率。<br>因為 1 m<sup>2</sup> = 10,000 cm<sup>2</sup>。`;
+                            explanationFormula = `${cmVal} ÷ 10,000 = ${correctAnswer} m<sup>2</sup>`;
+                        }
+                        break;
+                    }
+                    case 2: {
+                        const isForward = Math.random() < 0.5;
+                        const vals = [0.1, 0.5, 1, 1.5, 2, 0.05, 0.25];
+                        const val = vals[Math.floor(Math.random() * vals.length)];
+                        
+                        if (isForward) {
+                            questionText = `${val} m<sup>3</sup> = ? cm<sup>3</sup>`;
+                            correctAnswer = (val * 1000000).toString();
+                            explanationHighlight = "長、寬、高各放大 100 倍！";
+                            explanationText = `三維體積（立方）換算時，長度、寬度與高度都要進行換算。<br>1 m<sup>3</sup> 先拆為 1,000 個中方塊（分米），1 個中方塊再拆為 1,000 個小方塊（公分）。<br>所以體積放大倍數為：100 × 100 × 100 = 1,000,000 倍（一百萬）。`;
+                            explanationFormula = `${val} × 1,000,000 = ${correctAnswer} cm<sup>3</sup>`;
+                        } else {
+                            const cmVal = val * 1000000;
+                            questionText = `${cmVal} cm<sup>3</sup> = ? m<sup>3</sup>`;
+                            correctAnswer = val.toString();
+                            explanationHighlight = "逆向換算：從 cm<sup>3</sup> 換回 m³！";
+                            explanationText = `從小單位換算為大單位時，數值要除以一百萬（除以 1,000,000）。<br>因為 1 m<sup>3</sup> = 1,000,000 cm<sup>3</sup>。`;
+                            explanationFormula = `${cmVal} ÷ 1,000,000 = ${correctAnswer} m<sup>3</sup>`;
+                        }
+                        break;
+                    }
+                    case 3: {
+                        const type = Math.floor(Math.random() * 6);
+                        
+                        if (type === 0) {
+                            const vals = [0.5, 1, 1.5, 2, 3.5, 5];
+                            const val = vals[Math.floor(Math.random() * vals.length)];
+                            questionText = `${val} L = ? cm<sup>3</sup>`;
+                            correctAnswer = (val * 1000).toString();
+                            explanationHighlight = "公升(L) 與 立方公分(cm³) 的橋樑！";
+                            explanationText = `記憶黃金鏈接：<b>1 mL = 1 cm<sup>3</sup>（毫升與立方公分完全相等）</b>。<br>因為 1 L = 1,000 mL，所以 1 L 也就等於 1,000 cm<sup>3</sup>。`;
+                            explanationFormula = `${val} × 1,000 = ${correctAnswer} cm<sup>3</sup>`;
+                        } else if (type === 1) {
+                            const vals = [500, 1000, 1500, 2000, 3000, 5000];
+                            const val = vals[Math.floor(Math.random() * vals.length)];
+                            questionText = `${val} cm<sup>3</sup> = ? L`;
+                            correctAnswer = (val / 1000).toString();
+                            explanationHighlight = "立方公分(cm³) 換算回 公升(L)！";
+                            explanationText = `從小單位換算回大單位：1,000 cm<sup>3</sup> = 1 L。<br>因此將數值除以 1,000 即可。`;
+                            explanationFormula = `${val} ÷ 1,000 = ${correctAnswer} L`;
+                        } else if (type === 2) {
+                            const val = Math.floor(Math.random() * 450) + 50;
+                            questionText = `${val} mL = ? cm<sup>3</sup>`;
+                            correctAnswer = val.toString();
+                            explanationHighlight = "毫升(mL) 與 立方公分(cm³) 完全等價！";
+                            explanationText = `黃金記憶：<b>1 mL = 1 cm<sup>3</sup></b>。<br>液態の容積單位「毫升」與固態の體積單位「立方公分」大小是完全相同的，不用任何計算，數值直接平移！`;
+                            explanationFormula = `${val} mL = ${correctAnswer} cm<sup>3</sup>`;
+                        } else if (type === 3) {
+                            const vals = [0.5, 1, 1.2, 2, 2.5, 3];
+                            const val = vals[Math.floor(Math.random() * vals.length)];
+                            questionText = `${val} m<sup>3</sup> = ? L`;
+                            correctAnswer = (val * 1000).toString();
+                            explanationHighlight = "立方米(m³) 到 公升(L) 的千倍轉換！";
+                            explanationText = `物理課核心公式：<b>1 m<sup>3</sup>（立方米）= 1,000 L（公升）</b>。<br>這是工程與水資源大容量換算的基本常識！大單位換成小單位，乘以 1,000 即可。`;
+                            explanationFormula = `${val} × 1,000 = ${correctAnswer} L`;
+                        } else if (type === 4) {
+                            const vals = [500, 1000, 1500, 2000, 4000, 5000];
+                            const val = vals[Math.floor(Math.random() * vals.length)];
+                            questionText = `${val} L = ? m<sup>3</sup>`;
+                            correctAnswer = (val / 1000).toString();
+                            explanationHighlight = "公升(L) 逆向換算回 立方米(m³)！";
+                            explanationText = `因為 1,000 L = 1 m<sup>3</sup>。當從小容積單位換回大體積單位時，數值必須除以 1,000。`;
+                            explanationFormula = `${val} ÷ 1,000 = ${correctAnswer} m<sup>3</sup>`;
+                        } else {
+                            const vals = [0.1, 0.5, 1, 1.5];
+                            const val = vals[Math.floor(Math.random() * vals.length)];
+                            questionText = `${val} m<sup>3</sup> = ? mL`;
+                            correctAnswer = (val * 1000000).toString();
+                            explanationHighlight = "立方米(m³) 跨級直通 毫升(mL)！";
+                            explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>so 連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
+                            explanationFormula = `${val} × 1,000,000 = ${correctAnswer} mL`;
+                        }
+                        break;
+                    }
+                    case 4: {
+                        const type = Math.floor(Math.random() * 5);
+                        const vals = [0.5, 1, 1.5, 2, 3, 5, 8, 10, 0.05];
+                        const val = vals[Math.floor(Math.random() * vals.length)];
+                        
+                        if (type === 0) {
+                            questionText = `${val} mm = ? &mu;m`;
+                            correctAnswer = (val * 1000).toString();
+                            explanationHighlight = "公厘(mm) 換算為 微米(&mu;m)";
+                            explanationText = `微觀長度 world 中，mm、&mu;m、nm 每個階梯都是 1,000 倍。<br>1 mm = 1,000 &mu;m（微米）。所以大單位換小單位乘以 1,000。`;
+                            explanationFormula = `${val} × 1,000 = ${correctAnswer} &mu;m`;
+                        } else if (type === 1) {
+                            questionText = `${val} &mu;m = ? nm`;
+                            correctAnswer = (val * 1000).toString();
+                            explanationHighlight = "微米(&mu;m) 換算為 奈米(nm)";
+                            explanationText = `微(微米)和奈(奈米)都是千倍魔王，跨一步放大 1,000 倍！<br>1 &mu;m = 1,000 nm（奈米）。`;
+                            explanationFormula = `${val} × 1,000 = ${correctAnswer} nm`;
+                        } else if (type === 2) {
+                            const cleanVal = val === 0.05 ? 0.1 : val;
+                            questionText = `${cleanVal} mm = ? nm`;
+                            correctAnswer = (cleanVal * 1000000).toString();
+                            explanationHighlight = "連跳兩階！公厘(mm) 直通 奈米(nm)";
+                            explanationText = `連續跨兩步（公厘 ➔ 微米 ➔ 奈米），要乘以 1,000 再乘以 1,000，也就是放大一百萬倍（1,000,000）！`;
+                            explanationFormula = `${cleanVal} × 1,000,000 = ${correctAnswer} nm`;
+                        } else if (type === 3) {
+                            const mVal = val * 1000;
+                            questionText = `${mVal} &mu;m = ? mm`;
+                            correctAnswer = val.toString();
+                            explanationHighlight = "逆向換算：微米(&mu;m) 換回 公厘(mm)";
+                            explanationText = `從小單位換回大單位，數值要除以 1,000。<br>1,000 &mu;m = 1 mm。`;
+                            explanationFormula = `${mVal} ÷ 1,000 = ${correctAnswer} mm`;
+                        } else {
+                            const nVal = val * 1000;
+                            questionText = `${nVal} nm = ? &mu;m`;
+                            correctAnswer = val.toString();
+                            explanationHighlight = "逆向換算：奈米(nm) 換回 微米(&mu;m)";
+                            explanationText = `從奈米換回微米，數值除以 1,000。<br>1,000 nm = 1 &mu;m。`;
+                            explanationFormula = `${nVal} ÷ 1,000 = ${correctAnswer} &mu;m`;
+                        }
+                        break;
+                    }
+                    case 5: {
+                        const isDensity = Math.random() < 0.5;
+                        if (isDensity) {
+                            const isForward = Math.random() < 0.5;
+                            const densities = [
+                                { name: "純水", g: 1, kg: 1000 },
+                                { name: "酒精", g: 0.8, kg: 800 },
+                                { name: "金屬鋁", g: 2.7, kg: 2700 },
+                                { name: "金屬鐵", g: 7.8, kg: 7800 },
+                                { name: "水銀", g: 13.6, kg: 13600 }
+                            ];
+                            const item = densities[Math.floor(Math.random() * densities.length)];
+                            if (isForward) {
+                                questionText = `${item.g} g/cm<sup>3</sup> = ? kg/m<sup>3</sup>`;
+                                correctAnswer = item.kg.toString();
+                                explanationHighlight = "密度換算：分子與分母獨立拆開！";
+                                explanationText = `<b>g/cm<sup>3</sup> 換算為 kg/m<sup>3</sup> 時，數值會放大 1,000 倍。</b><br>
+                                拆解原理分析：<br>
+                                分子: 1 g = 0.001 kg<br>
+                                分母: 1 cm<sup>3</sup> = 0.000001 m<sup>3</sup><br>
+                                相除得到: 0.001 ÷ 0.000001 = 1,000 倍。`;
+                                explanationFormula = `${item.g} × 1,000 = ${correctAnswer} kg/m<sup>3</sup> （這代表${item.name}的密度）`;
+                            } else {
+                                questionText = `${item.kg} kg/m<sup>3</sup> = ? g/cm<sup>3</sup>`;
+                                correctAnswer = item.g.toString();
+                                explanationHighlight = "逆向換算：kg/m<sup>3</sup> 到 g/cm<sup>3</sup>";
+                                explanationText = `<b>從公制大單位 kg/m<sup>3</sup> 換算回實驗室單位 g/cm<sup>3</sup> 時，數值縮小 1,000 倍（除以 1,000）。</b>`;
+                                explanationFormula = `${item.kg} ÷ 1,000 = ${correctAnswer} g/cm<sup>3</sup> （這代表${item.name}的密度）`;
+                            }
+                        } else {
+                            const isForward = Math.random() < 0.5;
+                            const speeds = [
+                                { kmh: 36, ms: 10 },
+                                { kmh: 54, ms: 15 },
+                                { kmh: 72, ms: 20 },
+                                { kmh: 90, ms: 25 },
+                                { kmh: 108, ms: 30 }
+                            ];
+                            const item = speeds[Math.floor(Math.random() * speeds.length)];
+                            if (isForward) {
+                                questionText = `${item.kmh} km/hr = ? m/s`;
+                                correctAnswer = item.ms.toString();
+                                explanationHighlight = "速度換算：分子與分母各自獨立拆！";
+                                explanationText = `<b>km/hr 換算為 m/s 時，必須除以 3.6。</b><br>
+                                拆解過程：<br>
+                                分子：${item.kmh} 公里 = ${item.kmh * 1000} 公尺<br>
+                                分母：1 小時 = 3,600 秒<br>
+                                兩者相除：${item.kmh * 1000} ÷ 3,600 = ${correctAnswer} m/s。<br>
+                                記住公式：分子分母獨立分開算，分數帶著單位一起算！`;
+                                explanationFormula = `${item.kmh} ÷ 3.6 = ${correctAnswer} m/s`;
+                            } else {
+                                questionText = `${item.ms} m/s = ? km/hr`;
+                                correctAnswer = item.kmh.toString();
+                                explanationHighlight = "逆向速度：m/s 換算回 km/hr";
+                                explanationText = `<b>m/s 換算為 km/hr 時，必須乘以 3.6。</b><br>
+                                拆解過程：每秒跑 ${item.ms} 公尺，一小時會跑 ${item.ms} × 3,600 = ${item.ms * 3600} 公尺 = ${item.kmh} 公里。`;
+                                explanationFormula = `${item.ms} × 3.6 = ${correctAnswer} km/hr`;
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                return {
+                    questionText,
+                    correctAnswer,
+                    explanationHighlight,
+                    explanationText,
+                    explanationFormula
+                };
+            },
+
+            // ------------------ 【步驟四核心：互動式 SVG 動態生成引擎 (寬幅超大字體重塑，完全避開字圖重疊)】 ------------------
+            renderStateBSVG() {
+                const container = document.getElementById('svg-container');
+                const lvl = this.currentLevel;
+                const isDensity = this.currentQuestion.questionText.includes('g/cm');
+
+                let svgHtml = "";
+
+                if (lvl === 1) {
+                    svgHtml = `
+                    <svg viewBox="0 0 500 130" width="100%" height="100%">
+                        <rect x="25" y="15" width="80" height="80" rx="12" fill="#FFF0F0" stroke="#FFB7B2" stroke-width="4" />
+                        <text x="65" y="62" font-family="Fredoka" font-size="22" fill="#5D4037" text-anchor="middle" font-weight="bold">1 m²</text>
+                        
+                        <path d="M 140 55 L 190 55 M 180 45 L 190 55 L 180 65" stroke="#FF9E96" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        <text x="165" y="38" font-size="16" fill="#8D6E63" text-anchor="middle" font-weight="700">長寬皆 ×100</text>
+                        
+                        <rect x="230" y="15" width="105" height="80" rx="12" fill="#E8D7FF" stroke="#D1B3FF" stroke-width="4" />
+                        <text x="282.5" y="48" font-size="15" fill="#5D4037" text-anchor="middle" font-weight="700">100cm × 100cm</text>
+                        <text x="282.5" y="74" font-family="Fredoka" font-size="18" fill="#5E35B1" text-anchor="middle" font-weight="bold">= 10,000 cm²</text>
+                    </svg>`;
+                } else if (lvl === 2) {
+                    svgHtml = `
+                    <svg viewBox="0 0 500 130" width="100%" height="100%">
+                        <g transform="translate(35, 12) scale(0.8)">
+                            <polygon points="50,0 100,25 50,50 0,25" fill="#FFE0B2" stroke="#EF6C00" stroke-width="3"/>
+                            <polygon points="0,25 50,50 50,100 0,75" fill="#FFCC80" stroke="#EF6C00" stroke-width="3"/>
+                            <polygon points="50,50 100,25 100,75 50,100" fill="#FFA726" stroke="#EF6C00" stroke-width="3"/>
+                            <text x="50" y="62" font-family="Fredoka" font-size="22" fill="#5D4037" text-anchor="middle" font-weight="bold">1 m³</text>
+                        </g>
+                        
+                        <path d="M 165 62 L 220 62 M 210 52 L 220 62 L 210 72" stroke="#EF6C00" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        <text x="192.5" y="42" font-size="15" fill="#8D6E63" text-anchor="middle" font-weight="bold">長寬高皆 ×100</text>
+                        
+                        <g transform="translate(245, 12) scale(0.8)">
+                            <polygon points="50,0 100,25 50,50 0,25" fill="#E1F5FE" stroke="#0288D1" stroke-width="3"/>
+                            <polygon points="0,25 50,50 50,100 0,75" fill="#B3E5FC" stroke="#0288D1" stroke-width="3"/>
+                            <polygon points="50,50 100,25 100,75 50,100" fill="#81D4FA" stroke="#0288D1" stroke-width="3"/>
+                            <text x="50" y="52" font-size="13" fill="#01579B" text-anchor="middle" font-weight="bold">100cm×100cm</text>
+                            <text x="50" y="74" font-size="14" fill="#01579B" text-anchor="middle" font-weight="bold">× 100cm</text>
+                        </g>
+                        <text x="420" y="65" font-size="18" fill="#01579B" font-weight="bold">= 1,000,000 cm³</text>
+                    </svg>`;
+                } else if (lvl === 3) {
+                    svgHtml = `
+                    <svg viewBox="0 0 500 130" width="100%" height="100%">
+                        <!-- Tank 1m³ -->
+                        <rect x="15" y="40" width="60" height="60" rx="8" fill="#E0F7FA" stroke="#00ACC1" stroke-width="3" />
+                        <text x="45" y="76" font-size="16" fill="#006064" text-anchor="middle" font-weight="bold">1 m³</text>
+                        
+                        <text x="105" y="74" font-size="15" fill="#00ACC1" text-anchor="middle" font-weight="bold">=(1000×)</text>
+                        
+                        <!-- Milk Carton 1 L -->
+                        <rect x="135" y="38" width="45" height="63" rx="4" fill="#E8F5E9" stroke="#43A047" stroke-width="3" />
+                        <path d="M 135 38 L 157.5 24 L 180 38 Z" fill="#C8E6C9" stroke="#43A047" stroke-width="3"/>
+                        <text x="157.5" y="74" font-size="16" fill="#1B5E20" text-anchor="middle" font-weight="bold">1 L</text>
+                        
+                        <text x="210" y="74" font-size="15" fill="#43A047" text-anchor="middle" font-weight="bold">=(1000×)</text>
+                        
+                        <!-- Beaker 1 mL -->
+                        <rect x="235" y="50" width="35" height="50" rx="4" fill="#FFFDE7" stroke="#FBC02D" stroke-width="3" />
+                        <line x1="235" y1="64" x2="248" y2="64" stroke="#FBC02D" stroke-width="2.5" />
+                        <line x1="235" y1="78" x2="248" y2="78" stroke="#FBC02D" stroke-width="2.5" />
+                        <text x="252.5" y="79" font-size="14" fill="#F57F17" text-anchor="middle" font-weight="bold">1mL</text>
+                        
+                        <!-- Golden Equal Sign -->
+                        <text x="315" y="72" font-size="28" fill="#FF8F00" text-anchor="middle" font-weight="bold">≡</text>
+                        <text x="315" y="94" font-size="12" fill="#FF8F00" text-anchor="middle" font-weight="bold">完全等值</text>
+                        
+                        <!-- Small Cube 1cm³ -->
+                        <rect x="360" y="50" width="50" height="50" rx="8" fill="#FFF0F5" stroke="#E91E63" stroke-width="3" />
+                        <text x="385" y="80" font-size="13" fill="#880E4F" text-anchor="middle" font-weight="bold">1 cm³</text>
+                    </svg>`;
+                } else if (lvl === 4) {
+                    svgHtml = `
+                    <svg viewBox="0 0 500 130" width="100%" height="100%">
+                        <g transform="translate(25, 25)">
+                            <circle cx="35" cy="35" r="32" fill="#E8F5E9" stroke="#4CAF50" stroke-width="4" />
+                            <text x="35" y="41" font-family="Fredoka" font-size="22" fill="#1B5E20" text-anchor="middle" font-weight="bold">mm</text>
+                        </g>
+                        <g transform="translate(195, 25)">
+                            <circle cx="35" cy="35" r="32" fill="#E0F7FA" stroke="#00BCD4" stroke-width="4" />
+                            <text x="35" y="41" font-family="Fredoka" font-size="22" fill="#006064" text-anchor="middle" font-weight="bold">µm</text>
+                        </g>
+                        <g transform="translate(365, 25)">
+                            <circle cx="35" cy="35" r="32" fill="#EDE7F6" stroke="#673AB7" stroke-width="4" />
+                            <text x="35" y="41" font-family="Fredoka" font-size="22" fill="#311B92" text-anchor="middle" font-weight="bold">nm</text>
+                        </g>
+                        
+                        <path d="M 105 60 L 180 60" stroke="#90A4AE" stroke-width="3" fill="none" stroke-dasharray="4" marker-end="url(#arrow)" />
+                        <text x="142" y="43" font-size="18" fill="#455A64" text-anchor="middle" font-weight="bold">× 1000</text>
+                        
+                        <path d="M 275 60 L 350 60" stroke="#90A4AE" stroke-width="3" fill="none" stroke-dasharray="4" marker-end="url(#arrow)" />
+                        <text x="312" y="43" font-size="18" fill="#455A64" text-anchor="middle" font-weight="bold">× 1000</text>
+                        
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                              <path d="M 0 1 L 10 5 L 0 9 z" fill="#90A4AE" />
+                            </marker>
+                        </defs>
+                    </svg>`;
+                } else if (lvl === 5) {
+                    const leftUnit = isDensity ? "g/cm³" : "km/hr";
+                    const rightUnit = isDensity ? "kg/m³" : "m/s";
+                    const numText = isDensity ? "分子: 1 g = 0.001 kg" : "分子: 1 km = 1000 m";
+                    const denText = isDensity ? "分母: 1 cm³ = 10⁻⁶ m³" : "分母: 1 hr = 3600 s";
+                    
+                    svgHtml = `
+                    <svg viewBox="0 0 500 130" width="100%" height="100%">
+                        <rect x="15" y="35" width="105" height="55" rx="8" fill="#ECEFF1" stroke="#455A64" stroke-width="3" />
+                        <text x="67.5" y="68" font-family="Fredoka" font-size="20" fill="#37474F" text-anchor="middle" font-weight="bold">${leftUnit}</text>
+                        
+                        <text x="140" y="68" font-size="24" fill="#37474F" text-anchor="middle" font-weight="bold">➔</text>
+                        
+                        <g transform="translate(160, 10)">
+                            <rect x="0" y="2" width="170" height="42" rx="6" fill="#E1F5FE" stroke="#0288D1" stroke-width="3"/>
+                            <text x="85" y="28" font-size="15" fill="#01579B" text-anchor="middle" font-weight="bold">${numText}</text>
+                            
+                            <line x1="0" y1="52" x2="170" y2="52" stroke="#37474F" stroke-width="4"/>
+                            
+                            <rect x="0" y="68" width="170" height="42" rx="6" fill="#FFF3E0" stroke="#F57C00" stroke-width="3"/>
+                            <text x="85" y="94" font-size="15" fill="#E65100" text-anchor="middle" font-weight="bold">${denText}</text>
+                        </g>
+                        
+                        <text x="350" y="68" font-size="24" fill="#37474F" text-anchor="middle" font-weight="bold">➔</text>
+                        
+                        <rect x="375" y="35" width="105" height="55" rx="8" fill="#E8F5E9" stroke="#2E7D32" stroke-width="3" />
+                        <text x="427.5" y="68" font-family="Fredoka" font-size="20" fill="#1B5E20" text-anchor="middle" font-weight="bold">${rightUnit}</text>
+                    </svg>`;
+                }
+
+                container.innerHTML = svgHtml;
+            },
+
+            // ------------------ 【加載新一題邏輯 (整合進度與 session 限制)】 ------------------
             loadNewQuestion() {
                 this.attemptsThisQuestion = 0;
                 this.hearts = 3; 
                 document.getElementById('display-hearts').innerText = this.hearts;
+                
+                // 1. 隱藏解題正面覆蓋層
                 document.getElementById('success-overlay').style.display = 'none';
+                
+                // 2. 清空輸入
                 document.getElementById('player-input').value = "";
                 document.getElementById('cheat-reveal').style.display = 'none';
                 document.getElementById('cheat-clicker').innerText = '[ 點擊查看測試解答 ]';
                 
+                // 3. 重設背面算式
                 const backFormulaReveal = document.getElementById('back-formula-reveal');
                 const backFormulaClicker = document.getElementById('back-formula-clicker');
                 if (backFormulaReveal && backFormulaClicker) {
@@ -1483,41 +1878,51 @@
                     this.flipToA();
                 }
 
+                // 更新頂部進度文字
                 const currentQuestionIndex = this.questionsAnswered + 1;
                 document.getElementById('display-progress').innerText = `${currentQuestionIndex} / ${this.totalQuestionsInSession}`;
 
+                // 產生隨機題並渲染
                 this.currentQuestion = this.generateRandomQuestion(this.currentLevel);
                 document.getElementById('question-text').innerHTML = this.currentQuestion.questionText;
                 document.getElementById('explanation-highlight').innerHTML = this.currentQuestion.explanationHighlight;
                 document.getElementById('explanation-body').innerHTML = this.currentQuestion.explanationText;
 
                 this.renderStateBSVG();
+
                 this.logToRemote(`載入第 ${currentQuestionIndex} 題。正確答案：${this.currentQuestion.correctAnswer}`);
             },
 
-            proceedAfterResolution() {
-                if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
-                    this.triggerGameClear();
-                } else {
-                    this.questionsAnswered++;
-                    this.loadNewQuestion();
-                }
+            // 測試面板專用跳關
+            changeLevelAndRestart(level) {
+                this.startSession(level, true);
             },
 
-            handleBackAction() {
-                if (this.attemptsThisQuestion >= 3) {
-                    this.levelScores[this.questionsAnswered] = 0;
-                    if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
-                        this.triggerGameClear();
+            // ------------------ 【自製果凍鍵盤輸入】 ------------------
+            pressKey(keyValue) {
+                const inputEl = document.getElementById('player-input');
+                let currentVal = inputEl.value;
+
+                if (keyValue === 'C') {
+                    inputEl.value = '';
+                } else if (keyValue === '⌫') {
+                    inputEl.value = currentVal.substring(0, currentVal.length - 1);
+                } else if (keyValue === '.') {
+                    if (currentVal.includes('.')) return;
+                    if (currentVal === '') {
+                        inputEl.value = '0.';
                     } else {
-                        this.questionsAnswered++;
-                        this.loadNewQuestion();
+                        inputEl.value = currentVal + '.';
                     }
                 } else {
-                    this.flipToA();
+                    if (currentVal.length < 9) {
+                        inputEl.value = currentVal + keyValue;
+                    }
                 }
+                inputEl.focus();
             },
 
+            // ------------------ 【3D 雙面字卡流】外層 ------------------
             flipToB(triggerType = 'hint') {
                 if (this.isFlipped) return;
                 
@@ -1659,21 +2064,21 @@
             },
 
             // ==========================================================================
-            // 【步驟二：單機 LocalStorage 歷史紀錄寫入】
+            // 【步驟二：LocalStorage 本地歷史紀錄寫入】
             // ==========================================================================
             triggerGameClear() {
                 const scoreResult = this.calculateFinalScore();
                 const isPerfect = this.levelScores.every(score => score === 20) && this.totalWrongAttempts === 0;
 
-                // 【步驟二核心】：若處於單機（非 Iframe）模式，打完 10 題將紀錄寫入 LocalStorage
+                // 若處於單機（非 Iframe）模式，打完 10 題將紀錄寫入 LocalStorage (透過防禦性 SafeStorage)
                 if (!this.isIframeMode) {
                     const lvl = this.currentLevel;
-                    const existingHigh = localStorage.getItem(`scimath_amoeba_highscore_lvl_${lvl}`) || 0;
+                    const existingHigh = SafeStorage.getItem(`scimath_amoeba_highscore_lvl_${lvl}`) || 0;
                     if (scoreResult.finalScore > parseInt(existingHigh)) {
-                        localStorage.setItem(`scimath_amoeba_highscore_lvl_${lvl}`, scoreResult.finalScore);
+                        SafeStorage.setItem(`scimath_amoeba_highscore_lvl_${lvl}`, scoreResult.finalScore);
                     }
                     if (isPerfect) {
-                        localStorage.setItem(`scimath_amoeba_perfect_lvl_${lvl}`, 'true');
+                        SafeStorage.setItem(`scimath_amoeba_perfect_lvl_${lvl}`, 'true');
                     }
                 }
 
