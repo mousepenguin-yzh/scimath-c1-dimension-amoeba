@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>國二數理挑戰 - 獨立遊戲模組 (步驟二)</title>
+    <title>國二數理挑戰 - 獨立遊戲模組 (自製鍵盤優化版)</title>
     <!-- 引入日系可愛圓體與英文 Fredoka 圓體 -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -46,7 +46,7 @@
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            padding: 40px;
+            padding: 30px 40px; /* 稍微縮小上下 padding，給內部元件更多空間 */
             box-sizing: border-box;
             transition: background-color 0.4s ease, transform 0.1s ease;
         }
@@ -94,13 +94,13 @@
         }
 
         /* ==========================================================================
-           【步驟二核心】3D 雙面字卡流（Single Card Flow with 3D Flip）
+           【3D 雙面字卡流】外層
            ========================================================================== */
         #game-viewport .center-card-flow {
-            width: 85%;
-            height: 460px; /* 固定高度，防止翻轉時元件擠壓變形 */
-            margin: 20px 0;
-            perspective: 1500px; /* 3D 景深距離，決定翻轉時的立體膨脹感 */
+            width: 90%;
+            height: 500px; /* 調增高度以容納自製鍵盤 */
+            margin: 15px 0;
+            perspective: 1500px;
             position: relative;
         }
 
@@ -111,7 +111,7 @@
             height: 100%;
             text-align: center;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-style: preserve-3d; /* 保留子元素的 3D 空間關係 */
+            transform-style: preserve-3d;
         }
 
         /* 當啟動 flipped 狀態時，整張卡片旋轉 180 度 */
@@ -124,9 +124,9 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            backface-visibility: hidden; /* 當面朝後時隱藏，這是 3D 翻牌的關鍵 */
+            backface-visibility: hidden;
             border-radius: 32px;
-            padding: 30px 40px;
+            padding: 24px 30px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -139,10 +139,9 @@
             background: #FFFFFF;
             border: 4px solid #FFDAC1; /* 暖橘邊框 */
             box-shadow: 0 12px 0 #FCD1B4, 0 16px 30px rgba(0, 0, 0, 0.05);
-            transform: rotateY(0deg); /* 預設正面朝前 */
+            transform: rotateY(0deg);
         }
 
-        /* 答對時的綠色發光擴散特效 */
         #game-viewport .card-front.correct-flash {
             animation: correct-glow-pulse 0.5s ease-out;
         }
@@ -152,7 +151,6 @@
             100% { border-color: #FFDAC1; box-shadow: 0 12px 0 #FCD1B4; }
         }
 
-        /* 答錯時的紅色震動警告特效 */
         #game-viewport .card-front.error-shake {
             animation: error-shake-move 0.5s ease-in-out;
         }
@@ -164,97 +162,145 @@
 
         #game-viewport .front-title {
             color: #8D6E63;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             letter-spacing: 2px;
-            text-transform: uppercase;
         }
 
         #game-viewport .question-box {
-            font-size: 48px;
+            font-size: 40px;
             font-weight: 700;
             color: #5D4037;
-            margin: 15px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
+            margin: 5px 0;
         }
 
-        /* 答題互動控制區 */
-        #game-viewport .input-zone {
-            width: 100%;
+        /* 答題互動控制區 (包含輸入顯示與控制鈕) */
+        #game-viewport .input-and-controls {
             display: flex;
-            justify-content: center;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 10px;
+            gap: 12px;
+            width: 100%;
+            justify-content: center;
+            margin-bottom: 5px;
         }
 
         #game-viewport .answer-input {
-            width: 280px;
-            height: 64px;
+            width: 240px;
+            height: 54px;
             border: 4px solid #FFDAC1;
-            border-radius: 20px;
-            font-size: 28px;
+            border-radius: 16px;
+            font-size: 26px;
             font-weight: 700;
             text-align: center;
             color: #5D4037;
             outline: none;
-            transition: all 0.2s ease;
             background-color: #FFFDFB;
-        }
-
-        #game-viewport .answer-input:focus {
-            border-color: #B5EAD7; /* 聚焦時轉為溫柔的薄荷綠 */
-            box-shadow: 0 0 15px rgba(181, 234, 215, 0.6);
-            background-color: #FFFFFF;
+            caret-color: #FF9E96; /* 游標呈粉紅色 */
         }
 
         #game-viewport .btn-submit {
-            height: 64px;
-            padding: 0 35px;
-            background-color: #B5EAD7; /* 薄荷綠 */
+            height: 54px;
+            padding: 0 25px;
+            background-color: #B5EAD7;
             border: none;
-            border-radius: 20px;
-            font-size: 22px;
+            border-radius: 16px;
+            font-size: 18px;
             font-weight: 700;
             color: #2E5A44;
             cursor: pointer;
-            box-shadow: 0 6px 0 #92D3BC;
+            box-shadow: 0 5px 0 #92D3BC;
             transition: all 0.1s ease;
         }
 
         #game-viewport .btn-submit:active {
-            transform: translateY(4px);
+            transform: translateY(3px);
             box-shadow: 0 2px 0 #92D3BC;
         }
 
         #game-viewport .btn-hint {
-            height: 64px;
-            padding: 0 25px;
-            background-color: #FFDAC1; /* 暖橘膚色 */
+            height: 54px;
+            padding: 0 20px;
+            background-color: #FFDAC1;
             border: none;
-            border-radius: 20px;
-            font-size: 20px;
+            border-radius: 16px;
+            font-size: 18px;
             font-weight: 700;
             color: #8D6E63;
             cursor: pointer;
-            box-shadow: 0 6px 0 #E2B695;
+            box-shadow: 0 5px 0 #E2B695;
             transition: all 0.1s ease;
         }
 
         #game-viewport .btn-hint:active {
-            transform: translateY(4px);
+            transform: translateY(3px);
             box-shadow: 0 2px 0 #E2B695;
+        }
+
+        /* ==========================================================================
+           【自製馬卡龍專屬數字鍵盤】
+           ========================================================================== */
+        #game-viewport .custom-keyboard {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr); /* 2x6 的扁平化極簡鍵盤，完美融入 16:9 空間 */
+            gap: 8px;
+            width: 100%;
+            max-width: 540px;
+            margin-top: 5px;
+        }
+
+        #game-viewport .key-btn {
+            background-color: #F5EBE6; /* 溫潤淡米色 */
+            border: none;
+            border-radius: 12px;
+            height: 54px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: #5D4037;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #D7CCC8;
+            transition: all 0.05s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-viewport .key-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #D7CCC8;
+            background-color: #EFE5E0;
+        }
+
+        /* 退格鍵與清除鍵採用馬卡龍警示紅/橘設計 */
+        #game-viewport .key-btn.backspace {
+            background-color: #FFD1D1;
+            color: #C62828;
+            box-shadow: 0 4px 0 #EAB2B2;
+            font-size: 20px;
+        }
+        #game-viewport .key-btn.backspace:active {
+            background-color: #FBC2C2;
+            box-shadow: 0 2px 0 #EAB2B2;
+        }
+
+        #game-viewport .key-btn.clear {
+            background-color: #FFE0B2;
+            color: #EF6C00;
+            box-shadow: 0 4px 0 #F5C68A;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        #game-viewport .key-btn.clear:active {
+            background-color: #FDD199;
+            box-shadow: 0 2px 0 #F5C68A;
         }
 
         /* ------------------ 【狀態 B】背面：原理說明畫面 ------------------ */
         #game-viewport .card-back {
             background: #FFFFFF;
-            border: 4px solid #B5EAD7; /* 薄荷綠邊框 */
+            border: 4px solid #B5EAD7;
             box-shadow: 0 12px 0 #92D3BC, 0 16px 30px rgba(0, 0, 0, 0.05);
-            transform: rotateY(180deg); /* 預設翻轉到背面隱藏 */
+            transform: rotateY(180deg);
         }
 
         #game-viewport .back-header {
@@ -288,7 +334,7 @@
         #game-viewport .back-highlight {
             font-size: 26px;
             font-weight: 700;
-            color: #C62828; /* 馬卡龍警示紅 */
+            color: #C62828;
             margin-bottom: 10px;
         }
 
@@ -300,10 +346,9 @@
             font-weight: 600;
         }
 
-        /* 比例圖 SVG 預留容器 */
         #game-viewport .svg-illustration-placeholder {
             width: 100%;
-            height: 140px;
+            height: 150px;
             background-color: #F5F5F5;
             border-radius: 16px;
             border: 2px dashed #BCAAA4;
@@ -318,7 +363,7 @@
         #game-viewport .btn-retry {
             width: 100%;
             height: 56px;
-            background-color: #FFB7B2; /* 櫻花粉紅 */
+            background-color: #FFB7B2;
             border: none;
             border-radius: 16px;
             font-size: 20px;
@@ -352,7 +397,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #FFB7B2; /* 馬卡龍暖紅粉 */
+            background-color: #FFB7B2;
             z-index: 9999;
             display: none;
             flex-direction: column;
@@ -413,13 +458,13 @@
             bottom: 20px;
             right: 20px;
             width: 320px;
-            background: linear-gradient(135deg, #FF9E2A 0%, #E65100 100%); /* 亮眼橘色 */
+            background: linear-gradient(135deg, #FF9E2A 0%, #E65100 100%);
             border: 4px solid #FFF;
             box-shadow: 0 12px 35px rgba(0,0,0,0.3);
             border-radius: 20px;
             padding: 20px;
             box-sizing: border-box;
-            z-index: 10000; /* 置頂於所有元素之上 */
+            z-index: 10000;
             color: #FFFFFF;
             display: none;
         }
@@ -450,7 +495,7 @@
             display: inline-block;
             width: 14px;
             height: 14px;
-            background-color: #69F0AE; /* 連線亮綠燈 */
+            background-color: #69F0AE;
             border-radius: 50%;
             box-shadow: 0 0 12px #69F0AE;
         }
@@ -521,17 +566,38 @@
                         <div class="front-title">空間維度挑戰賽</div>
                         
                         <div class="question-box">
-                            <!-- 題目暫時以靜態模擬，步驟三將由演算法自動隨機產出 -->
                             <span id="question-text">5 m<sup>2</sup> = ? cm<sup>2</sup></span>
                         </div>
                         
                         <!-- 輸入與操作按鈕 -->
-                        <div class="input-zone">
-                            <input type="text" class="answer-input" id="player-input" placeholder="請輸入答案數字" autocomplete="off">
-                            <button class="btn-submit" onclick="GameModule.submitAnswer()">送出解答</button>
-                            <button class="btn-hint" onclick="GameModule.flipToB('hint')">查看提示</button>
+                        <div class="input-and-controls">
+                            <!-- 【核心改造】
+                                 - inputmode="none"：強烈指示手機端聚焦時，絕對不要彈出手機原生鍵盤！
+                                 - readonly：防止部分極端瀏覽器觸發文字游標導致鍵盤彈出。
+                            -->
+                            <input type="text" class="answer-input" id="player-input" placeholder="點選按鈕輸入答案" inputmode="none" readonly autocomplete="off">
+                            <button class="btn-submit" onclick="GameModule.submitAnswer()">送出</button>
+                            <button class="btn-hint" onclick="GameModule.flipToB('hint')">提示</button>
                         </div>
-                        <div style="font-size:14px; color:#A1887F; font-weight: 600;">提示：此題模擬正確答案為 "50000"</div>
+
+                        <!-- 【自製馬卡龍專屬數字鍵盤】 2 x 6 排版，完全貼合 16:9 下方空間 -->
+                        <div class="custom-keyboard">
+                            <button class="key-btn" onclick="GameModule.pressKey('1')">1</button>
+                            <button class="key-btn" onclick="GameModule.pressKey('2')">2</button>
+                            <button class="key-btn" onclick="GameModule.pressKey('3')">3</button>
+                            <button class="key-btn" onclick="GameModule.pressKey('4')">4</button>
+                            <button class="key-btn" onclick="GameModule.pressKey('5')">5</button>
+                            <button class="key-btn clear" onclick="GameModule.pressKey('C')">清除</button>
+
+                            <button class="key-btn" onclick="GameModule.pressKey('6')">6</button>
+                            <button class="key-btn" onclick="GameModule.pressKey('7')">7</button>
+                            <button class="key-btn" onclick="GameModule.pressKey('8')">8</button>
+                            <button class="key-btn" onclick="GameModule.pressKey('9')">9</button>
+                            <button class="key-btn" onclick="GameModule.pressKey('0')">0</button>
+                            <button class="key-btn backspace" onclick="GameModule.pressKey('⌫')">⌫</button>
+                        </div>
+
+                        <div style="font-size:13px; color:#A1887F; font-weight: 600; margin-top: 5px;">提示：此題模擬正確答案為 "50000"</div>
                     </div>
                     
                     <!-- 【狀態 B】卡片背面：原理說明畫面 -->
@@ -585,7 +651,7 @@
 
     <!-- 獨立開發專用：橘色測試遙控器 -->
     <div id="test-remote-panel">
-        <h3>測試遙控器 (步驟二翻轉驗證)</h3>
+        <h3>測試遙控器 (自製鍵盤驗證版)</h3>
         <div class="status-row">
             <span>連線狀態：已自動廣播</span>
             <div class="led-light"></div>
@@ -598,7 +664,7 @@
             <button class="remote-btn" onclick="GameModule.simulateReset()">重置生命值</button>
         </div>
         <div class="log-box" id="remote-log">
-            步驟二載入完畢。
+            優化自製鍵盤版就緒。
         </div>
     </div>
 
@@ -607,30 +673,28 @@
          ========================================================================== -->
     <script>
         const GameModule = {
-            // 設計稿基準解析度 (16:9)
             baseWidth: 1280,
             baseHeight: 720,
             
-            // 遊戲核心數據狀態
             currentLevel: 1,
             hearts: 3,
             combo: 0,
             isFlipped: false,
 
-            // 初始化入口
             init() {
                 this.setupRWD();
                 this.setupCommunication();
                 this.checkStandalone();
 
-                // 註冊 RWD 縮放監聽器
                 window.addEventListener('resize', () => this.setupRWD());
                 window.addEventListener('orientationchange', () => {
                     setTimeout(() => this.setupRWD(), 100);
                 });
+
+                // 預設將游標焦距定在 input 框
+                document.getElementById('player-input').focus();
             },
 
-            // 實作 RWD transform: scale 縮放機制
             setupRWD() {
                 const viewport = document.getElementById('game-viewport');
                 const windowWidth = window.innerWidth;
@@ -639,7 +703,6 @@
                 viewport.style.transform = `scale(${scale})`;
             },
 
-            // 雙向外發通訊
             setupCommunication() {
                 parent.postMessage({ type: 'GAME_READY', challengeId: 1 }, '*');
                 
@@ -653,16 +716,34 @@
                 });
             },
 
-            // 判斷是否為獨立開啟
             checkStandalone() {
                 if (window === top) {
                     document.getElementById('test-remote-panel').style.display = 'block';
                 }
             },
 
-            // ------------------ 【狀態 A <--> 狀態 B 翻轉邏輯】 ------------------
-            
-            // 翻轉到狀態 B（原理說明）
+            // ------------------ 【核心操作：自製鍵盤輸入事件處理】 ------------------
+            pressKey(keyValue) {
+                const inputEl = document.getElementById('player-input');
+                let currentVal = inputEl.value;
+
+                if (keyValue === 'C') {
+                    // 清除全部
+                    inputEl.value = '';
+                } else if (keyValue === '⌫') {
+                    // 退格刪除最後一個字
+                    inputEl.value = currentVal.substring(0, currentVal.length - 1);
+                } else {
+                    // 限制最大長度防止輸入破框 (理化單位轉換最長到 8 位數足矣)
+                    if (currentVal.length < 9) {
+                        inputEl.value = currentVal + keyValue;
+                    }
+                }
+                
+                // 每次按鍵維持聚焦狀態
+                inputEl.focus();
+            },
+
             flipToB(triggerType = 'hint') {
                 if (this.isFlipped) return;
                 
@@ -672,7 +753,6 @@
                 const highlightEl = document.getElementById('explanation-highlight');
                 const bodyEl = document.getElementById('explanation-body');
 
-                // 依據觸發來源，動態變更卡片背面的文字內容與來源標示
                 if (triggerType === 'hint') {
                     sourceEl.innerText = "💡 查看提示";
                     highlightEl.innerText = "長與寬各放大 100 倍！";
@@ -684,14 +764,13 @@
                 } else {
                     sourceEl.innerText = "⚙️ 測試面板調試";
                     highlightEl.innerText = "手動調試狀態 B 顯示";
-                    bodyEl.innerText = "目前為手動翻面測試，文字版型、間距、排版與 3D 旋轉均處於標準工作狀態。";
+                    bodyEl.innerText = "目前為手動翻面測試，自製鍵盤在翻轉時已完美隱藏。";
                 }
 
                 cardFlow.classList.add('flipped');
                 this.logToRemote(`卡片翻面：狀態 B (來源: ${triggerType})`);
             },
 
-            // 翻轉回狀態 A（解題畫面）
             flipToA() {
                 if (!this.isFlipped) return;
                 
@@ -699,7 +778,6 @@
                 const cardFlow = document.getElementById('main-card-flow');
                 cardFlow.classList.remove('flipped');
                 
-                // 自動聚焦輸入框，方便玩家直接重新作答
                 setTimeout(() => {
                     document.getElementById('player-input').focus();
                 }, 400);
@@ -707,9 +785,6 @@
                 this.logToRemote('卡片翻面：狀態 A (返回解題)');
             },
 
-            // ------------------ 【答題賽局邏輯驗證】 ------------------
-            
-            // 提交解答
             submitAnswer() {
                 const inputEl = document.getElementById('player-input');
                 const answer = inputEl.value.trim();
@@ -720,18 +795,16 @@
                     return;
                 }
 
-                // 步驟二模擬答案設為 "50000"
                 if (answer === "50000") {
                     this.handleCorrect();
                 } else {
                     this.handleIncorrect();
                 }
 
-                // 清空輸入框
+                // 答題後自動清空，方便下一題輸入
                 inputEl.value = "";
             },
 
-            // 處理答對狀況
             handleCorrect() {
                 this.combo++;
                 document.getElementById('display-combo').innerText = this.combo;
@@ -739,9 +812,8 @@
                 this.logToRemote(`答對了！當前 Combo 累計：${this.combo}`);
             },
 
-            // 處理答錯狀況
             handleIncorrect() {
-                this.combo = 0; // Combo 中斷歸零
+                this.combo = 0;
                 this.hearts = Math.max(0, this.hearts - 1);
                 
                 document.getElementById('display-combo').innerText = this.combo;
@@ -750,25 +822,18 @@
                 this.flashFrontEffect('error-shake');
                 this.logToRemote(`答錯了！扣除 1 點生命值，剩餘：${this.hearts}`);
 
-                // 答錯後延遲 0.8 秒自動翻轉至狀態 B 解析圖卡，引導學生思考
                 setTimeout(() => {
                     this.flipToB('incorrect');
                 }, 800);
             },
 
-            // 輔助方法：在卡片正面觸發動態特效（發光或震動）
             flashFrontEffect(effectClass) {
                 const frontFace = document.getElementById('card-front-face');
                 frontFace.classList.remove('correct-flash', 'error-shake');
-                
-                // 強制瀏覽器重繪 (Reflow) 以便再次觸發 CSS 動畫
                 void frontFace.offsetWidth; 
-                
                 frontFace.classList.add(effectClass);
             },
 
-            // ------------------ 【測試遙控器專用模擬方法】 ------------------
-            
             simulateCorrect() {
                 document.getElementById('player-input').value = "50000";
                 this.submitAnswer();
@@ -796,7 +861,6 @@
             }
         };
 
-        // 確保 DOM 載入完畢後開始執行
         window.addEventListener('DOMContentLoaded', () => {
             GameModule.init();
         });
