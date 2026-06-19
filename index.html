@@ -6,6 +6,7 @@
     <title>國二理化挑戰 - 獨立遊戲模組 (安全防禦高 Legibility 版)</title>
     <!-- 引入日系可愛圓體與英文 Fredoka 圓體 -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
         html, body {
             margin: 0;
@@ -1050,10 +1051,10 @@
     </div>
 
     <!-- 獨立開發調試面板：預設 display: none;，將透過彩蛋完全解鎖 -->
-    <div id="test-remote-panel">
+    <div id="test-remote-panel" style="pointer-events: auto !important;">
         <div class="panel-header">
             <h3 id="remote-panel-title">測試遙控器 (開發面板)</h3>
-            <button class="btn-toggle-remote" id="remote-toggle-btn" onclick="GameModule.toggleRemotePanel()">收合</button>
+            <button class="btn-toggle-remote" id="remote-toggle-btn" onclick="GameModule.toggleRemotePanel()" style="pointer-events: auto !important; cursor: pointer !important;">收合</button>
         </div>
         <div class="remote-content" id="remote-panel-content">
             <div class="status-row">
@@ -1624,7 +1625,7 @@
                             questionText = `${val} mm = ? &mu;m`;
                             correctAnswer = (val * 1000).toString();
                             explanationHighlight = "公厘(mm) 換算為 微米(&mu;m)";
-                            explanationText = `微觀長度世界中，mm、&mu;m、nm 每個階梯都是 1,000 倍。<br>1 mm = 1,000 &mu;m（微米）。所以大單位換小單位乘以 1,000。`;
+                            explanationText = `微觀長度 world 中，mm、&mu;m、nm 每個階梯都是 1,000 倍。<br>1 mm = 1,000 &mu;m（微米）。所以大單位換小單位乘以 1,000。`;
                             explanationFormula = `${val} × 1,000 = ${correctAnswer} &mu;m`;
                         } else if (type === 1) {
                             questionText = `${val} &mu;m = ? nm`;
@@ -1728,7 +1729,7 @@
                 };
             },
 
-            // ------------------ 【步驟四：互動式 SVG 動態生成引擎】 ------------------
+            // ------------------ 【動態 SVG 向量渲染】 ------------------
             renderStateBSVG() {
                 const container = document.getElementById('svg-container');
                 const lvl = this.currentLevel;
@@ -2050,6 +2051,15 @@
                 }, 400);
             },
 
+            proceedAfterResolution() {
+                if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
+                    this.triggerGameClear();
+                } else {
+                    this.questionsAnswered++;
+                    this.loadNewQuestion();
+                }
+            },
+
             handleIncorrect() {
                 this.combo = 0;
                 this.attemptsThisQuestion++;
@@ -2103,7 +2113,7 @@
                 ConfettiEngine.spawn();
 
                 document.getElementById('display-base-score').innerText = scoreResult.baseScore;
-                document.getElementById('display-bonus-score').innerText = scoreResult.bonusScore;
+                document.getElementById('display-bonus-score').innerText = scoreResult.comboBonusScore;
                 document.getElementById('result-score').innerText = scoreResult.finalScore;
 
                 document.getElementById('result-emoji').innerText = scoreResult.finalScore >= 60 ? "🏆" : "👍";
@@ -2125,7 +2135,7 @@
                 }
                 
                 this.switchView('result');
-                this.sendGameOverMessage(scoreResult.finalScore, isPerfect, scoreResult.bonusScore);
+                this.sendGameOverMessage(scoreResult.finalScore, isPerfect, scoreResult.comboBonusScore);
             },
 
             sendGameOverMessage(score, isPerfect, comboBonus) {
