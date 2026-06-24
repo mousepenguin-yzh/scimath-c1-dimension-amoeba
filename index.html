@@ -6,7 +6,6 @@
     <title>國二理化挑戰 - 獨立遊戲模組 (安全防禦高 Legibility 版)</title>
     <!-- 引入日系可愛圓體與英文 Fredoka 圓體 -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
-    
     <style>
         html, body {
             margin: 0;
@@ -63,6 +62,7 @@
             height: 100%;
             pointer-events: none;
             z-index: 99;
+            display: none; /* 【核心修復】：預設徹底隱藏，杜絕攔截觸控事件 */
         }
 
         /* 頂部資訊區 */
@@ -280,8 +280,8 @@
         }
 
         /* ==========================================================================
-           【3D 雙面字卡流】外層
-           ========================================================================== */
+           【3D 雙面字卡流與觸控解耦機制】
+           ========================================================================= */
         #game-viewport .center-card-flow {
             width: 90%;
             height: 440px; /* 【手機優化】：微調高度，給鍵盤與頂列更多寬鬆度 */
@@ -300,10 +300,6 @@
             transform-style: preserve-3d;
         }
 
-        #game-viewport .center-card-flow.flipped .flip-card-inner {
-            transform: rotateY(180deg);
-        }
-
         #game-viewport .card-face {
             position: absolute;
             width: 100%;
@@ -318,12 +314,39 @@
             align-items: center;
         }
 
-        /* ------------------ 【狀態 A】正面：解題畫面 ------------------ */
+        /* 【核心修復】：預設狀態正面啟用，背面徹底離線，不搶奪點擊 */
         #game-viewport .card-front {
             background: #FFFFFF;
             border: 4px solid #FFDAC1;
             box-shadow: 0 12px 0 #FCD1B4, 0 16px 30px rgba(0, 0, 0, 0.05);
             transform: rotateY(0deg);
+            pointer-events: auto !important;
+            visibility: visible !important;
+        }
+
+        #game-viewport .card-back {
+            background: #FFFFFF;
+            border: 4px solid #B5EAD7;
+            box-shadow: 0 12px 0 #92D3BC, 0 16px 30px rgba(0, 0, 0, 0.05);
+            transform: rotateY(180deg);
+            padding: 12px 30px;
+            pointer-events: none !important;
+            visibility: hidden !important;
+        }
+
+        /* 【核心修復】：3D 翻轉與 iOS 2D 觸控平面重合技術 (一舉攻克 iOS Safari WebKit 3D Hit-test 穿透 Bug！)
+           當卡片翻轉（.flipped）時，正面卡片徹底在 DOM 樹中 display: none 排除，背部強制轉為標準 2D 平面 (rotateY 0度) 迎客 */
+        #game-viewport .center-card-flow.flipped .card-front {
+            display: none !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
+        }
+
+        #game-viewport .center-card-flow.flipped .card-back {
+            transform: rotateY(0deg) !important; /* 強制重歸 2D 平面坐標，避免雙重 3D 旋轉坐標被 WebKit 拋棄 */
+            backface-visibility: visible !important;
+            pointer-events: auto !important;
+            visibility: visible !important;
         }
 
         #game-viewport .card-front.correct-flash {
@@ -414,14 +437,16 @@
             box-shadow: 0 2px 0 #F5C68A;
         }
 
-        /* 【核心修復】：答對時彈出的「下一題」覆蓋層 (解耦移出 3D 容器，改為平鋪 2D 置頂，完美防觸控阻斷) */
+        /* ==========================================================================
+           【下一題 2D 置頂覆蓋層】
+           ========================================================================= */
         #game-viewport .next-question-overlay {
             position: absolute;
             top: 110px; /* 精準重合 .center-card-flow 的 Y 座標 */
             left: 5%;   /* 與 .center-card-flow 同步寬度比例 90% */
             width: 90%;
             height: 440px; /* 與 .center-card-flow 高度完全一致 */
-            background-color: rgba(255, 255, 255, 0.96);
+            background-color: rgba(255, 255, 255, 0.98);
             border-radius: 32px;
             border: 4px solid #B5EAD7; /* 醒目的馬卡龍薄荷綠外邊框 */
             box-shadow: 0 12px 0 #92D3BC, 0 16px 30px rgba(0, 0, 0, 0.05);
@@ -429,9 +454,10 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 150; /* 設在 3D 渲染樹與 Confetti 畫布之上，確保 100% 可觸控 */
+            z-index: 999 !important; /* 確保超越所有 Stacking Context，在最上層完美接收點擊事件 */
             box-sizing: border-box;
             padding: 30px;
+            pointer-events: auto !important; /* 確保在任何瀏覽器下都享有 100% 點擊響應 */
             animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -461,9 +487,27 @@
             cursor: pointer;
             box-shadow: 0 6px 0 #92D3BC;
             transition: all 0.1s ease;
+            pointer-events: auto !important;
         }
 
-        /* 自製果凍鍵盤按鍵極大化 */
+        /* 【終極修復】：當覆蓋層啟用時，直接動態隱藏（visibility: hidden）背景一切 3D 卡片與自製鍵盤，
+           這會將它們從瀏覽器的 hit-test 觸控分配樹中徹底排除，零干擾，保證「挑戰下一題」一按即靈！ */
+        #game-viewport.success-active .center-card-flow,
+        #game-viewport.success-active .custom-keyboard {
+            visibility: hidden !important;
+            pointer-events: none !important;
+            opacity: 0 !important;
+        }
+
+        #game-viewport.result-active .center-card-flow,
+        #game-viewport.result-active .custom-keyboard,
+        #game-viewport.result-active .header-bar {
+            visibility: hidden !important;
+            pointer-events: none !important;
+            opacity: 0 !important;
+        }
+
+        /* 自製果凍鍵盤 */
         #game-viewport .custom-keyboard {
             display: none;
             grid-template-columns: repeat(6, 1fr);
@@ -511,15 +555,7 @@
             font-weight: 700;
         }
 
-        /* ------------------ 【狀態 B】背面：原理說明畫面 ------------------ */
-        #game-viewport .card-back {
-            background: #FFFFFF;
-            border: 4px solid #B5EAD7;
-            box-shadow: 0 12px 0 #92D3BC, 0 16px 30px rgba(0, 0, 0, 0.05);
-            transform: rotateY(180deg);
-            padding: 12px 30px;
-        }
-
+        /* ------------------ 背面：原理說明文字大字化 ------------------ */
         #game-viewport .back-header {
             width: 100%;
             display: flex;
@@ -631,7 +667,7 @@
         }
 
         /* ==========================================================================
-           【狀態 C】終局狀態結算覆蓋層
+           【狀態 C】終局狀態結算覆蓋層 (全螢幕覆蓋)
            ========================================================================== */
         #game-viewport .game-result-overlay {
             position: absolute;
@@ -645,10 +681,11 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 9999 !important; /* 置於最上層 */
             padding: 30px;
             box-sizing: border-box;
             text-align: center;
+            pointer-events: auto !important;
         }
 
         #game-viewport .result-emoji {
@@ -727,6 +764,7 @@
             cursor: pointer;
             box-shadow: 0 6px 0 #92D3BC;
             transition: all 0.1s ease;
+            pointer-events: auto !important;
         }
 
         #game-viewport .footer-tag {
@@ -738,10 +776,12 @@
         }
 
         /* ==========================================================================
-           【右下角橘色測試遙控器 - 彩蛋優雅隱藏】
+           【右下角橘色測試遙控器 - 彩蛋優雅隱藏，特大 Z-Index 確保事件響應】
            ========================================================================== */
-        #test-remote-panel {
-            position: fixed;
+        #game-viewport #test-remote-panel {
+            /* 【終極修復】：將遙控器面板從 window 頂層移入 #game-viewport 內部，
+               這能保證遙控器與遊戲介面共享同一個 3D Stacking Context，徹底根治 iOS/WebKit 實體觸控穿透 Bug！ */
+            position: absolute; 
             bottom: 15px;
             right: 15px;
             width: 290px;
@@ -751,13 +791,17 @@
             border-radius: 20px;
             padding: 12px;
             box-sizing: border-box;
-            z-index: 10000; /* 高於所有 viewport 層，確保在任何模式下均有極高的事件響應權限 */
+            z-index: 9999999 !important; /* 強制置於 viewport 最上層 */
             color: #FFFFFF;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             display: none; /* 【步驟三】：預設徹底隱藏，杜絕正式生產環境洩漏 */
+            pointer-events: auto !important; /* 確保 100% 電子擊發觸控 */
+        }
+        #game-viewport #test-remote-panel * {
+            pointer-events: auto !important; /* 強制內部所有按鈕享有頂級觸控捕獲權 */
         }
 
-        #test-remote-panel .panel-header {
+        #game-viewport #test-remote-panel .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -766,29 +810,30 @@
             margin-bottom: 8px;
         }
 
-        #test-remote-panel h3 {
+        #game-viewport #test-remote-panel h3 {
             margin: 0;
             font-size: 15px;
             letter-spacing: 1px;
             font-weight: 700;
         }
 
-        #test-remote-panel .btn-toggle-remote {
+        #game-viewport #test-remote-panel .btn-toggle-remote {
             background-color: #FFFFFF;
             color: #E65100;
             border: none;
-            padding: 4px 8px;
+            padding: 6px 12px; /* 增大按鈕熱區，更好按 */
             border-radius: 6px;
             font-weight: 700;
-            font-size: 11px;
+            font-size: 13px;
             cursor: pointer;
+            pointer-events: auto !important;
         }
 
-        #test-remote-panel .remote-content {
+        #game-viewport #test-remote-panel .remote-content {
             display: block;
         }
 
-        #test-remote-panel .status-row {
+        #game-viewport #test-remote-panel .status-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -800,7 +845,7 @@
             font-weight: 600;
         }
 
-        #test-remote-panel .led-light {
+        #game-viewport #test-remote-panel .led-light {
             display: inline-block;
             width: 12px;
             height: 12px;
@@ -809,14 +854,14 @@
             box-shadow: 0 0 10px #69F0AE;
         }
 
-        #test-remote-panel .btn-grid {
+        #game-viewport #test-remote-panel .btn-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 6px;
             margin-bottom: 8px;
         }
 
-        #test-remote-panel .remote-btn {
+        #game-viewport #test-remote-panel .remote-btn {
             background-color: #FFF;
             color: #E65100;
             border: none;
@@ -829,12 +874,12 @@
             transition: all 0.1s;
         }
 
-        #test-remote-panel .remote-btn:active {
+        #game-viewport #test-remote-panel .remote-btn:active {
             transform: translateY(3px);
             box-shadow: none;
         }
 
-        #test-remote-panel .log-box {
+        #game-viewport #test-remote-panel .log-box {
             background: rgba(0,0,0,0.3);
             border-radius: 8px;
             padding: 8px;
@@ -852,13 +897,14 @@
         
         <div id="game-viewport">
             
+            <!-- Confetti 噴發畫布，在 CSS 中預設設為 display: none 以防止攔截 tap 事件 -->
             <canvas id="confetti-canvas"></canvas>
 
             <!-- ==========================================================================
                【主選單檢視區 (State M)】
                ========================================================================== -->
             <div class="menu-view-container" id="menu-view">
-                <h1 class="menu-title" id="secret-title-click">空間維度與單位變形蟲</h1>
+                <h1 class="menu-title" id="secret-title-click" style="cursor: pointer;">空間維度與單位變形蟲</h1>
                 <p class="menu-subtitle">歡迎來到維度物理訓練大廳！請自由挑選以下關卡進行 10 題精準實戰訓練。每題皆有 3 次機會，連對（Combo）還能獲得額外 Bonus 補償分喔！</p>
                 
                 <div class="level-grid">
@@ -906,7 +952,7 @@
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <!-- 【大字優化】：新增退出挑戰按鈕 -->
                     <button class="btn-exit-game" id="btn-exit-game" onclick="GameModule.exitToMenu()">🚪 退出挑戰</button>
-                    <div class="level-badge" id="level-badge-container">
+                    <div class="level-badge" id="level-badge-container" style="cursor: pointer;">
                         <span>🏆</span>
                         <span id="display-level">挑戰關卡：LV.1</span>
                     </div>
@@ -978,7 +1024,7 @@
                 </div>
             </div>
 
-            <!-- 【核心修復】：答對時彈出的「下一題」覆蓋層 (解耦移出 3D 容器，改為平鋪 2D 置頂，完美防觸控阻斷) -->
+            <!-- 【核心修復】：答對時彈出的「下一題」覆蓋層，完全解耦出 3D 卡片結構，平鋪在最頂層，享受絕對事件捕捉優先權 -->
             <div class="next-question-overlay" id="success-overlay">
                 <div class="overlay-title" id="success-overlay-title">🎉 答對了！太厲害了</div>
                 <div class="overlay-desc" id="success-overlay-desc">完美完成此次空間維度轉換！</div>
@@ -1036,6 +1082,31 @@
                 SPACE DIMENSION & UNIT CHALLENGE v1.0
             </div>
 
+            <!-- 獨立開發調試面板：預設 display: none;，將透過彩蛋完全解鎖 -->
+            <div id="test-remote-panel">
+                <div class="panel-header">
+                    <h3 id="remote-panel-title">測試遙控器 (開發面板)</h3>
+                    <button class="btn-toggle-remote" id="remote-toggle-btn" onclick="GameModule.toggleRemotePanel()">收合</button>
+                </div>
+                <div class="remote-content" id="remote-panel-content">
+                    <div class="status-row">
+                        <span>連線狀態：已廣播 Ready</span>
+                        <div class="led-light"></div>
+                    </div>
+                    <div class="btn-grid">
+                        <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(1)">LV.1 (模擬 Iframe)</button>
+                        <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(2)">LV.2 (模擬 Iframe)</button>
+                        <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(3)">LV.3 (模擬 Iframe)</button>
+                        <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(4)">LV.4 (模擬 Iframe)</button>
+                        <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(5)">LV.5 (模擬 Iframe)</button>
+                        <button class="remote-btn" style="background-color: #E65100; color:#fff;" onclick="GameModule.loadNewQuestion()">隨機換一題</button>
+                    </div>
+                    <div class="log-box" id="remote-log">
+                        測試面板已載入。在 Iframe 中可點擊彩蛋區 5 次召喚。
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -1048,31 +1119,6 @@
         </div>
         <h2>請旋轉螢幕以獲得最佳遊戲體驗</h2>
         <p>本挑戰賽專為橫螢幕大字卡模式設計</p>
-    </div>
-
-    <!-- 獨立開發調試面板：預設 display: none;，將透過彩蛋完全解鎖 -->
-    <div id="test-remote-panel" style="pointer-events: auto !important;">
-        <div class="panel-header">
-            <h3 id="remote-panel-title">測試遙控器 (開發面板)</h3>
-            <button class="btn-toggle-remote" id="remote-toggle-btn" onclick="GameModule.toggleRemotePanel()" style="pointer-events: auto !important; cursor: pointer !important;">收合</button>
-        </div>
-        <div class="remote-content" id="remote-panel-content">
-            <div class="status-row">
-                <span>連線狀態：已廣播 Ready</span>
-                <div class="led-light"></div>
-            </div>
-            <div class="btn-grid">
-                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(1)">LV.1 (模擬 Iframe)</button>
-                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(2)">LV.2 (模擬 Iframe)</button>
-                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(3)">LV.3 (模擬 Iframe)</button>
-                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(4)">LV.4 (模擬 Iframe)</button>
-                <button class="remote-btn" onclick="GameModule.changeLevelAndRestart(5)">LV.5 (模擬 Iframe)</button>
-                <button class="remote-btn" style="background-color: #E65100; color:#fff;" onclick="GameModule.loadNewQuestion()">隨機換一題</button>
-            </div>
-            <div class="log-box" id="remote-log">
-                測試面板已載入。在 Iframe 中可點擊彩蛋區 5 次召喚。
-            </div>
-        </div>
     </div>
 
     <script>
@@ -1125,6 +1171,8 @@
             },
             
             spawn() {
+                // 動態開啟 Canvas 顯示，避免平時干擾點擊
+                this.canvas.style.display = 'block';
                 this.particles = [];
                 const colors = ['#FFB7B2', '#FFDAC1', '#FFE0B2', '#B5EAD7', '#C7CEEA', '#E8D7FF', '#FF9E96', '#92D3BC'];
                 for (let i = 0; i < 90; i++) {
@@ -1150,6 +1198,7 @@
                 if (this.particles.length === 0) {
                     this.active = false;
                     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.canvas.style.display = 'none'; // 動態隱藏 Canvas，徹底交還行動端點擊權限
                     return;
                 }
                 
@@ -1359,7 +1408,11 @@
 
             // 狀態機：視覺檢視切換控制
             switchView(viewName) {
-                // views: 'menu', 'iframe-waiting', 'gameplay', 'result'
+                const vp = document.getElementById('game-viewport');
+                
+                // 【核心修復】：每次切換檢視時，完全移去所有覆蓋狀態類別，重置觸控沙盒
+                vp.classList.remove('success-active', 'result-active');
+                
                 document.getElementById('menu-view').style.display = viewName === 'menu' ? 'flex' : 'none';
                 document.getElementById('iframe-waiting-view').style.display = viewName === 'iframe-waiting' ? 'flex' : 'none';
                 document.getElementById('main-card-flow').style.display = viewName === 'gameplay' ? 'block' : 'none';
@@ -1369,6 +1422,10 @@
                 
                 // 每次切換檢視時，確保「下一題覆蓋層」安全隱藏
                 document.getElementById('success-overlay').style.display = 'none';
+                
+                if (viewName === 'result') {
+                    vp.classList.add('result-active');
+                }
             },
 
             // 判定初始顯示 View
@@ -1391,7 +1448,7 @@
                 window.addEventListener('message', (event) => {
                     const data = event.data;
                     if (data && data.type === 'START_GAME') {
-                        this.logToRemote(`接收外部 Iframe 指令: 切換並啟動關卡 LV.${data.config.level}`);
+                        this.logToRemote(`接收外部 Iframe 指令: 開啟關卡 LV.${data.config.level}`);
                         // 收到父指令，強制跳過選單，進入指定關卡，開啟 5 題 Iframe 賽局
                         this.startSession(data.config.level, true);
                     }
@@ -1572,7 +1629,7 @@
                             questionText = `${val} L = ? cm<sup>3</sup>`;
                             correctAnswer = (val * 1000).toString();
                             explanationHighlight = "公升(L) 與 立方公分(cm³) 的橋樑！";
-                            explanationText = `記憶黃金鏈接：<b>1 mL = 1 cm<sup>3</sup>（毫升與立方公分完全相等）</b>。<br>因為 1 L = 1,000 mL，所以 1 L 也就等於 1,000 cm<sup>3</sup>。`;
+                            explanationText = `記憶黃金鏈接：<b>1 mL = 1 cm<sup>3</sup>（毫升與立方公分完全相等）</b>。<br>因為 1 L = 1,000 mL，而 1 L 也就等於 1,000 cm<sup>3</sup>。`;
                             explanationFormula = `${val} × 1,000 = ${correctAnswer} cm<sup>3</sup>`;
                         } else if (type === 1) {
                             const vals = [500, 1000, 1500, 2000, 3000, 5000];
@@ -1612,7 +1669,7 @@
                             correctAnswer = (val * 1000000).toString();
                             explanationHighlight = "立方米(m³) 跨級直通 毫升(mL)！";
                             explanationText = `因為 1 m<sup>3</sup> = 1,000 L，而 1 L = 1,000 mL。<br>so 連續跨步得到：1 m<sup>3</sup> = 1,000 × 1,000 = 1,000,000 mL（一百萬倍）。`;
-                            explanationFormula = `${val} × 1,000,000 = ${correctAnswer} mL`;
+                            explanationFormula = `${val} × 1,000000 = ${correctAnswer} mL`;
                         }
                         break;
                     }
@@ -1674,7 +1731,7 @@
                                 correctAnswer = item.kg.toString();
                                 explanationHighlight = "密度換算：分子與分母獨立拆開！";
                                 explanationText = `<b>g/cm<sup>3</sup> 換算為 kg/m<sup>3</sup> 時，數值會放大 1,000 倍。</b><br>
-                                拆解原理分析：<br>
+                                拆解原理 analysis：<br>
                                 分子: 1 g = 0.001 kg<br>
                                 分母: 1 cm<sup>3</sup> = 0.000001 m<sup>3</sup><br>
                                 相除得到: 0.001 ÷ 0.000001 = 1,000 倍。`;
@@ -1729,7 +1786,7 @@
                 };
             },
 
-            // ------------------ 【動態 SVG 向量渲染】 ------------------
+            // ------------------ 【步驟四核心：互動式 SVG 動態生成引擎】 ------------------
             renderStateBSVG() {
                 const container = document.getElementById('svg-container');
                 const lvl = this.currentLevel;
@@ -1747,7 +1804,7 @@
                         <text x="165" y="38" font-size="16" fill="#8D6E63" text-anchor="middle" font-weight="700">長與寬各放大 100 倍</text>
                         
                         <rect x="230" y="15" width="105" height="80" rx="12" fill="#E8D7FF" stroke="#D1B3FF" stroke-width="4" />
-                        <text x="282.5" y="48" font-size="15" fill="#5D4037" text-anchor="middle" font-weight="700">100cm×100cm</text>
+                        <text x="282.5" y="48" font-size="15" fill="#5D4037" text-anchor="middle" font-weight="700">100cm × 100cm</text>
                         <text x="282.5" y="74" font-family="Fredoka" font-size="18" fill="#5E35B1" text-anchor="middle" font-weight="bold">= 10,000 cm²</text>
                     </svg>`;
                 } else if (lvl === 2) {
@@ -2047,17 +2104,11 @@
                                             ${addedBonus > 0 ? `<span style="color:#673AB7; font-weight:700;">連擊加分累積中 (+${addedBonus}分)！</span>` : ''}`;
                         nextBtn.innerHTML = `挑戰下一題 ➔`;
                     }
+                    
+                    // 【核心修復】：當覆蓋層啟用時，為 viewport 加上 class，100% 阻斷背景一切 3D 元件對觸控事件的攔截
+                    document.getElementById('game-viewport').classList.add('success-active');
                     document.getElementById('success-overlay').style.display = 'flex';
                 }, 400);
-            },
-
-            proceedAfterResolution() {
-                if (this.questionsAnswered + 1 === this.totalQuestionsInSession) {
-                    this.triggerGameClear();
-                } else {
-                    this.questionsAnswered++;
-                    this.loadNewQuestion();
-                }
             },
 
             handleIncorrect() {
@@ -2091,7 +2142,7 @@
             },
 
             // ==========================================================================
-            // 【步驟二：SafeStorage 本地歷史紀錄寫入】
+            // 【步驟二：LocalStorage 本地歷史紀錄寫入】
             // ==========================================================================
             triggerGameClear() {
                 const scoreResult = this.calculateFinalScore();
@@ -2112,8 +2163,9 @@
                 SoundEngine.playClear();
                 ConfettiEngine.spawn();
 
+                // 【核心修復】：修正原本 scoreResult.comboBonusScore 的變數讀取錯誤（正確應為 scoreResult.bonusScore）
                 document.getElementById('display-base-score').innerText = scoreResult.baseScore;
-                document.getElementById('display-bonus-score').innerText = scoreResult.comboBonusScore;
+                document.getElementById('display-bonus-score').innerText = scoreResult.bonusScore;
                 document.getElementById('result-score').innerText = scoreResult.finalScore;
 
                 document.getElementById('result-emoji').innerText = scoreResult.finalScore >= 60 ? "🏆" : "👍";
@@ -2135,7 +2187,7 @@
                 }
                 
                 this.switchView('result');
-                this.sendGameOverMessage(scoreResult.finalScore, isPerfect, scoreResult.comboBonusScore);
+                this.sendGameOverMessage(scoreResult.finalScore, isPerfect, scoreResult.bonusScore);
             },
 
             sendGameOverMessage(score, isPerfect, comboBonus) {
