@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -2220,6 +2221,112 @@
                     const time = new Date().toLocaleTimeString();
                     logBox.innerHTML = `[${time}] ${message}<br>` + logBox.innerHTML;
                 }
+            },
+
+            // ==========================================================================
+            // 【補全缺失函數】
+            // ==========================================================================
+
+            // 1. 正面測試解答開關
+            toggleCheatView() {
+                const revealEl = document.getElementById('cheat-reveal');
+                const clickerEl = document.getElementById('cheat-clicker');
+                if (!revealEl || !clickerEl) return;
+
+                if (revealEl.style.display === 'none' || revealEl.style.display === '') {
+                    revealEl.innerHTML = this.currentQuestion.correctAnswer;
+                    revealEl.style.display = 'inline-block';
+                    clickerEl.innerText = '[ 隱藏解答 ]';
+                } else {
+                    revealEl.style.display = 'none';
+                    clickerEl.innerText = '[ 點擊查看測試解答 ]';
+                }
+            },
+
+            // 2. 提示頁面點擊看解答算式
+            toggleBackFormula() {
+                const revealEl = document.getElementById('back-formula-reveal');
+                const clickerEl = document.getElementById('back-formula-clicker');
+                if (!revealEl || !clickerEl) return;
+
+                if (revealEl.style.display === 'none' || revealEl.style.display === '') {
+                    revealEl.innerHTML = this.currentQuestion.explanationFormula;
+                    revealEl.style.display = 'block';
+                    clickerEl.innerText = '[ 隱藏解答算式 ]';
+                } else {
+                    revealEl.style.display = 'none';
+                    clickerEl.innerText = '[ 點擊看解答算式 ]';
+                }
+            },
+
+            // 3. 提示頁面返回挑戰、我再想想按鈕
+            handleBackAction() {
+                // 如果本題已經用完 3 次機會
+                if (this.attemptsThisQuestion >= 3 || this.hearts === 0) {
+                    this.questionsAnswered++;
+                    if (this.questionsAnswered >= this.totalQuestionsInSession) {
+                        this.triggerGameClear();
+                    } else {
+                        this.loadNewQuestion();
+                    }
+                } else {
+                    // 還沒用完 3 次機會，翻回正面並為學生清空與聚焦輸入框，提升 UX 體驗
+                    this.flipToA();
+                    const inputEl = document.getElementById('player-input');
+                    if (inputEl) {
+                        inputEl.value = "";
+                        inputEl.focus();
+                    }
+                }
+            },
+
+            // 4. 答對題目後點擊下一題按鈕
+            proceedAfterResolution() {
+                this.questionsAnswered++;
+                
+                // 解除 viewport 的 success-active 阻斷狀態
+                document.getElementById('game-viewport').classList.remove('success-active');
+                
+                if (this.questionsAnswered >= this.totalQuestionsInSession) {
+                    this.triggerGameClear();
+                } else {
+                    this.loadNewQuestion();
+                }
+            },
+
+            // 5. 測試遙控器收合功能
+            toggleRemotePanel() {
+                const contentEl = document.getElementById('remote-panel-content');
+                const btnEl = document.getElementById('remote-toggle-btn');
+                if (!contentEl || !btnEl) return;
+
+                this.isRemoteMinimized = !this.isRemoteMinimized;
+                if (this.isRemoteMinimized) {
+                    contentEl.style.display = 'none';
+                    btnEl.innerText = '展開';
+                } else {
+                    contentEl.style.display = 'block';
+                    btnEl.innerText = '收合';
+                }
+            },
+
+            // 6. 遊戲結束分數計算
+            calculateFinalScore() {
+                let baseScore = this.levelScores.reduce((sum, score) => sum + score, 0);
+                let bonusScore = this.comboBonusScore;
+                
+                // 由於單機模式為 10 題（總基礎分最高 200 分），為使總分限制於 100 分上限，分數在此折半
+                if (!this.isIframeMode) {
+                    baseScore = Math.round(baseScore / 2);
+                    bonusScore = Math.round(bonusScore / 2);
+                }
+                
+                const finalScore = Math.min(100, baseScore + bonusScore);
+                return {
+                    baseScore: baseScore,
+                    bonusScore: bonusScore,
+                    finalScore: finalScore
+                };
             }
         };
 
@@ -2229,3 +2336,4 @@
     </script>
 </body>
 </html>
+```
