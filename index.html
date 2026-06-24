@@ -1457,9 +1457,10 @@
             },
 
             checkStandalone() {
-                if (window === top) {
-                    document.getElementById('test-remote-panel').style.display = 'block';
-                }
+                // 將原本 window === top 自動顯示 block 的邏輯移除
+                // 這樣無論是單機執行還是 Iframe 嵌入，預設都是一個乾淨、無調試面板的完整遊戲。
+                // 當你需要調試時，點擊主選單標題「空間維度與單位變形蟲」或頁尾 5 次，即可隨時召喚遙控器！
+                this.logToRemote("獨立執行模式已啟動。調試遙控器已隱藏，可連點彩蛋區 5 次召喚。");
             },
 
             // ==========================================================================
